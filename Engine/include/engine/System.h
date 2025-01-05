@@ -8,72 +8,61 @@ namespace coopscoop
 	namespace engine
 	{
 		/// <summary>
-		/// Base class for all subsystems within the engine, providing a common interface 
+		/// Base class for all systems within the engine, providing a common interface 
 		/// for initialization, destruction, and readiness checking.
 		/// </summary>
 		class System
 		{
 		public:
 			/// <summary>
-			/// Initializes the subsystem, setting up necessary resources.
+			/// Initializes the system, setting up necessary resources.
 			/// </summary>
 			/// <returns>True if the initialization was successful, otherwise false.</returns>
 			virtual bool Initialize();
 
 			/// <summary>
-			/// Destroys the subsystem, releasing resources and performing necessary cleanup.
+			/// Destroys the system, releasing resources and performing necessary cleanup.
 			/// </summary>
 			/// <returns>True if the destruction was successful, otherwise false.</returns>
 			virtual bool Destroy();
 
 			/// <summary>
-			/// Checks whether the subsystem is ready for use.
+			/// Checks whether the system is ready for use.
 			/// </summary>
-			/// <returns>True if the subsystem is ready, otherwise false.</returns>
+			/// <returns>True if the system is ready, otherwise false.</returns>
 			bool Ready() const;
 		protected:
-			bool m_Ready = false; /// Flag indicating whether the subsystem is ready.
+			std::atomic<bool> m_Ready{ false }; /// Flag indicating whether the system is ready.
 		};
 
 		/// <summary>
-		/// Base class for all subsystems within the engine, providing a common interface 
+		/// Base class for all threaded systems within the engine, providing a common interface 
 		/// for initialization, destruction, and readiness checking.
-		/// Added functionality for initializing on a separate thread.
 		/// </summary>
-		class ThreadedSystem
+		class ThreadedSystem : public System
 		{
 		public:
 			/// <summary>
-			/// Initializes the subsystem, setting up necessary resources.
+			/// Initializes the system, setting up necessary resources.
 			/// </summary>
 			/// <returns>True if the initialization was successful, otherwise false.</returns>
 			virtual bool Initialize();
 
 			/// <summary>
-			/// Destroys the subsystem, releasing resources and performing necessary cleanup.
+			/// Signals the thread to stop.
 			/// </summary>
-			/// <returns>True if the destruction was successful, otherwise false.</returns>
-			virtual void Stop();
+			bool Destroy() override;
 
 			/// <summary>
 			/// Loop method for the thread.
 			/// </summary>
-			virtual void Loop();
-
-			/// <summary>
-			/// Checks whether the subsystem is ready for use.
-			/// </summary>
-			/// <returns>True if the subsystem is ready, otherwise false.</returns>
-			bool Ready() const
-			{
-				return m_Ready.load();
-			}
+			virtual void Loop() = 0;
 		protected:
 			/// <summary>
-			/// Destroys the subsystem, releasing resources and performing necessary cleanup.
+			/// Destroys the system, releasing resources and performing necessary cleanup.
 			/// </summary>
 			/// <returns>True if the destruction was successful, otherwise false.</returns>
-			virtual void Destroy();
+			virtual void Finalize();
 
 			/// <summary>
 			/// Initializes the thread.
@@ -81,13 +70,12 @@ namespace coopscoop
 			/// <returns>True if the initialization was successful, otherwise false.</returns>
 			virtual bool InitializeThread();
 
-			bool m_Stop = false;
+			std::atomic<bool> m_Stop{ false }; /// Flag indicating whether the system needs to be destroyed.
 
 			std::thread m_Thread; /// The thread.
-			std::atomic<bool> m_Ready{ false }; /// Flag indicating whether the subsystem is ready.
 
-			std::mutex m_ReadyMutex;
-			std::condition_variable m_ReadyCondVar;
+			std::mutex m_ReadyMutex; /// The mutex used for synchronization between the threads for stopping or initializing.
+			std::condition_variable m_ReadyCondVar; /// The condition var used for synchronization between the threads for stopping or initializing.
 		};
 	}
 }

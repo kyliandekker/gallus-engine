@@ -27,7 +27,8 @@ namespace coopscoop
 		{
 			LOG(LOGSEVERITY_INFO, CATEGORY_ENGINE, "Destroying engine.");
 
-			logger::LOGGER.Stop();
+			// Destroy the logger last so we can see possible error messages from other systems.
+			logger::LOGGER.Destroy();
 
 			return System::Destroy();
 		}

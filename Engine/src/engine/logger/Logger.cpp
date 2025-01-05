@@ -16,38 +16,13 @@ namespace coopscoop
 	{
 		namespace logger
 		{
-			constexpr auto COLOR_YELLOW = "\033[0;33m";
-			constexpr auto COLOR_WHITE = "\033[0;37m";
-			constexpr auto COLOR_GREEN = "\033[0;32m";
-			constexpr auto COLOR_RED = "\033[31m";
-			constexpr auto COLOR_CYAN = "\033[0;36m";
-			constexpr auto COLOR_PURPLE = "\033[0;35m";
-			constexpr auto COLOR_BLUE = "\033[0;34m";
-			constexpr auto COLOR_PINK = "\033[1;35m";
+			/*
+				* Logger Message
+			*/
 
-			std::string LOGGER_SEVERITY_COLOR[7] =
-			{
-				COLOR_RED,
-				COLOR_RED,
-				COLOR_YELLOW,
-				COLOR_CYAN,
-				COLOR_GREEN,
-				COLOR_BLUE,
-				COLOR_PINK,
-			};
+#pragma endregion LOGGER_MESSAGE
 
-			std::string LOGGER_SEVERITY_TEXT[7] =
-			{
-				"ASSERT",
-				"ERROR",
-				"WARNING",
-				"INFO",
-				"SUCCESS",
-				"INFO SUCCESS",
-				"AWESOME",
-			};
-
-			Message::Message(const std::string& a_RawMessage, const std::string& a_Category, const std::string& a_Location, LogSeverity a_Severity, const std::chrono::system_clock::time_point& a_Time) :
+			LoggerMessage::LoggerMessage(const std::string& a_RawMessage, const std::string& a_Category, const std::string& a_Location, LogSeverity a_Severity, const std::chrono::system_clock::time_point& a_Time) :
 				m_RawMessage(a_RawMessage),
 				m_Category(a_Category),
 				m_Location(a_Location),
@@ -55,37 +30,44 @@ namespace coopscoop
 				m_Time(a_Time)
 			{ }
 
-			const std::string& Message::GetRawMessage() const
+			const std::string& LoggerMessage::GetRawMessage() const
 			{
 				return m_RawMessage;
 			}
 
-			const std::string& Message::GetLocation() const
+			const std::string& LoggerMessage::GetLocation() const
 			{
 				return m_Location;
 			}
 
-			const std::string& Message::GetCategory() const
+			const std::string& LoggerMessage::GetCategory() const
 			{
 				return m_Category;
 			}
 
-			LogSeverity Message::GetSeverity() const
+			LogSeverity LoggerMessage::GetSeverity() const
 			{
 				return m_Severity;
 			}
 
-			const std::chrono::system_clock::time_point& Message::GetTime() const
+			const std::chrono::system_clock::time_point& LoggerMessage::GetTime() const
 			{
 				return m_Time;
 			}
 
+#pragma endregion LOGGER_MESSAGE
+
+			/*
+				* Logger
+			*/
+
+#pragma endregion LOGGER
 
 			FILE* console = nullptr;
 			bool Logger::InitializeThread()
 			{
+				// Terminal/Console initialization for debug builds.
 #ifdef _DEBUG
-				// Console initialization
 				AllocConsole();
 				freopen_s(&console, "CONOUT$", "w", stdout);
 
@@ -101,7 +83,7 @@ namespace coopscoop
 				return ThreadedSystem::InitializeThread();
 			}
 
-			void Logger::Destroy()
+			void Logger::Finalize()
 			{
 #ifdef _DEBUG
 				if (console)
@@ -110,22 +92,47 @@ namespace coopscoop
 				}
 #endif
 
-				ThreadedSystem::Destroy();
+				ThreadedSystem::Finalize();
 			}
+
+			// Colors for console.
+			constexpr auto COLOR_YELLOW = "\033[0;33m";
+			constexpr auto COLOR_WHITE = "\033[0;37m";
+			constexpr auto COLOR_GREEN = "\033[0;32m";
+			constexpr auto COLOR_RED = "\033[31m";
+			constexpr auto COLOR_CYAN = "\033[0;36m";
+			constexpr auto COLOR_PURPLE = "\033[0;35m";
+			constexpr auto COLOR_BLUE = "\033[0;34m";
+			constexpr auto COLOR_PINK = "\033[1;35m";
+
+			// Colors for the different severity levels.
+			std::string LOGGER_SEVERITY_COLOR[7] =
+			{
+				COLOR_RED,
+				COLOR_RED,
+				COLOR_YELLOW,
+				COLOR_CYAN,
+				COLOR_GREEN,
+				COLOR_BLUE,
+				COLOR_PINK,
+			};
 
 			void Logger::Loop()
 			{
+				// This is a loop because this makes it so that it will display all messages before destruction.
 				while (!m_Messages.empty())
 				{
-					const Message lm = m_Messages.front();
+					const LoggerMessage lm = m_Messages.front();
 					m_Messages.pop();
 
+					// Format the message.
 					std::string message =
 						"[" + LOGGER_SEVERITY_COLOR[lm.GetSeverity()] +
-						LOGGER_SEVERITY_TEXT[lm.GetSeverity()] +
+						LogSeverityToString(lm.GetSeverity()) +
 						COLOR_WHITE + "] " + lm.GetRawMessage() + " " +
 						lm.GetLocation();
 
+					// Print the message to the console.
 					std::cout << message.c_str() << std::endl;
 					fflush(stdout);
 
@@ -133,10 +140,10 @@ namespace coopscoop
 				}
 			}
 
-			void Logger::Stop()
+			bool Logger::Destroy()
 			{
 				LOG(LOGSEVERITY_INFO, CATEGORY_LOGGER, "Destroying logger.");
-				ThreadedSystem::Stop();
+				return ThreadedSystem::Destroy();
 			}
 
 			void Logger::Log(LogSeverity a_Severity, const char* a_Category, const char* a_Message, const char* a_File, int a_Line)
@@ -170,20 +177,10 @@ namespace coopscoop
 					a_Line);
 
 				std::scoped_lock lock(m_MessagesMutex);
-				m_Messages.push(Message(a_Message, a_Category, message, a_Severity, std::chrono::system_clock::now()));
+				m_Messages.push(LoggerMessage(a_Message, a_Category, message, a_Severity, std::chrono::system_clock::now()));
 			}
 
-			void Logger::Print(const Message& a_Message)
-			{
-				std::string message =
-					"[" + LOGGER_SEVERITY_COLOR[a_Message.GetSeverity()] +
-					LOGGER_SEVERITY_TEXT[a_Message.GetSeverity()] +
-					COLOR_WHITE + "] " + a_Message.GetRawMessage() + " " +
-					a_Message.GetLocation();
-
-				std::cout << message.c_str() << std::endl;
-				fflush(stdout);
-			}
+#pragma endregion LOGGER
 		}
 	}
 }

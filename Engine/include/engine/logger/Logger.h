@@ -22,14 +22,49 @@ namespace coopscoop
 			LOGSEVERITY_AWESOME,
 		} LogSeverity;
 
+		inline const std::string LogSeverityToString(LogSeverity a_LogSeverity)
+		{
+			switch (a_LogSeverity)
+			{
+				case LOGSEVERITY_ASSERT:
+				{
+					return "ASSERT";
+				}
+				case LOGSEVERITY_ERROR:
+				{
+					return "ERROR";
+				}
+				case LOGSEVERITY_WARNING:
+				{
+					return "WARNING";
+				}
+				case LOGSEVERITY_INFO:
+				{
+					return "INFO";
+				}
+				case LOGSEVERITY_SUCCESS:
+				{
+					return "SUCCESS";
+				}
+				case LOGSEVERITY_INFO_SUCCESS:
+				{
+					return "INFO SUCCESS";
+				}
+				case LOGSEVERITY_AWESOME:
+				{
+					return "AWESOME";
+				}
+			}
+		}
+
 		namespace logger
 		{
 #define ASSERT_LEVEL LogSeverity::LOGSEVERITY_ERROR
 
-			class Message
+			class LoggerMessage
 			{
 			public:
-				Message(const std::string& a_RawMessage, const std::string& a_Category, const std::string& a_Location, LogSeverity a_Severity, const std::chrono::system_clock::time_point& a_Time);
+				LoggerMessage(const std::string& a_RawMessage, const std::string& a_Category, const std::string& a_Location, LogSeverity a_Severity, const std::chrono::system_clock::time_point& a_Time);
 
 				const std::string& GetRawMessage() const;
 				const std::string& GetLocation() const;
@@ -49,19 +84,17 @@ namespace coopscoop
 			public:
 				bool InitializeThread() override;
 				void Loop() override;
-				void Stop() override;
+				bool Destroy() override;
 
 				void Log(LogSeverity a_Severity, const char* a_Category, const char* a_Message, const char* a_File, int a_Line);
 				void LogF(LogSeverity a_Severity, const char* a_Category, const char* a_Message, const char* a_File, int a_Line, ...);
 				void PrintMessage(LogSeverity a_Severity, const char* a_Category, const char* a_Message, const char* a_File, int a_Line);
 
-				void Print(const Message& a_Message);
-
 				//Event<const Message&> OnMessageLogged;
 			private:
-				void Destroy() override;
+				void Finalize() override;
 
-				std::queue<Message> m_Messages;
+				std::queue<LoggerMessage> m_Messages;
 				std::mutex m_MessagesMutex;
 			};
 			inline extern Logger LOGGER = {};
