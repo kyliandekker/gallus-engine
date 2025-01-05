@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>D:\Data\source\Renderer\x64\Debug\Engine.exe</FullPath>
+      <FullPath>D:\Data\source\Renderer\coopscoop-cpp\x64\Debug\Engine.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />

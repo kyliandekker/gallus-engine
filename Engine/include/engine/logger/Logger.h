@@ -47,9 +47,9 @@ namespace coopscoop
 			class Logger : public ThreadedSystem
 			{
 			public:
-				bool Initialize() override;
 				bool InitializeThread() override;
-				bool Destroy() override;
+				void Loop() override;
+				void Stop() override;
 
 				void Log(LogSeverity a_Severity, const char* a_Category, const char* a_Message, const char* a_File, int a_Line);
 				void LogF(LogSeverity a_Severity, const char* a_Category, const char* a_Message, const char* a_File, int a_Line, ...);
@@ -59,10 +59,10 @@ namespace coopscoop
 
 				//Event<const Message&> OnMessageLogged;
 			private:
+				void Destroy() override;
+
 				std::queue<Message> m_Messages;
 				std::mutex m_MessagesMutex;
-
-				std::condition_variable m_MessageCondVar; // Condition variable for message processing. All messages should be shown first before destruction.
 			};
 			inline extern Logger LOGGER = {};
 		}

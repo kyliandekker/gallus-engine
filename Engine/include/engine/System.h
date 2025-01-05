@@ -1,6 +1,7 @@
 #pragma once
 
 #include <thread>
+#include <mutex>
 
 namespace coopscoop
 {
@@ -52,7 +53,12 @@ namespace coopscoop
 			/// Destroys the subsystem, releasing resources and performing necessary cleanup.
 			/// </summary>
 			/// <returns>True if the destruction was successful, otherwise false.</returns>
-			virtual bool Destroy();
+			virtual void Stop();
+
+			/// <summary>
+			/// Loop method for the thread.
+			/// </summary>
+			virtual void Loop();
 
 			/// <summary>
 			/// Checks whether the subsystem is ready for use.
@@ -64,13 +70,24 @@ namespace coopscoop
 			}
 		protected:
 			/// <summary>
+			/// Destroys the subsystem, releasing resources and performing necessary cleanup.
+			/// </summary>
+			/// <returns>True if the destruction was successful, otherwise false.</returns>
+			virtual void Destroy();
+
+			/// <summary>
 			/// Initializes the thread.
 			/// </summary>
 			/// <returns>True if the initialization was successful, otherwise false.</returns>
 			virtual bool InitializeThread();
 
+			bool m_Stop = false;
+
 			std::thread m_Thread; /// The thread.
 			std::atomic<bool> m_Ready{ false }; /// Flag indicating whether the subsystem is ready.
+
+			std::mutex m_ReadyMutex;
+			std::condition_variable m_ReadyCondVar;
 		};
 	}
 }

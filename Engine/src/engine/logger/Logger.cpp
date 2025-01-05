@@ -80,16 +80,12 @@ namespace coopscoop
 				return m_Time;
 			}
 
-			bool Logger::Initialize()
-			{
-				LOG(LOGSEVERITY_INFO, CATEGORY_LOGGER, "Initializing logger.");
-				return ThreadedSystem::Initialize();
-			}
 
 			FILE* console = nullptr;
 			bool Logger::InitializeThread()
 			{
 #ifdef _DEBUG
+				// Console initialization
 				AllocConsole();
 				freopen_s(&console, "CONOUT$", "w", stdout);
 
@@ -102,48 +98,45 @@ namespace coopscoop
 
 				LOG(LOGSEVERITY_SUCCESS, CATEGORY_LOGGER, "Initialized logger.");
 
-				// Start the thread to handle logging
-				ThreadedSystem::InitializeThread();
-
-				// Wait for messages until m_Ready is false and the queue is empty
-				while (m_Ready.load() || !m_Messages.empty())
-				{
-					std::unique_lock lock(m_MessagesMutex);
-					m_MessageCondVar.wait(lock, [this]() { return !m_Messages.empty() || !m_Ready.load(); });
-
-					// Process available messages
-					while (!m_Messages.empty())
-					{
-						const Message lm = m_Messages.front();
-						m_Messages.pop();
-						Print(lm);
-					}
-				}
-
-				// Log that the thread is shutting down
-				LOG(LOGSEVERITY_SUCCESS, CATEGORY_LOGGER, "Logger thread shutting down.");
-				return true;
+				return ThreadedSystem::InitializeThread();
 			}
 
-			bool Logger::Destroy()
+			void Logger::Destroy()
 			{
-				m_Ready.store(false); // Use atomic store
-
-				// Notify the logger thread to wake up and process any remaining messages
-				m_MessageCondVar.notify_all();
-
-				// Wait until all messages are processed
-				{
-					std::unique_lock lock(m_MessagesMutex);
-					m_MessageCondVar.wait(lock, [this]() { return m_Messages.empty(); });
-				}
 #ifdef _DEBUG
 				if (console)
 				{
 					fclose(console);
 				}
 #endif
-				return ThreadedSystem::Destroy();
+
+				ThreadedSystem::Destroy();
+			}
+
+			void Logger::Loop()
+			{
+				while (!m_Messages.empty())
+				{
+					const Message lm = m_Messages.front();
+					m_Messages.pop();
+
+					std::string message =
+						"[" + LOGGER_SEVERITY_COLOR[lm.GetSeverity()] +
+						LOGGER_SEVERITY_TEXT[lm.GetSeverity()] +
+						COLOR_WHITE + "] " + lm.GetRawMessage() + " " +
+						lm.GetLocation();
+
+					std::cout << message.c_str() << std::endl;
+					fflush(stdout);
+
+					//OnMessageLogged(lm);
+				}
+			}
+
+			void Logger::Stop()
+			{
+				LOG(LOGSEVERITY_INFO, CATEGORY_LOGGER, "Destroying logger.");
+				ThreadedSystem::Stop();
 			}
 
 			void Logger::Log(LogSeverity a_Severity, const char* a_Category, const char* a_Message, const char* a_File, int a_Line)

@@ -1,6 +1,2 @@
-﻿  main.cpp
-  Engine.cpp
-  Logger.cpp
-  System.cpp
-  Generating Code...
-  Engine.vcxproj -> D:\Data\source\Renderer\x64\Debug\Engine.exe
+﻿  Engine.cpp
+  Engine.vcxproj -> D:\Data\source\Renderer\coopscoop-cpp\x64\Debug\Engine.exe
