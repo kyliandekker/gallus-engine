@@ -1,5 +1,2 @@
-﻿  Engine.cpp
-  Logger.cpp
-  Generating Code...
-D:\Data\source\Renderer\coopscoop-cpp\Engine\include\engine\logger\Logger.h(58,1): warning C4715: 'coopscoop::engine::LogSeverityToString': not all control paths return a value
+﻿  System.cpp
   Engine.vcxproj -> D:\Data\source\Renderer\coopscoop-cpp\x64\Debug\Engine.exe

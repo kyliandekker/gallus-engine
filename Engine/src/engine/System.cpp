@@ -100,7 +100,7 @@ namespace coopscoop
 				if (m_Stop.load())
 				{
 					// Destroy all resources (virtual function that gets overridden, base function sets ready to false and notifies main thread).
-					Destroy();
+					Finalize();
 				}
 			}
 			return true;
