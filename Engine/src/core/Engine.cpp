@@ -16,7 +16,10 @@ namespace coopscoop
 
 			LOG(LOGSEVERITY_INFO, CATEGORY_ENGINE, "Initializing engine.");
 
-			m_Window.Initialize(a_hInstance, a_Width, a_Height, a_Name);
+			// We initialize the window first and set the size and title after it has been created.
+			m_Window.Initialize(a_hInstance);
+			m_Window.SetSize(glm::ivec2(a_Width, a_Height));
+			m_Window.SetTitle(a_Name);
 
 			System::Initialize();
 

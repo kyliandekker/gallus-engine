@@ -26,10 +26,7 @@ namespace coopscoop
 				/// Initializes the window with the right parameters.
 				/// </summary>
 				/// <param name="a_hInstance">Handle to the instance of the program.</param>
-				/// <param name="a_Width">The width of the window.</param>
-				/// <param name="a_Height">The height of the window.</param>
-				/// <param name="a_WindowTitle">The title of the window.</param>
-				void Initialize(HINSTANCE a_hInstance, uint32_t a_Width, uint32_t a_Height, const std::string& a_WindowTitle);
+				void Initialize(HINSTANCE a_hInstance);
 
 				/// <summary>
 				/// Handles Windows messages for the editor's window.
@@ -62,6 +59,12 @@ namespace coopscoop
 				void Hide();
 
 				/// <summary>
+				/// Retrieves the full screen state of the window.
+				/// </summary>
+				/// <returns>True if the screen is fullscreen, otherwise false.</returns>
+				bool IsFullScreen() const;
+
+				/// <summary>
 				/// Toggles fullscreen mode for the window.
 				/// </summary>
 				void ToggleFullscreen();
@@ -76,7 +79,19 @@ namespace coopscoop
 				/// Retrieves the real (physical) size of the window.
 				/// </summary>
 				/// <returns>A 2D vector representing the width and height of the window.</returns>
-				glm::vec2 GetRealSize() const;
+				glm::ivec2 GetRealSize() const;
+
+				/// <summary>
+				/// Sets the size of the window.
+				/// </summary>
+				/// <param name="a_Size">The size of the window</param>
+				void SetSize(const glm::ivec2& a_Size);
+
+				/// <summary>
+				/// Sets the position of the window.
+				/// </summary>
+				/// <param name="a_Position">The position the window will be rendered at.</param>
+				void SetPosition(const glm::ivec2& a_Position);
 
 				/// <summary>
 				/// Retrieves the handle to the window.
@@ -91,6 +106,13 @@ namespace coopscoop
 				WNDCLASSEX& GetWc();
 			private:
 				/// <summary>
+				/// Generic size method that changes the size and position of the window.
+				/// </summary>
+				/// <param name="a_Position">The position the window will be rendered at.</param>
+				/// <param name="a_Size">The size of the window</param>
+				void ChangeSize(const glm::ivec2& a_Position, const glm::ivec2& a_Size);
+
+				/// <summary>
 				/// Initializes the thread.
 				/// </summary>
 				/// <returns>True if the initialization was successful, otherwise false.</returns>
@@ -102,13 +124,17 @@ namespace coopscoop
 				/// <returns>True if the destruction was successful, otherwise false.</returns>
 				void Finalize() override;
 
-				bool CreateWindow(HINSTANCE a_hInstance, uint32_t a_Width, uint32_t a_Height, LPCWSTR a_WindowTitle);
+				/// <summary>
+				/// Creates a win32 window.
+				/// </summary>
+				/// <param name="a_hInstance">The handle instance of the application.</param>
+				/// <returns></returns>
+				bool CreateWindow(HINSTANCE a_hInstance);
 
 				HWND m_hWnd = NULL;
 				WNDCLASSEX m_Wc = WNDCLASSEX();
 				HINSTANCE m_hInstance = NULL;
-				glm::ivec2 m_WindowSize;
-				std::string m_WindowTitle;
+				RECT m_WindowRect;
 
 				bool m_Fullscreen = false;
 			};

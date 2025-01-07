@@ -17,11 +17,9 @@ namespace coopscoop
 				return core::ENGINE.GetWindow().WndProcHandler(hwnd, msg, wParam, lParam);
 			}
 
-			void Window::Initialize(HINSTANCE a_hInstance, uint32_t a_Width, uint32_t a_Height, const std::string& a_WindowTitle)
+			void Window::Initialize(HINSTANCE a_hInstance)
 			{
 				m_hInstance = a_hInstance;
-				m_WindowSize = glm::vec2(a_Width, a_Height);
-				m_WindowTitle = a_WindowTitle;
 
 				ThreadedSystem::Initialize();
 			}
@@ -67,58 +65,107 @@ namespace coopscoop
 				::ShowWindow(m_hWnd, 0);
 			}
 
+			bool Window::IsFullScreen() const
+			{
+				return m_Fullscreen;
+			}
+
 			void Window::ToggleFullscreen()
 			{
-				RECT windowRect;
-
 				m_Fullscreen = !m_Fullscreen;
+
 				if (m_Fullscreen)
 				{
-					::GetWindowRect(m_hWnd, &windowRect);
+					// Save the current window position and size
+					::GetWindowRect(m_hWnd, &m_WindowRect);
 
-					UINT windowStyle = WS_OVERLAPPEDWINDOW & ~(WS_CAPTION | WS_SYSMENU |
-						WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
-
+					// Adjust window style to borderless fullscreen
+					UINT windowStyle = WS_POPUP;
 					::SetWindowLongW(m_hWnd, GWL_STYLE, windowStyle);
 
+					// Get monitor information for fullscreen dimensions
 					HMONITOR hMonitor = ::MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTONEAREST);
-					MONITORINFOEX monitorInfo = {};
-					monitorInfo.cbSize = sizeof(MONITORINFOEX);
-					::GetMonitorInfo(hMonitor, &monitorInfo);
-					::SetWindowPos(m_hWnd, HWND_TOP, monitorInfo.rcMonitor.left,
-						monitorInfo.rcMonitor.top, monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
-						monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top,
-						SWP_FRAMECHANGED | SWP_NOACTIVATE);
+					MONITORINFO monitorInfo = {};
+					monitorInfo.cbSize = sizeof(MONITORINFO);
 
-					::ShowWindow(m_hWnd, SW_MAXIMIZE);
+					if (::GetMonitorInfo(hMonitor, &monitorInfo))
+					{
+						// Resize and reposition the window to cover the monitor
+						::SetWindowPos(m_hWnd, HWND_TOP,
+							monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top,
+							monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
+							monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top,
+							SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOSENDCHANGING | SWP_SHOWWINDOW);
+					}
+
+					// Force window redraw and focus
+					::SetForegroundWindow(m_hWnd);
+					::ShowWindow(m_hWnd, SW_RESTORE); // Ensure the window is visible
+					::UpdateWindow(m_hWnd);           // Force immediate redraw
 				}
 				else
 				{
-					// Restore all the window decorators.
-					::SetWindowLong(m_hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+					// Restore the window style
+					::SetWindowLongW(m_hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
 
-					::GetWindowRect(m_hWnd, &windowRect);
+					// Restore the saved window position and size
+					::SetWindowPos(m_hWnd, HWND_NOTOPMOST,
+						m_WindowRect.left, m_WindowRect.top,
+						m_WindowRect.right - m_WindowRect.left,
+						m_WindowRect.bottom - m_WindowRect.top,
+						SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOSENDCHANGING | SWP_SHOWWINDOW);
 
-					::SetWindowPos(m_hWnd, HWND_NOTOPMOST, windowRect.left,
-						windowRect.top, windowRect.right - windowRect.left,
-						windowRect.bottom - windowRect.top, SWP_FRAMECHANGED | SWP_NOACTIVATE);
-
+					// Restore the window to normal state
 					::ShowWindow(m_hWnd, SW_NORMAL);
+					::UpdateWindow(m_hWnd);           // Force immediate redraw
 				}
 			}
 
 			void Window::SetTitle(const std::string& a_Title)
 			{
-				m_WindowTitle = a_Title;
-				::SetWindowTextA(m_hWnd, m_WindowTitle.c_str());
+				::SetWindowTextA(m_hWnd, a_Title.c_str());
 			}
 
-			glm::vec2 Window::GetRealSize() const
+			glm::ivec2 Window::GetRealSize() const
 			{
 				RECT rect;
 				GetClientRect(m_hWnd, &rect);
 
-				return glm::vec2(static_cast<float>(rect.right - rect.left), static_cast<float>(rect.bottom - rect.top));
+				return glm::ivec2(rect.right - rect.left, rect.bottom - rect.top);
+			}
+
+			void Window::SetSize(const glm::ivec2& a_Size)
+			{
+				RECT rect;
+				// Get the current window position and size
+				GetWindowRect(m_hWnd, &rect);
+
+				// Adjust the window rectangle to account for the window's non-client area (borders, title bar, etc.)
+				AdjustWindowRect(&rect, GetWindowLong(m_hWnd, GWL_STYLE), FALSE);
+
+				ChangeSize(glm::ivec2(), a_Size);
+			}
+
+			void Window::SetPosition(const glm::ivec2& a_Position)
+			{
+				RECT rect;
+				// Get the current window position and size
+				GetWindowRect(m_hWnd, &rect);
+
+				ChangeSize(a_Position, glm::ivec2(rect.right - rect.left, rect.bottom - rect.top));
+			}
+
+			void Window::ChangeSize(const glm::ivec2& a_Position, const glm::ivec2& a_Size)
+			{
+				SetWindowPos(
+					m_hWnd,                // Handle to the window
+					HWND_TOP,            // Placement order (HWND_TOP keeps it in its current Z-order)
+					a_Position.x, 
+					a_Position.y, 
+					a_Size.x,
+					a_Size.y, 
+					SWP_NOMOVE | SWP_NOZORDER // Flags to retain position and Z-order
+				);
 			}
 
 			HWND& Window::GetHWnd()
@@ -133,8 +180,7 @@ namespace coopscoop
 
 			bool Window::InitializeThread()
 			{
-				CreateWindow(m_hInstance, static_cast<uint32_t>(m_WindowSize.x), static_cast<uint32_t>(m_WindowSize.y), L"Game");
-				SetTitle(m_WindowTitle);
+				CreateWindow(m_hInstance);
 
 				LOG(LOGSEVERITY_SUCCESS, CATEGORY_WINDOW, "Initialized window.");
 
@@ -151,7 +197,7 @@ namespace coopscoop
 				LOG(LOGSEVERITY_SUCCESS, CATEGORY_WINDOW, "Destroyed window.");
 			}
 
-			bool Window::CreateWindow(HINSTANCE a_hInstance, uint32_t a_Width, uint32_t a_Height, LPCWSTR a_WindowTitle)
+			bool Window::CreateWindow(HINSTANCE a_hInstance)
 			{
 				m_Wc = {};
 
@@ -182,9 +228,9 @@ namespace coopscoop
 				m_hWnd = CreateWindowEx(
 					WS_EX_CLIENTEDGE,
 					L"Window",
-					a_WindowTitle,
-					WS_MINIMIZEBOX | WS_SYSMENU | WS_SIZEBOX,
-					CW_USEDEFAULT, CW_USEDEFAULT, a_Width, a_Height,
+					L"Game Window",
+					WS_OVERLAPPEDWINDOW,
+					CW_USEDEFAULT, CW_USEDEFAULT, 230, 400,
 					NULL, NULL, a_hInstance, NULL);
 
 				if (!m_hWnd)
