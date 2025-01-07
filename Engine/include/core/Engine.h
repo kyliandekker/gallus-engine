@@ -2,6 +2,7 @@
 
 #include "core/System.h"
 #include "graphics/win32/Window.h"
+#include "core/input/InputSystem.h"
 
 #include <wtypes.h>
 
@@ -40,6 +41,7 @@ namespace coopscoop
 			graphics::win32::Window& GetWindow();
 		private:
 			graphics::win32::Window m_Window;
+			input::InputSystem m_InputSystem;
 		};
 
 		/// <summary>

@@ -26,7 +26,7 @@ namespace coopscoop
 				/// Initializes the window with the right parameters.
 				/// </summary>
 				/// <param name="a_hInstance">Handle to the instance of the program.</param>
-				void Initialize(HINSTANCE a_hInstance);
+				bool Initialize(HINSTANCE a_hInstance);
 
 				/// <summary>
 				/// Handles Windows messages for the editor's window.

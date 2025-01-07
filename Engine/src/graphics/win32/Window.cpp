@@ -2,6 +2,7 @@
 
 #include "core/Engine.h"
 #include "core/logger/Logger.h"
+
 #include <iostream>
 
 namespace coopscoop
@@ -17,11 +18,12 @@ namespace coopscoop
 				return core::ENGINE.GetWindow().WndProcHandler(hwnd, msg, wParam, lParam);
 			}
 
-			void Window::Initialize(HINSTANCE a_hInstance)
+			bool Window::Initialize(HINSTANCE a_hInstance)
 			{
 				m_hInstance = a_hInstance;
 
-				ThreadedSystem::Initialize();
+				LOG(LOGSEVERITY_INFO, CATEGORY_WINDOW, "Initializing window.");
+				return ThreadedSystem::Initialize();
 			}
 
 			LRESULT Window::WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)

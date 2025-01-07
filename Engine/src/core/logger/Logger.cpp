@@ -64,6 +64,7 @@ namespace coopscoop
 #pragma endregion LOGGER
 
 			FILE* console = nullptr;
+			FILE* logFile = nullptr;
 			bool Logger::InitializeThread()
 			{
 				// Terminal/Console initialization for debug builds.
@@ -71,12 +72,36 @@ namespace coopscoop
 				AllocConsole();
 				freopen_s(&console, "CONOUT$", "w", stdout);
 
+				// Enable virtual terminal processing (for ANSI escape codes, if needed)
 				HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 				DWORD dwMode = 0;
 				GetConsoleMode(hOut, &dwMode);
 				dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 				SetConsoleMode(hOut, dwMode);
+
+				// Set console screen buffer size to avoid wrapping issues
+				COORD coord = { 80, 300 };  // Width: 80, Height: 500
+				SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+
+				// Optionally adjust console window size
+				HWND consoleWindow = GetConsoleWindow();
+				MoveWindow(consoleWindow, 100, 100, 800, 600, TRUE);
 #endif // _DEBUG
+
+				time_t time_t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+				struct tm buf;
+
+				localtime_s(&buf, &time_t);
+
+				std::string logFilename(50, '\0');
+				std::strftime(&logFilename[0], logFilename.size(), "./log-%Y-%m-%d %H-%M-%S.log", &buf);  // Changed colon to dash
+
+				fopen_s(&logFile, logFilename.c_str(), "wb");
+				if (!logFile)
+				{
+					LOG(LOGSEVERITY_SUCCESS, CATEGORY_LOGGER, "Failed initializing logger: Could not create log file..");
+					return false;
+				}
 
 				LOG(LOGSEVERITY_SUCCESS, CATEGORY_LOGGER, "Initialized logger.");
 
@@ -89,8 +114,14 @@ namespace coopscoop
 				if (console)
 				{
 					fclose(console);
+					console = nullptr;
 				}
 #endif
+				if (logFile)
+				{
+					fclose(logFile);
+					logFile = nullptr;
+				}
 
 				ThreadedSystem::Finalize();
 			}
@@ -106,16 +137,26 @@ namespace coopscoop
 			constexpr auto COLOR_PINK = "\033[1;35m";
 
 			// Colors for the different severity levels.
-			std::string LOGGER_SEVERITY_COLOR[7] =
+			std::string LOGGER_SEVERITY_COLOR[8] =
 			{
-				COLOR_RED,
-				COLOR_RED,
-				COLOR_YELLOW,
-				COLOR_CYAN,
-				COLOR_GREEN,
-				COLOR_BLUE,
-				COLOR_PINK,
+				COLOR_RED, // ASSERT
+				COLOR_RED, // ERROR
+				COLOR_YELLOW, // WARNING
+				COLOR_CYAN, // INFO
+				COLOR_CYAN, // TEST
+				COLOR_GREEN, // SUCCESS
+				COLOR_BLUE, // INFO SUCCESS
+				COLOR_PINK, // AWESOME
 			};
+
+			Logger::~Logger()
+			{
+				if (logFile)
+				{
+					fclose(logFile);
+					logFile = nullptr;
+				}
+			}
 
 			void Logger::Loop()
 			{
@@ -130,11 +171,19 @@ namespace coopscoop
 						"[" + LOGGER_SEVERITY_COLOR[lm.GetSeverity()] +
 						LogSeverityToString(lm.GetSeverity()) +
 						COLOR_WHITE + "] " + lm.GetRawMessage() + " " +
-						lm.GetLocation();
+						lm.GetLocation() + "\n";
 
 					// Print the message to the console.
-					std::cout << message.c_str() << std::endl;
+					printf(message.c_str());
 					fflush(stdout);
+
+					// Format the message.
+					message =
+						"[" + LogSeverityToString(lm.GetSeverity()) +
+						"] " + lm.GetRawMessage() + " " +
+						lm.GetLocation() +"\n";
+
+					fprintf(logFile, message.c_str());
 
 					//OnMessageLogged(lm);
 				}
@@ -167,11 +216,6 @@ namespace coopscoop
 
 			void Logger::PrintMessage(LogSeverity a_Severity, const char* a_Category, const char* a_Message, const char* a_File, int a_Line)
 			{
-				struct tm lt;
-				time_t t;
-				t = time(NULL);
-				localtime_s(&lt, &t);
-
 				std::string message = std::format("{0} on line {1}",
 					a_File,
 					a_Line);

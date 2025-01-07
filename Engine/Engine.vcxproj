@@ -78,6 +78,7 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\core\Engine.cpp" />
+    <ClCompile Include="src\core\input\InputSystem.cpp" />
     <ClCompile Include="src\core\logger\Logger.cpp" />
     <ClCompile Include="src\core\System.cpp" />
     <ClCompile Include="src\graphics\win32\Window.cpp" />
@@ -87,6 +88,7 @@
     <ClInclude Include="include\core\logger\Logger.h" />
     <ClInclude Include="include\core\System.h" />
     <ClInclude Include="include\graphics\win32\Window.h" />
+    <ClInclude Include="include\core\input\InputSystem.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

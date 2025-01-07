@@ -21,13 +21,18 @@ namespace coopscoop
 			m_Window.SetSize(glm::ivec2(a_Width, a_Height));
 			m_Window.SetTitle(a_Name);
 
+			m_InputSystem.Initialize();
+
 			System::Initialize();
 
 			LOG(LOGSEVERITY_SUCCESS, CATEGORY_ENGINE, "Initialized engine.");
 
 			while (m_Ready.load())
 			{
-
+				if (m_InputSystem.IsKeyPressed('F'))
+				{
+					TEST();
+				}
 			}
 
 			return true;
@@ -38,6 +43,8 @@ namespace coopscoop
 			LOG(LOGSEVERITY_INFO, CATEGORY_ENGINE, "Destroying engine.");
 
 			m_Window.Destroy();
+
+			m_InputSystem.Destroy();
 
 			// Destroy the logger last so we can see possible error messages from other systems.
 			logger::LOGGER.Destroy();

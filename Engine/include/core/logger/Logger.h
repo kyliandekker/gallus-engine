@@ -16,6 +16,7 @@ namespace coopscoop
 		LOGSEVERITY_ERROR,
 		LOGSEVERITY_WARNING,
 		LOGSEVERITY_INFO,
+		LOGSEVERITY_TEST,
 		LOGSEVERITY_SUCCESS,
 		LOGSEVERITY_INFO_SUCCESS,
 		LOGSEVERITY_AWESOME,
@@ -46,6 +47,10 @@ namespace coopscoop
 			{
 				return "INFO";
 			}
+			case LOGSEVERITY_TEST:
+			{
+				return "TEST";
+			}
 			case LOGSEVERITY_SUCCESS:
 			{
 				return "SUCCESS";
@@ -59,6 +64,7 @@ namespace coopscoop
 				return "AWESOME";
 			}
 		}
+		return "";
 	}
 
 	namespace core
@@ -118,6 +124,8 @@ namespace coopscoop
 			class Logger : public ThreadedSystem
 			{
 			public:
+				~Logger();
+
 				/// <summary>
 				/// Loop method for the thread.
 				/// </summary>
@@ -185,4 +193,9 @@ do{\
 	core::logger::LOGGER.Log(a_Severity, a_Category, a_Message, __FILE__, __LINE__);\
 	if (a_Severity <= ASSERT_LEVEL)\
 		assert(false);\
+} while (0)
+
+#define TEST()\
+do{\
+	core::logger::LOGGER.Log(LOGSEVERITY_TEST, "Test", "Test", __FILE__, __LINE__);\
 } while (0)
