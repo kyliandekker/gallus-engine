@@ -10,6 +10,10 @@ namespace coopscoop
 
 		bool Engine::Initialize(HINSTANCE a_hInstance, uint32_t a_Width, uint32_t a_Height, const std::string& a_Name)
 		{
+#ifdef _OPTIMIZE
+			std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+#endif
+
 			// Initialize logger.
 			// Logger is a global var unlike all the other systems. Not the prettiest but not too bad either.
 			logger::LOGGER.Initialize();
@@ -21,18 +25,32 @@ namespace coopscoop
 			m_Window.SetSize(glm::ivec2(a_Width, a_Height));
 			m_Window.SetTitle(a_Name);
 
-			m_InputSystem.Initialize();
+			//m_InputSystem.Initialize();
+
+			m_DX12System.Initialize(m_Window.GetHWnd(), glm::ivec2(a_Width, a_Height));
 
 			System::Initialize();
 
 			LOG(LOGSEVERITY_SUCCESS, CATEGORY_ENGINE, "Initialized engine.");
 
+#ifdef _OPTIMIZE
+			std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+			std::string microseconds = "Initialization took " + std::to_string(std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count()) + " microseconds.";
+			std::string nanoseconds = "Initialization took " + std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count()) + " nanoseconds.";
+			std::string milliseconds = "Initialization took " + std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count()) + " milliseconds.";
+			std::string seconds = "Initialization took " + std::to_string(std::chrono::duration_cast<std::chrono::seconds>(end - begin).count()) + " seconds.";
+#endif
+
+			TEST(microseconds.c_str());
+			TEST(nanoseconds.c_str());
+			TEST(milliseconds.c_str());
+			TEST(seconds.c_str());
+
 			while (m_Ready.load())
 			{
-				if (m_InputSystem.IsKeyPressed('F'))
-				{
-					TEST();
-				}
+				//if (m_InputSystem.IsKeyPressed('F'))
+				//{
+				//}
 			}
 
 			return true;
@@ -42,9 +60,11 @@ namespace coopscoop
 		{
 			LOG(LOGSEVERITY_INFO, CATEGORY_ENGINE, "Destroying engine.");
 
+			m_DX12System.Destroy();
+
 			m_Window.Destroy();
 
-			m_InputSystem.Destroy();
+			//m_InputSystem.Destroy();
 
 			// Destroy the logger last so we can see possible error messages from other systems.
 			logger::LOGGER.Destroy();

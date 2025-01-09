@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/System.h"
+#include "graphics/dx12/DX12System.h"
 #include "graphics/win32/Window.h"
 #include "core/input/InputSystem.h"
 
@@ -41,7 +42,8 @@ namespace coopscoop
 			graphics::win32::Window& GetWindow();
 		private:
 			graphics::win32::Window m_Window;
-			input::InputSystem m_InputSystem;
+			graphics::dx12::DX12System m_DX12System;
+			//input::InputSystem m_InputSystem;
 		};
 
 		/// <summary>

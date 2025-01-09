@@ -23,9 +23,10 @@ namespace coopscoop
 			{
 			public:
 				/// <summary>
-				/// Initializes the window with the right parameters.
+				/// Initializes the system, setting up necessary resources.
 				/// </summary>
 				/// <param name="a_hInstance">Handle to the instance of the program.</param>
+				/// <returns>True if the initialization was successful, otherwise false.</returns>
 				bool Initialize(HINSTANCE a_hInstance);
 
 				/// <summary>

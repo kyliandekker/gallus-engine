@@ -30,6 +30,7 @@ namespace coopscoop
 			{
 				return m_PreviousState && !m_Pressed;
 			}
+
 #define CATEGORY_INPUT "INPUT"
 
 			bool InputSystem::Initialize()

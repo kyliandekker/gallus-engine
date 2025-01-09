@@ -195,7 +195,7 @@ do{\
 		assert(false);\
 } while (0)
 
-#define TEST()\
+#define TEST(a_Message)\
 do{\
-	core::logger::LOGGER.Log(LOGSEVERITY_TEST, "Test", "Test", __FILE__, __LINE__);\
+	core::logger::LOGGER.Log(LOGSEVERITY_TEST, "Test", a_Message, __FILE__, __LINE__);\
 } while (0)
