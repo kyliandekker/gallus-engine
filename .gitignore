@@ -35,3 +35,6 @@
 /x86
 /Engine/x64
 /Engine/x86
+
+# Log files
+*.log
