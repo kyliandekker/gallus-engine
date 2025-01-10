@@ -14,7 +14,7 @@
 
 #include "graphics/dx12/CommandQueue.h"
 
-#undef max
+#define NOMINMAX
 
 struct HWND__;
 typedef HWND__* HWND;

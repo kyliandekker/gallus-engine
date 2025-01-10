@@ -192,7 +192,7 @@ namespace coopscoop
 			void Window::Finalize()
 			{
 				::DestroyWindow(m_hWnd);
-				::UnregisterClassW(m_Wc.lpszClassName, m_Wc.hInstance);
+				::UnregisterClassA(m_Wc.lpszClassName, m_Wc.hInstance);
 
 				ThreadedSystem::Finalize();
 
@@ -214,7 +214,7 @@ namespace coopscoop
 				m_Wc.hIcon = ::LoadIcon(a_hInstance, IDI_APPLICATION);
 				m_Wc.hIconSm = ::LoadIcon(a_hInstance, IDI_APPLICATION);
 
-				m_Wc.lpszClassName = L"Window";
+				m_Wc.lpszClassName = "Window";
 				m_Wc.lpszMenuName = NULL;
 
 				m_Wc.hInstance = a_hInstance;
@@ -229,8 +229,8 @@ namespace coopscoop
 
 				m_hWnd = CreateWindowEx(
 					WS_EX_CLIENTEDGE,
-					L"Window",
-					L"Game Window",
+					"Window",
+					"Game Window",
 					WS_OVERLAPPEDWINDOW,
 					CW_USEDEFAULT, CW_USEDEFAULT, 230, 400,
 					NULL, NULL, a_hInstance, NULL);
