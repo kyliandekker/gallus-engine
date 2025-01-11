@@ -35,14 +35,14 @@ namespace coopscoop
 
 #pragma region THREADED_SYSTEM
 
-		bool ThreadedSystem::Initialize()
+		bool ThreadedSystem::Initialize(bool a_Wait)
 		{
 			// NOTE: This function is always called from the main thread.
 
 			// Start the thread and wait afterwards.
 			m_Thread = std::thread(&ThreadedSystem::InitializeThread, this);
 
-			// Wait until the system is ready
+			if (a_Wait) // Wait until the system is ready
 			{
 				std::unique_lock lock(m_ReadyMutex); // Lock the mutex
 				m_ReadyCondVar.wait(lock, [this]() { return m_Ready.load(); });

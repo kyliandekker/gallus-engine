@@ -16,18 +16,20 @@ namespace coopscoop
 
 			// Initialize logger.
 			// Logger is a global var unlike all the other systems. Not the prettiest but not too bad either.
-			logger::LOGGER.Initialize();
+			logger::LOGGER.Initialize(true);
 
 			LOG(LOGSEVERITY_INFO, CATEGORY_ENGINE, "Initializing engine.");
 
+			// Initialize the input system, we do not need to wait until it is ready.
+			m_InputSystem.Initialize(false);
+
 			// We initialize the window first and set the size and title after it has been created.
-			m_Window.Initialize(a_hInstance);
+			m_Window.Initialize(true, a_hInstance);
 			m_Window.SetSize(glm::ivec2(a_Width, a_Height));
 			m_Window.SetTitle(a_Name);
 
-			//m_InputSystem.Initialize();
-
-			m_DX12System.Initialize(m_Window.GetHWnd(), glm::ivec2(a_Width, a_Height));
+			// TODO: We can initialize DX12 without having to wait for it for now. Later when we introduce the editor it might be important to wait.
+			m_DX12System.Initialize(false, m_Window.GetHWnd(), glm::ivec2(a_Width, a_Height));
 
 			System::Initialize();
 
@@ -60,11 +62,11 @@ namespace coopscoop
 		{
 			LOG(LOGSEVERITY_INFO, CATEGORY_ENGINE, "Destroying engine.");
 
+			m_InputSystem.Destroy();
+
 			m_DX12System.Destroy();
 
 			m_Window.Destroy();
-
-			//m_InputSystem.Destroy();
 
 			// Destroy the logger last so we can see possible error messages from other systems.
 			logger::LOGGER.Destroy();

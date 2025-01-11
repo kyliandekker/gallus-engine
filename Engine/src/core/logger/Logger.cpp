@@ -20,7 +20,7 @@ namespace coopscoop
 				* Logger Message
 			*/
 
-#pragma endregion LOGGER_MESSAGE
+#pragma region LOGGER_MESSAGE
 
 			LoggerMessage::LoggerMessage(const std::string& a_RawMessage, const std::string& a_Category, const std::string& a_Location, LogSeverity a_Severity, const std::chrono::system_clock::time_point& a_Time) :
 				m_RawMessage(a_RawMessage),
@@ -61,7 +61,7 @@ namespace coopscoop
 				* Logger
 			*/
 
-#pragma endregion LOGGER
+#pragma region LOGGER
 
 			FILE* console = nullptr;
 			FILE* logFile = nullptr;

@@ -31,7 +31,8 @@ namespace coopscoop
 				/// <summary>
 				/// Initializes the window with the right parameters.
 				/// </summary>
-				bool Initialize() override;
+				/// <param name="a_Wait">Determines whether the application waits until the system has been fully initialized.</param>
+				bool Initialize(bool a_Wait) override;
 
 				/// <summary>
 				/// Loop method for the thread.

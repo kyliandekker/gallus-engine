@@ -18,12 +18,12 @@ namespace coopscoop
 				return core::ENGINE.GetWindow().WndProcHandler(hwnd, msg, wParam, lParam);
 			}
 
-			bool Window::Initialize(HINSTANCE a_hInstance)
+			bool Window::Initialize(bool a_Wait, HINSTANCE a_hInstance)
 			{
 				m_hInstance = a_hInstance;
 
 				LOG(LOGSEVERITY_INFO, CATEGORY_WINDOW, "Initializing window.");
-				return ThreadedSystem::Initialize();
+				return ThreadedSystem::Initialize(a_Wait);
 			}
 
 			LRESULT Window::WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -94,16 +94,14 @@ namespace coopscoop
 					{
 						// Resize and reposition the window to cover the monitor
 						::SetWindowPos(m_hWnd, HWND_TOP,
-							monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top,
+							monitorInfo.rcMonitor.left,
+							monitorInfo.rcMonitor.top,
 							monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
 							monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top,
-							SWP_FRAMECHANGED | SWP_NOACTIVATE | SWP_NOSENDCHANGING | SWP_SHOWWINDOW);
-					}
+							SWP_FRAMECHANGED | SWP_NOACTIVATE);
 
-					// Force window redraw and focus
-					::SetForegroundWindow(m_hWnd);
-					::ShowWindow(m_hWnd, SW_RESTORE); // Ensure the window is visible
-					::UpdateWindow(m_hWnd);           // Force immediate redraw
+						::ShowWindow(m_hWnd, SW_MAXIMIZE);
+					}
 				}
 				else
 				{
@@ -226,6 +224,8 @@ namespace coopscoop
 					LOG(LOGSEVERITY_ASSERT, CATEGORY_WINDOW, "Failed window registration.");
 					return false;
 				}
+
+				SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
 				m_hWnd = CreateWindowEx(
 					WS_EX_CLIENTEDGE,

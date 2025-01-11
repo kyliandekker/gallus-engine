@@ -33,13 +33,13 @@ namespace coopscoop
 
 #define CATEGORY_INPUT "INPUT"
 
-			bool InputSystem::Initialize()
+			bool InputSystem::Initialize(bool a_Wait)
 			{
 				m_MappedKeys.insert({ 'F', Key() });
 				m_MappedKeys.insert({ VK_F11, Key() });
 
 				LOG(LOGSEVERITY_INFO, CATEGORY_INPUT, "Initializing input system.");
-				return ThreadedSystem::Initialize();
+				return ThreadedSystem::Initialize(a_Wait);
 			}
 
 			void InputSystem::Loop()

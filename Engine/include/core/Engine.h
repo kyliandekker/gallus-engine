@@ -43,7 +43,7 @@ namespace coopscoop
 		private:
 			graphics::win32::Window m_Window;
 			graphics::dx12::DX12System m_DX12System;
-			//input::InputSystem m_InputSystem;
+			input::InputSystem m_InputSystem;
 		};
 
 		/// <summary>

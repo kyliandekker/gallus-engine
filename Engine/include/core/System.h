@@ -45,8 +45,9 @@ namespace coopscoop
 			/// <summary>
 			/// Initializes the system, setting up necessary resources.
 			/// </summary>
+			/// <param name="a_Wait">Determines whether the application waits until the system has been fully initialized.</param>
 			/// <returns>True if the initialization was successful, otherwise false.</returns>
-			virtual bool Initialize();
+			virtual bool Initialize(bool a_Wait);
 
 			/// <summary>
 			/// Signals the thread to stop.

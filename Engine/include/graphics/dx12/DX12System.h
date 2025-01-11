@@ -9,12 +9,15 @@
 #include <wrl.h>
 #include <chrono>
 #include <glm/vec2.hpp>
+#include <glm/mat4x4.hpp>
 #include <cstdint>  // For uint64_t
 #include <queue>    // For std::queue
+#include <DirectXMath.h>
 
 #include "graphics/dx12/CommandQueue.h"
 
-#define NOMINMAX
+#undef min
+#undef max
 
 struct HWND__;
 typedef HWND__* HWND;
@@ -140,6 +143,8 @@ namespace coopscoop
 				/// </summary>
 				/// <returns>The FPS as a double.</returns>
 				double GetFPS() const;
+
+				double GetTotalTime() const;
 			private:
 				friend class DX12System;
 
@@ -171,10 +176,11 @@ namespace coopscoop
 				/// <summary>
 				/// Initializes the system, setting up necessary resources.
 				/// </summary>
+				/// <param name="a_Wait">Determines whether the application waits until the system has been fully initialized.</param>
 				/// <param name="a_hWnd">Handle to the window.</param>
 				/// <param name="a_Size">Size of the window.</param>
 				/// <returns>True if the initialization was successful, otherwise false.</returns>
-				bool Initialize(HWND a_hWnd, const glm::ivec2 a_Size);
+				bool Initialize(bool a_Wait, HWND a_hWnd, const glm::ivec2 a_Size);
 
 				/// <summary>
 				/// Loop method for the thread.
@@ -205,26 +211,10 @@ namespace coopscoop
 				Microsoft::WRL::ComPtr<ID3D12Device2> GetDevice() const;
 
 				/// <summary>
-				/// Retrieves the SRV descriptor heap.
-				/// </summary>
-				/// <returns>A ComPtr to the SRV descriptor heap.</returns>
-				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> GetSRVDescriptorHeap() const;
-
-				/// <summary>
 				/// Retrieves the current FPS counter.
 				/// </summary>
 				/// <returns>An instance of FPSCounter containing FPS information.</returns>
 				FPSCounter GetFPS() const;
-
-				/// <summary>
-				/// Waits for all GPU commands to complete execution.
-				/// </summary>
-				void Wait();
-
-				/// <summary>
-				/// Signals the GPU to stop waiting.
-				/// </summary>
-				void StopWaiting();
 
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderTargetTexture; /// The render target texture used for rendering.
 				CD3DX12_CPU_DESCRIPTOR_HANDLE m_RenderTargetSrvHandleCPU; /// The CPU handle for the render target SRV.
@@ -276,7 +266,7 @@ namespace coopscoop
 				/// <param name="a_Height">Height of the swap chain buffers.</param>
 				/// <param name="a_BufferCount">Number of swap chain buffers.</param>
 				/// <returns>True if the swap chain was successfully created, otherwise false.</returns>
-				bool CreateSwapChain(HWND hWnd, Microsoft::WRL::ComPtr<ID3D12CommandQueue> a_CommandQueue, uint32_t a_Width, uint32_t a_Height, uint32_t a_BufferCount);
+				bool CreateSwapChain(HWND a_hWnd, Microsoft::WRL::ComPtr<ID3D12CommandQueue> a_CommandQueue, uint32_t a_Width, uint32_t a_Height, uint32_t a_BufferCount);
 
 				/// <summary>
 				/// Creates a descriptor heap.
@@ -300,61 +290,6 @@ namespace coopscoop
 				void UpdateRenderTargetViews(Microsoft::WRL::ComPtr<ID3D12Device2> a_Device, Microsoft::WRL::ComPtr<IDXGISwapChain4> a_SwapChain, Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> a_DescriptorHeap, D3D12_DESCRIPTOR_HEAP_TYPE a_Type, uint32_t a_NumDescriptors);
 
 				/// <summary>
-				/// Creates a command allocator.
-				/// </summary>
-				/// <param name="a_Device">The DirectX 12 device.</param>
-				/// <param name="a_Type">The type of command list (e.g., DIRECT, COMPUTE, COPY).</param>
-				/// <returns>The created command allocator as a ComPtr.</returns>
-				Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CreateCommandAllocator(Microsoft::WRL::ComPtr<ID3D12Device2> a_Device, D3D12_COMMAND_LIST_TYPE a_Type);
-
-				/// <summary>
-				/// Creates a graphics command list.
-				/// </summary>
-				/// <param name="a_Device">The DirectX 12 device.</param>
-				/// <param name="a_CommandAllocator">The command allocator for the command list.</param>
-				/// <param name="a_Type">The type of command list (e.g., DIRECT, COMPUTE, COPY).</param>
-				/// <returns>The created graphics command list as a ComPtr.</returns>
-				Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> CreateCommandList(Microsoft::WRL::ComPtr<ID3D12Device2> a_Device, Microsoft::WRL::ComPtr<ID3D12CommandAllocator> a_CommandAllocator, D3D12_COMMAND_LIST_TYPE a_Type);
-
-				/// <summary>
-				/// Creates a GPU fence for synchronization.
-				/// </summary>
-				/// <param name="a_Device">The DirectX 12 device.</param>
-				/// <returns>True if the fence was successfully created, otherwise false.</returns>
-				bool CreateFence(Microsoft::WRL::ComPtr<ID3D12Device2> a_Device);
-
-				/// <summary>
-				/// Creates an event handle for CPU-GPU synchronization.
-				/// </summary>
-				/// <returns>True if the event handle was successfully created, otherwise false.</returns>
-				bool CreateEventHandle();
-
-				/// <summary>
-				/// Clears a render target view (RTV) with a specified clear color.
-				/// </summary>
-				/// <param name="a_CommandList">The command list to record the clear operation.</param>
-				/// <param name="a_Rtv">The descriptor handle of the RTV to clear.</param>
-				/// <param name="a_ClearColor">The clear color as an array of four floats (RGBA).</param>
-				void ClearRTV(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, D3D12_CPU_DESCRIPTOR_HANDLE a_Rtv, FLOAT* a_ClearColor);
-
-				/// <summary>
-				/// Clears a depth stencil view (DSV) with a specified depth value.
-				/// </summary>
-				/// <param name="a_CommandList">The command list to record the clear operation.</param>
-				/// <param name="a_Dsv">The descriptor handle of the DSV to clear.</param>
-				/// <param name="a_Depth">The depth value to clear with.</param>
-				void ClearDepth(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, D3D12_CPU_DESCRIPTOR_HANDLE a_Dsv, FLOAT a_Depth);
-
-				/// <summary>
-				/// Transitions a resource from one state to another.
-				/// </summary>
-				/// <param name="a_CommandList">The command list to record the transition operation.</param>
-				/// <param name="a_Resource">The resource to transition.</param>
-				/// <param name="a_BeforeState">The current state of the resource.</param>
-				/// <param name="a_AfterState">The desired state of the resource.</param>
-				void TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, Microsoft::WRL::ComPtr<ID3D12Resource> a_Resource, D3D12_RESOURCE_STATES a_BeforeState, D3D12_RESOURCE_STATES a_AfterState);
-
-				/// <summary>
 				/// Cleans up the render targets associated with the swap chain.
 				/// </summary>
 				/// <param name="a_SwapChain">The swap chain containing the render targets to clean up.</param>
@@ -369,37 +304,92 @@ namespace coopscoop
 				/// </remarks>
 				void Flush();
 
-				/// <summary>
-				/// Creates an offscreen render target for custom rendering operations.
-				/// </summary>
-				/// <param name="a_Width">The width of the render target.</param>
-				/// <param name="a_Height">The height of the render target.</param>
-				/// <returns>True if the render target was successfully created, otherwise false.</returns>
-				bool CreateOffscreenRenderTarget(uint32_t a_Width, uint32_t a_Height);
-
 				HWND m_hWnd = nullptr;
 
-				FPSCounter m_FpsCounter; /// The FPSCounter instance for tracking and reporting frames per second.
-				glm::ivec2 m_Size; /// The current size of the window or rendering area.
-
-				CommandQueue m_DirectCommandQueue; /// Command queue for submitting DirectX 12 commands.
-
-				Microsoft::WRL::ComPtr<IDXGIAdapter4> g_DxgiAdapter4; /// The DirectX Graphics Infrastructure (DXGI) adapter used for the device.
 				Microsoft::WRL::ComPtr<ID3D12Device2> g_Device; /// The DirectX 12 device interface for creating resources and managing GPU state.
+				CommandQueue m_DirectCommandQueue; /// Command queue for submitting DirectX 12 commands.
 				Microsoft::WRL::ComPtr<IDXGISwapChain4> g_SwapChain; /// The swap chain responsible for presenting rendered frames to the screen.
 				Microsoft::WRL::ComPtr<ID3D12Resource> g_BackBuffers[g_NumSwapChainBuffers]; /// Back buffers used for rendering in the swap chain.
 				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> g_RTVDescriptorHeap; /// Descriptor heap for render target views (RTVs).
-				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> g_SRVDescriptorHeap; /// Descriptor heap for shader resource views (SRVs).
-
-				Microsoft::WRL::ComPtr<ID3D12Fence> g_Fence; /// The fence object used for GPU synchronization.
-				bool g_TearingSupported = false; /// Indicates whether tearing (vsync off) is supported by the system.
-				uint64_t g_FenceValue = 0; /// Current fence value for synchronization.
-				uint64_t g_FrameFenceValues[g_NumSwapChainBuffers] = {}; /// Fence values for each back buffer frame to ensure synchronization.
-				HANDLE g_FenceEvent; /// Event handle used to wait for fence completion.
-				UINT g_CurrentBackBufferIndex = 0; /// The index of the current back buffer being rendered to.
+				Microsoft::WRL::ComPtr<IDXGIAdapter4> g_DxgiAdapter4; /// The DirectX Graphics Infrastructure (DXGI) adapter used for the device.
 				UINT g_RTVDescriptorSize = 0; /// The size of a single descriptor in the RTV descriptor heap.
-				UINT g_SRVDescriptorSize = 0; /// The size of a single descriptor in the SRV descriptor heap.
-				UINT m_ExtraRenderTargets = 1; /// The number of additional render targets beyond the default ones.
+				UINT g_CurrentBackBufferIndex = 0; /// The index of the current back buffer being rendered to.
+
+				bool g_TearingSupported = false; /// Indicates whether tearing (vsync off) is supported by the system.
+				bool g_vSync = false; /// Indicates whether vsync is on or off.
+
+				FPSCounter m_FpsCounter; /// The FPSCounter instance for tracking and reporting frames per second.
+
+				glm::ivec2 m_Size; /// The current size of the window or rendering area.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+				void TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList,
+					Microsoft::WRL::ComPtr<ID3D12Resource> a_Resource,
+					D3D12_RESOURCE_STATES a_BeforeState, D3D12_RESOURCE_STATES a_AfterState);
+
+				// Clear a render target view.
+				void ClearRTV(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList,
+					D3D12_CPU_DESCRIPTOR_HANDLE a_Rtv, FLOAT* a_ClearColor);
+
+				// Clear the depth of a depth-stencil view.
+				void ClearDepth(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList,
+					D3D12_CPU_DESCRIPTOR_HANDLE a_Dsv, FLOAT a_Depth = 1.0f);
+
+				// Create a GPU buffer.
+				void UpdateBufferResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList,
+					ID3D12Resource** a_pDestinationResource, ID3D12Resource** a_pIntermediateResource,
+					size_t a_NumElements, size_t a_ElementSize, const void* a_BufferData,
+					D3D12_RESOURCE_FLAGS a_Flags = D3D12_RESOURCE_FLAG_NONE);
+
+				// Resize the depth buffer to match the size of the client area.
+				void ResizeDepthBuffer(int a_Width, int a_Height);
+
+				uint64_t m_FenceValues[g_NumSwapChainBuffers] = {};
+
+				// Vertex buffer for the cube.
+				Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
+				D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
+				// Index buffer for the cube.
+				Microsoft::WRL::ComPtr<ID3D12Resource> m_IndexBuffer;
+				D3D12_INDEX_BUFFER_VIEW m_IndexBufferView;
+
+				// Depth buffer.
+				Microsoft::WRL::ComPtr<ID3D12Resource> m_DepthBuffer;
+				// Descriptor heap for depth buffer.
+				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_DSVHeap;
+
+				Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
+
+				// Pipeline state object.
+				Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
+
+				D3D12_VIEWPORT m_Viewport;
+				D3D12_RECT m_ScissorRect;
+
+				float m_FoV;
+
+				DirectX::XMMATRIX m_ModelMatrix;
+				DirectX::XMMATRIX m_ViewMatrix;
+				DirectX::XMMATRIX m_ProjectionMatrix;
 			};
 		}
 	}

@@ -25,9 +25,10 @@ namespace coopscoop
 				/// <summary>
 				/// Initializes the system, setting up necessary resources.
 				/// </summary>
+				/// <param name="a_Wait">Determines whether the application waits until the system has been fully initialized.</param>
 				/// <param name="a_hInstance">Handle to the instance of the program.</param>
 				/// <returns>True if the initialization was successful, otherwise false.</returns>
-				bool Initialize(HINSTANCE a_hInstance);
+				bool Initialize(bool a_Wait, HINSTANCE a_hInstance);
 
 				/// <summary>
 				/// Handles Windows messages for the editor's window.
