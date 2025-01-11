@@ -1,5 +1,6 @@
 
 #include <windows.h>
+#include <Shlwapi.h>
 
 #include "core/Engine.h"
 
