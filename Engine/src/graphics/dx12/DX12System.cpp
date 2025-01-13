@@ -114,20 +114,16 @@ namespace coopscoop
 			{
 				m_FpsCounter.Update();
 
+				// Update the model matrix for the mesh
+				chickenMesh.GetTransform().SetPosition({ 0.0f, 0.0f, 5.0f }); // Example position
+
 				// Update the model matrix.
-				float angle = static_cast<float>(m_FpsCounter.GetTotalTime() * 90.0);
-				const DirectX::XMVECTOR rotationAxis = DirectX::XMVectorSet(0, 1, 1, 0);
-				m_ModelMatrix = DirectX::XMMatrixRotationAxis(rotationAxis, DirectX::XMConvertToRadians(angle));
+				// Update the camera matrices
+				m_Camera.SetPosition({ 0.0f, 0.0f, -10.0f });
+				m_Camera.SetTarget({ 0.0f, 0.0f, 0.0f });
 
-				// Update the view matrix.
-				const DirectX::XMVECTOR eyePosition = DirectX::XMVectorSet(0, 0, -10, 1);
-				const DirectX::XMVECTOR focusPoint = DirectX::XMVectorSet(0, 0, 0, 1);
-				const DirectX::XMVECTOR upDirection = DirectX::XMVectorSet(0, 1, 0, 0);
-				m_ViewMatrix = DirectX::XMMatrixLookAtLH(eyePosition, focusPoint, upDirection);
-
-				// Update the projection matrix.
-				float aspectRatio = m_Size.x / static_cast<float>(m_Size.y);
-				m_ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(m_FoV), aspectRatio, 0.1f, 100.0f);
+				auto viewMatrix = m_Camera.GetViewMatrix();
+				auto projectionMatrix = m_Camera.GetProjectionMatrix();
 
 				// Render part.
 				auto commandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
@@ -154,22 +150,12 @@ namespace coopscoop
 
 				chickenMesh.Update(commandList);
 
-				commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-				commandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
-				commandList->IASetIndexBuffer(&m_IndexBufferView);
-
 				commandList->RSSetViewports(1, &m_Viewport);
 				commandList->RSSetScissorRects(1, &m_ScissorRect);
 
 				commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
 
-				// Update the MVP matrix
-				DirectX::XMMATRIX mvpMatrix = XMMatrixMultiply(m_ModelMatrix, m_ViewMatrix);
-				mvpMatrix = XMMatrixMultiply(mvpMatrix, m_ProjectionMatrix);
-				commandList->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &mvpMatrix, 0);
-
-				commandList->DrawIndexedInstanced(m_Indices.size(), 1, 0, 0, 0);
-				chickenMesh.Render(commandList);
+				chickenMesh.Render(commandList, viewMatrix, projectionMatrix);
 
 				// Present
 				{
@@ -199,16 +185,6 @@ namespace coopscoop
 
 			void DX12System::IncreaseFov()
 			{
-				m_FoV -= 0.1f;
-
-				if (m_FoV > 90)
-				{
-					m_FoV = 90;
-				}
-				else if (m_FoV < 12)
-				{
-					m_FoV = 12;
-				}
 			}
 
 			bool DX12System::InitializeThread()
@@ -248,7 +224,6 @@ namespace coopscoop
 
 				m_ScissorRect = CD3DX12_RECT(0, 0, LONG_MAX, LONG_MAX);
 				m_Viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(m_Size.x), static_cast<float>(m_Size.y));
-				m_FoV = 45.0;
 
 				if (!DirectX::XMVerifyCPUSupport())
 				{
@@ -273,82 +248,7 @@ namespace coopscoop
 				std::shared_ptr<CommandQueue> commandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
 				Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList = commandQueue->GetCommandList();
 
-				// Upload vertex buffer data.
-				core::DataStream data;
-				if (!file::FileLoader::LoadFile("C:/resources/chicken.gltf", data))
-				{
-					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading mesh file %s.", "C:/resources/chicken.gltf");
-					return false;
-				}
-
-				tinygltf::Model model;
-				tinygltf::TinyGLTF loader;
-				std::string err, warn;
-				if (!loader.LoadASCIIFromString(&model, &err, &warn, data.dataAs<const char>(), data.size(), "C:/resources/"))
-				{
-					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading mesh file %s.", "C:/resources/chicken.gltf");
-					return false;
-				}
-
-				for (const auto& mesh : model.meshes) {
-					for (const auto& primitive : mesh.primitives) {
-						const auto& posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
-						const auto& posBufferView = model.bufferViews[posAccessor.bufferView];
-						const auto& posBuffer = model.buffers[posBufferView.buffer];
-
-						const float* positions = reinterpret_cast<const float*>(&posBuffer.data[posBufferView.byteOffset + posAccessor.byteOffset]);
-
-						const float* colors = nullptr;
-						if (primitive.attributes.find("COLOR_0") != primitive.attributes.end()) {
-							const auto& colorAccessor = model.accessors[primitive.attributes.find("COLOR_0")->second];
-							const auto& colorBufferView = model.bufferViews[colorAccessor.bufferView];
-							const auto& colorBuffer = model.buffers[colorBufferView.buffer];
-							colors = reinterpret_cast<const float*>(&colorBuffer.data[colorBufferView.byteOffset + colorAccessor.byteOffset]);
-						}
-
-						for (size_t i = 0; i < posAccessor.count; ++i) {
-							DirectX::XMFLOAT3 position(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
-							DirectX::XMFLOAT3 color = colors ? DirectX::XMFLOAT3(colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]) : DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
-							m_Vertices.push_back({ position, color });
-						}
-
-						// Extract indices
-						const auto& indexAccessor = model.accessors[primitive.indices];
-						const auto& indexBufferView = model.bufferViews[indexAccessor.bufferView];
-						const auto& indexBuffer = model.buffers[indexBufferView.buffer];
-
-						if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
-							const uint16_t* buf = reinterpret_cast<const uint16_t*>(&indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset]);
-							m_Indices.insert(m_Indices.end(), buf, buf + indexAccessor.count);
-						}
-						else if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
-							const uint32_t* buf = reinterpret_cast<const uint32_t*>(&indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset]);
-							m_Indices.insert(m_Indices.end(), buf, buf + indexAccessor.count);
-						}
-					}
-				}
-
-				// Upload vertex buffer data.
-				Microsoft::WRL::ComPtr<ID3D12Resource> intermediateVertexBuffer;
-				UpdateBufferResource(commandList,
-					&m_VertexBuffer, &intermediateVertexBuffer,
-					m_Vertices.size(), sizeof(VertexPosColorUV), m_Vertices.data());
-
-				// Create the vertex buffer view.
-				m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
-				m_VertexBufferView.SizeInBytes = sizeof(VertexPosColorUV) * m_Vertices.size();
-				m_VertexBufferView.StrideInBytes = sizeof(VertexPosColorUV);
-
-				// Upload index buffer data.
-				Microsoft::WRL::ComPtr<ID3D12Resource> intermediateIndexBuffer;
-				UpdateBufferResource(commandList,
-					&m_IndexBuffer, &intermediateIndexBuffer,
-					m_Indices.size(), sizeof(WORD), m_Indices.data());
-
-				// Create index buffer view.
-				m_IndexBufferView.BufferLocation = m_IndexBuffer->GetGPUVirtualAddress();
-				m_IndexBufferView.Format = DXGI_FORMAT_R16_UINT;
-				m_IndexBufferView.SizeInBytes = sizeof(uint16_t) * m_Indices.size();
+				chickenMesh.LoadMesh("C:/resources/chicken.gltf", commandList);
 
 				// Create the descriptor heap for the depth-stencil view.
 				D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};

@@ -13,86 +13,86 @@ namespace coopscoop
 	{
 		namespace dx12
 		{
-            bool Mesh::LoadMesh(const std::string& a_Path)
+
+			Mesh::Mesh()
+			{ }
+
+            bool Mesh::LoadMesh(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
             {
-                core::DataStream data;
-                if (!file::FileLoader::LoadFile(a_Path, data))
-                {
-                    LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_INPUT, "Failed loading mesh file %s.", a_Path.c_str());
-                    return false;
-                }
+				// Upload vertex buffer data.
+				core::DataStream data;
+				if (!file::FileLoader::LoadFile(a_Path, data))
+				{
+					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading mesh file %s.", a_Path.c_str());
+					return false;
+				}
 
-                tinygltf::Model model;
-                tinygltf::TinyGLTF loader;
-                std::string err, warn;
-                if (!loader.LoadASCIIFromString(&model, &err, &warn, data.dataAs<const char>(), data.size(), "C:/resources/"))
-                {
-                    LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_INPUT, "Failed loading mesh file %s.", a_Path.c_str());
-                    return false;
-                }
+				tinygltf::Model model;
+				tinygltf::TinyGLTF loader;
+				std::string err, warn;
+				if (!loader.LoadASCIIFromString(&model, &err, &warn, data.dataAs<const char>(), data.size(), "C:/resources/"))
+				{
+					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading mesh file %s.", a_Path.c_str());
+					return false;
+				}
 
-                for (const auto& mesh : model.meshes) {
-                    for (const auto& primitive : mesh.primitives) {
-                        const auto& posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
-                        const auto& posBufferView = model.bufferViews[posAccessor.bufferView];
-                        const auto& posBuffer = model.buffers[posBufferView.buffer];
+				for (const auto& mesh : model.meshes) {
+					for (const auto& primitive : mesh.primitives) {
+						const auto& posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
+						const auto& posBufferView = model.bufferViews[posAccessor.bufferView];
+						const auto& posBuffer = model.buffers[posBufferView.buffer];
 
-                        const float* positions = reinterpret_cast<const float*>(&posBuffer.data[posBufferView.byteOffset + posAccessor.byteOffset]);
+						const float* positions = reinterpret_cast<const float*>(&posBuffer.data[posBufferView.byteOffset + posAccessor.byteOffset]);
 
-                        const float* colors = nullptr;
-                        if (primitive.attributes.find("COLOR_0") != primitive.attributes.end()) {
-                            const auto& colorAccessor = model.accessors[primitive.attributes.find("COLOR_0")->second];
-                            const auto& colorBufferView = model.bufferViews[colorAccessor.bufferView];
-                            const auto& colorBuffer = model.buffers[colorBufferView.buffer];
-                            colors = reinterpret_cast<const float*>(&colorBuffer.data[colorBufferView.byteOffset + colorAccessor.byteOffset]);
-                        }
+						const float* colors = nullptr;
+						if (primitive.attributes.find("COLOR_0") != primitive.attributes.end()) {
+							const auto& colorAccessor = model.accessors[primitive.attributes.find("COLOR_0")->second];
+							const auto& colorBufferView = model.bufferViews[colorAccessor.bufferView];
+							const auto& colorBuffer = model.buffers[colorBufferView.buffer];
+							colors = reinterpret_cast<const float*>(&colorBuffer.data[colorBufferView.byteOffset + colorAccessor.byteOffset]);
+						}
 
-                        for (size_t i = 0; i < posAccessor.count; ++i) {
-                            DirectX::XMFLOAT3 position(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
-                            DirectX::XMFLOAT3 color = colors ? DirectX::XMFLOAT3(colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]) : DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
-                            m_Vertices.push_back({ position, color });
-                        }
+						for (size_t i = 0; i < posAccessor.count; ++i) {
+							DirectX::XMFLOAT3 position(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
+							DirectX::XMFLOAT3 color = colors ? DirectX::XMFLOAT3(colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]) : DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
+							m_Vertices.push_back({ position, color });
+						}
 
-                        // Extract indices
-                        const auto& indexAccessor = model.accessors[primitive.indices];
-                        const auto& indexBufferView = model.bufferViews[indexAccessor.bufferView];
-                        const auto& indexBuffer = model.buffers[indexBufferView.buffer];
+						// Extract indices
+						const auto& indexAccessor = model.accessors[primitive.indices];
+						const auto& indexBufferView = model.bufferViews[indexAccessor.bufferView];
+						const auto& indexBuffer = model.buffers[indexBufferView.buffer];
 
-                        if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
-                            const uint16_t* buf = reinterpret_cast<const uint16_t*>(&indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset]);
-                            m_Indices.insert(m_Indices.end(), buf, buf + indexAccessor.count);
-                        }
-                        else if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
-                            const uint32_t* buf = reinterpret_cast<const uint32_t*>(&indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset]);
-                            m_Indices.insert(m_Indices.end(), buf, buf + indexAccessor.count);
-                        }
-                    }
-                }
+						if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+							const uint16_t* buf = reinterpret_cast<const uint16_t*>(&indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset]);
+							m_Indices.insert(m_Indices.end(), buf, buf + indexAccessor.count);
+						}
+						else if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+							const uint32_t* buf = reinterpret_cast<const uint32_t*>(&indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset]);
+							m_Indices.insert(m_Indices.end(), buf, buf + indexAccessor.count);
+						}
+					}
+				}
 
-                std::shared_ptr<CommandQueue> commandQueue = core::ENGINE.GetDX12().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
-                Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList = commandQueue->GetCommandList();
+				// Upload vertex buffer data.
+				UpdateBufferResource(a_CommandList,
+					&m_VertexBuffer, &intermediateVertexBuffer,
+					m_Vertices.size(), sizeof(VertexPosColorUV), m_Vertices.data());
 
-                // Upload vertex buffer data.
-                Microsoft::WRL::ComPtr<ID3D12Resource> intermediateVertexBuffer;
-                UpdateBufferResource(commandList,
-                    &m_VertexBuffer, &intermediateVertexBuffer,
-                    m_Vertices.size(), sizeof(VertexPosColorUV), m_Vertices.data());
+				// Create the vertex buffer view.
+				m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
+				m_VertexBufferView.SizeInBytes = sizeof(VertexPosColorUV) * m_Vertices.size();
+				m_VertexBufferView.StrideInBytes = sizeof(VertexPosColorUV);
 
-                // Create the vertex buffer view.
-                m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
-                m_VertexBufferView.SizeInBytes = sizeof(VertexPosColorUV) * m_Vertices.size();
-                m_VertexBufferView.StrideInBytes = sizeof(VertexPosColorUV);
+				// Upload index buffer data.
+				UpdateBufferResource(a_CommandList,
+					&m_IndexBuffer, &intermediateIndexBuffer,
+					m_Indices.size(), sizeof(WORD), m_Indices.data());
 
-                // Upload index buffer data.
-                Microsoft::WRL::ComPtr<ID3D12Resource> intermediateIndexBuffer;
-                UpdateBufferResource(commandList,
-                    &m_IndexBuffer, &intermediateIndexBuffer,
-                    m_Indices.size(), sizeof(uint32_t), m_Indices.data());
-
-                // Create index buffer view.
-                m_IndexBufferView.BufferLocation = m_IndexBuffer->GetGPUVirtualAddress();
-                m_IndexBufferView.Format = DXGI_FORMAT_R32_UINT;
-                m_IndexBufferView.SizeInBytes = sizeof(uint32_t) * m_Indices.size();  // Since Format is DXGI_FORMAT_R32_UINT
+				// Create index buffer view.
+				m_IndexBufferView.BufferLocation = m_IndexBuffer->GetGPUVirtualAddress();
+				m_IndexBufferView.Format = DXGI_FORMAT_R16_UINT;
+				m_IndexBufferView.SizeInBytes = sizeof(uint16_t) * m_Indices.size();
 
                 return true;
             }
@@ -151,15 +151,24 @@ namespace coopscoop
                 }
             }
 
-            void Mesh::Update(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+			Transform& Mesh::GetTransform()
+			{
+				return m_Transform;
+			}
+
+			void Mesh::Update(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
             {
                 a_CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
                 a_CommandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
                 a_CommandList->IASetIndexBuffer(&m_IndexBufferView);
             }
 
-            void Mesh::Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+            void Mesh::Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, DirectX::XMMATRIX view, DirectX::XMMATRIX projection)
 			{
+				// Update the MVP matrix
+				DirectX::XMMATRIX mvpMatrix = m_Transform.GetWorldMatrix() * view * projection;
+				a_CommandList->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &mvpMatrix, 0);
+
                 a_CommandList->DrawIndexedInstanced(m_Indices.size(), 1, 0, 0, 0);
 			}
 		}

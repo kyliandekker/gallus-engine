@@ -9,6 +9,7 @@
 
 #include "graphics/dx12/CommandQueue.h"
 #include "graphics/dx12/Mesh.h"
+#include "graphics/dx12/Camera.h"
 
 #undef min
 #undef max
@@ -206,12 +207,6 @@ namespace coopscoop
 				D3D12_VIEWPORT m_Viewport;
 				D3D12_RECT m_ScissorRect;
 
-				float m_FoV;
-
-				DirectX::XMMATRIX m_ModelMatrix;
-				DirectX::XMMATRIX m_ViewMatrix;
-				DirectX::XMMATRIX m_ProjectionMatrix;
-
 				HWND m_hWnd;
 
 				std::wstring m_WindowName;
@@ -233,12 +228,7 @@ namespace coopscoop
 
 				FPSCounter m_FpsCounter;
 
-				// Vertex buffer for the cube.
-				Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
-				D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
-				// Index buffer for the cube.
-				Microsoft::WRL::ComPtr<ID3D12Resource> m_IndexBuffer;
-				D3D12_INDEX_BUFFER_VIEW m_IndexBufferView;
+				Camera m_Camera;
 			};
 		}
 	}

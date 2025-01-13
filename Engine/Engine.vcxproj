@@ -93,6 +93,7 @@
     <ClCompile Include="src\graphics\dx12\CommandQueue.cpp" />
     <ClCompile Include="src\graphics\dx12\DX12System.cpp" />
     <ClCompile Include="src\graphics\dx12\Mesh.cpp" />
+    <ClCompile Include="src\graphics\dx12\Transform.cpp" />
     <ClCompile Include="src\graphics\win32\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -111,6 +112,7 @@
     <ClInclude Include="include\graphics\dx12\Camera.h" />
     <ClInclude Include="include\graphics\dx12\DxMath.h" />
     <ClInclude Include="include\graphics\dx12\Mesh.h" />
+    <ClInclude Include="include\graphics\dx12\Transform.h" />
     <ClInclude Include="include\graphics\dx12\UploadBuffer.h" />
     <ClInclude Include="include\graphics\win32\Window.h" />
     <ClInclude Include="include\core\input\InputSystem.h" />
