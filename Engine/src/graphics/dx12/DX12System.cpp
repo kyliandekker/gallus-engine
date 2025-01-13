@@ -118,6 +118,10 @@ namespace coopscoop
 				chickenMesh.GetTransform().SetPosition({ 0.0f, 0.0f, 5.0f }); // Example position
 				chickenMesh.GetTransform().GetRotation().y += 0.1f;
 
+				// Update the model matrix for the mesh
+				faucetMesh.GetTransform().SetPosition({ -2.0f, 0.0f, 5.0f }); // Example position
+				faucetMesh.GetTransform().GetRotation().y += 0.1f;
+
 				auto viewMatrix = m_Camera.GetViewMatrix();
 				auto projectionMatrix = m_Camera.GetProjectionMatrix();
 
@@ -144,14 +148,13 @@ namespace coopscoop
 				commandList->SetPipelineState(m_PipelineState.Get());
 				commandList->SetGraphicsRootSignature(m_RootSignature.Get());
 
-				chickenMesh.Update(commandList);
-
 				commandList->RSSetViewports(1, &m_Viewport);
 				commandList->RSSetScissorRects(1, &m_ScissorRect);
 
 				commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
 
 				chickenMesh.Render(commandList, viewMatrix, projectionMatrix);
+				faucetMesh.Render(commandList, viewMatrix, projectionMatrix);
 
 				// Present
 				{
@@ -244,7 +247,8 @@ namespace coopscoop
 				std::shared_ptr<CommandQueue> commandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
 				Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList = commandQueue->GetCommandList();
 
-				chickenMesh.LoadMesh("C:/resources/chicken.gltf", commandList);
+				chickenMesh.LoadMesh("./resources/chicken.gltf", commandList);
+				faucetMesh.LoadMesh("./resources/mod_faucet.gltf", commandList);
 
 				// Create the descriptor heap for the depth-stencil view.
 				D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};

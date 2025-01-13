@@ -190,6 +190,7 @@ namespace coopscoop
 				std::shared_ptr<CommandQueue> m_CopyCommandQueue;
 
 				Mesh chickenMesh;
+				Mesh faucetMesh;
 
 				uint64_t m_FenceValues[BufferCount] = {};
 

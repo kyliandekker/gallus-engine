@@ -36,8 +36,48 @@ namespace coopscoop
 					return false;
 				}
 
-				for (const auto& mesh : model.meshes) {
-					for (const auto& primitive : mesh.primitives) {
+				m_MeshData.reserve(model.meshes.size());
+				for (const auto& mesh : model.meshes)
+				{
+					MeshData* meshData = new MeshData();
+
+					size_t indexSize = 0;
+					for (const auto& primitive : mesh.primitives)
+					{
+						const auto& indexAccessor = model.accessors[primitive.indices];
+						const auto& indexBufferView = model.bufferViews[indexAccessor.bufferView];
+						const auto& indexBuffer = model.buffers[indexBufferView.buffer];
+
+						// Determine index type and load data
+						switch (indexAccessor.componentType)
+						{
+							case TINYGLTF_COMPONENT_TYPE_SHORT:
+							{
+								indexSize = sizeof(int16_t);
+								break;
+							}
+							case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+							{
+								indexSize = sizeof(uint16_t);
+								break;
+							}
+							case TINYGLTF_COMPONENT_TYPE_INT:
+							{
+								indexSize = sizeof(int32_t);
+								break;
+							}
+							case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
+							{
+								indexSize = sizeof(uint32_t);
+								break;
+							}
+							case TINYGLTF_COMPONENT_TYPE_FLOAT:
+							{
+								indexSize = sizeof(float);
+								break;
+							}
+						}
+
 						const auto& posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
 						const auto& posBufferView = model.bufferViews[posAccessor.bufferView];
 						const auto& posBuffer = model.buffers[posBufferView.buffer];
@@ -45,48 +85,47 @@ namespace coopscoop
 						const float* positions = reinterpret_cast<const float*>(&posBuffer.data[posBufferView.byteOffset + posAccessor.byteOffset]);
 
 						const float* colors = nullptr;
-						if (primitive.attributes.find("COLOR_0") != primitive.attributes.end()) {
+						if (primitive.attributes.find("COLOR_0") != primitive.attributes.end())
+						{
 							const auto& colorAccessor = model.accessors[primitive.attributes.find("COLOR_0")->second];
 							const auto& colorBufferView = model.bufferViews[colorAccessor.bufferView];
 							const auto& colorBuffer = model.buffers[colorBufferView.buffer];
 							colors = reinterpret_cast<const float*>(&colorBuffer.data[colorBufferView.byteOffset + colorAccessor.byteOffset]);
 						}
 
-						for (size_t i = 0; i < posAccessor.count; ++i) {
+						for (size_t i = 0; i < posAccessor.count; ++i)
+						{
 							DirectX::XMFLOAT3 position(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
 							DirectX::XMFLOAT3 color = colors ? DirectX::XMFLOAT3(colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]) : DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
-							m_Vertices.push_back({ position, color });
+							meshData->m_Vertices.push_back({ position, color });
 						}
 
-						// Extract indices
-						const auto& indexAccessor = model.accessors[primitive.indices];
-						const auto& indexBufferView = model.bufferViews[indexAccessor.bufferView];
-						const auto& indexBuffer = model.buffers[indexBufferView.buffer];
-
-						const uint16_t* buf = reinterpret_cast<const uint16_t*>(&indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset]);
-						m_Indices.insert(m_Indices.end(), buf, buf + indexAccessor.count);
+						const uint8_t* indices = &indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset];
+						meshData->m_Indices.resize(indexAccessor.count * indexSize);
+						std::memcpy(meshData->m_Indices.data(), indices, indexAccessor.count * indexSize);
 					}
+					m_MeshData.push_back(meshData);
+
+					// Upload vertex buffer data.
+					UpdateBufferResource(a_CommandList,
+						&meshData->m_VertexBuffer, &meshData->intermediateVertexBuffer,
+						meshData->m_Vertices.size(), sizeof(VertexPosColorUV), meshData->m_Vertices.data());
+
+					// Create the vertex buffer view.
+					meshData->m_VertexBufferView.BufferLocation = meshData->m_VertexBuffer->GetGPUVirtualAddress();
+					meshData->m_VertexBufferView.SizeInBytes = sizeof(VertexPosColorUV) * meshData->m_Vertices.size();
+					meshData->m_VertexBufferView.StrideInBytes = sizeof(VertexPosColorUV);
+
+					// Upload index buffer data.
+					UpdateBufferResource(a_CommandList,
+						&meshData->m_IndexBuffer, &meshData->intermediateIndexBuffer,
+						meshData->m_Indices.size(), indexSize, meshData->m_Indices.data());
+
+					// Create index buffer view.
+					meshData->m_IndexBufferView.BufferLocation = meshData->m_IndexBuffer->GetGPUVirtualAddress();
+					meshData->m_IndexBufferView.Format = DXGI_FORMAT_R16_UINT;
+					meshData->m_IndexBufferView.SizeInBytes = indexSize * meshData->m_Indices.size();
 				}
-
-				// Upload vertex buffer data.
-				UpdateBufferResource(a_CommandList,
-					&m_VertexBuffer, &intermediateVertexBuffer,
-					m_Vertices.size(), sizeof(VertexPosColorUV), m_Vertices.data());
-
-				// Create the vertex buffer view.
-				m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
-				m_VertexBufferView.SizeInBytes = sizeof(VertexPosColorUV) * m_Vertices.size();
-				m_VertexBufferView.StrideInBytes = sizeof(VertexPosColorUV);
-
-				// Upload index buffer data.
-				UpdateBufferResource(a_CommandList,
-					&m_IndexBuffer, &intermediateIndexBuffer,
-					m_Indices.size(), sizeof(WORD), m_Indices.data());
-
-				// Create index buffer view.
-				m_IndexBufferView.BufferLocation = m_IndexBuffer->GetGPUVirtualAddress();
-				m_IndexBufferView.Format = DXGI_FORMAT_R16_UINT;
-				m_IndexBufferView.SizeInBytes = sizeof(uint16_t) * m_Indices.size();
 
                 return true;
             }
@@ -152,18 +191,22 @@ namespace coopscoop
 
 			void Mesh::Update(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
             {
-                a_CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-                a_CommandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
-                a_CommandList->IASetIndexBuffer(&m_IndexBufferView);
             }
 
             void Mesh::Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, DirectX::XMMATRIX view, DirectX::XMMATRIX projection)
 			{
-				// Update the MVP matrix
-				DirectX::XMMATRIX mvpMatrix = m_Transform.GetWorldMatrix() * view * projection;
-				a_CommandList->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &mvpMatrix, 0);
+				for (auto& meshData : m_MeshData)
+				{
+					a_CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+					a_CommandList->IASetVertexBuffers(0, 1, &meshData->m_VertexBufferView);
+					a_CommandList->IASetIndexBuffer(&meshData->m_IndexBufferView);
 
-                a_CommandList->DrawIndexedInstanced(m_Indices.size(), 1, 0, 0, 0);
+					// Update the MVP matrix
+					DirectX::XMMATRIX mvpMatrix = m_Transform.GetWorldMatrix() * view * projection;
+					a_CommandList->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &mvpMatrix, 0);
+
+					a_CommandList->DrawIndexedInstanced(meshData->m_Indices.size(), 1, 0, 0, 0);
+				}
 			}
 		}
 	}

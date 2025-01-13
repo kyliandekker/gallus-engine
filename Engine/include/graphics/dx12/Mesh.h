@@ -18,6 +18,29 @@ namespace coopscoop
 				DirectX::XMFLOAT3 Color;
 			};
 
+			struct MeshData
+			{
+				enum class IndexSize
+				{
+					INDEXSIZE_16,
+					INDEXSIZE_23
+				};
+
+				std::vector<VertexPosColorUV> m_Vertices;
+				std::vector<uint16_t> m_Indices;
+				IndexSize m_IndexSize;
+
+				// Vertex buffer for the cube.
+				Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
+				D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
+				// Index buffer for the cube.
+				Microsoft::WRL::ComPtr<ID3D12Resource> m_IndexBuffer;
+				D3D12_INDEX_BUFFER_VIEW m_IndexBufferView;
+
+				Microsoft::WRL::ComPtr<ID3D12Resource> intermediateVertexBuffer;
+				Microsoft::WRL::ComPtr<ID3D12Resource> intermediateIndexBuffer;
+			};
+
 			class Mesh
 			{
 			public:
@@ -31,19 +54,7 @@ namespace coopscoop
 			private:
 				void UpdateBufferResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, ID3D12Resource** a_pDestinationResource, ID3D12Resource** a_pIntermediateResource, size_t a_NumElements, size_t a_ElementSize, const void* a_BufferData, D3D12_RESOURCE_FLAGS a_Flags = D3D12_RESOURCE_FLAG_NONE);
 
-				std::vector<VertexPosColorUV> m_Vertices;
-				std::vector<uint16_t> m_Indices;
-
-				// Vertex buffer for the cube.
-				Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
-				D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
-				// Index buffer for the cube.
-				Microsoft::WRL::ComPtr<ID3D12Resource> m_IndexBuffer;
-				D3D12_INDEX_BUFFER_VIEW m_IndexBufferView;
-
-				Microsoft::WRL::ComPtr<ID3D12Resource> intermediateVertexBuffer;
-				Microsoft::WRL::ComPtr<ID3D12Resource> intermediateIndexBuffer;
-				Microsoft::WRL::ComPtr<ID3D12Resource> constantBuffer;
+				std::vector<MeshData*> m_MeshData;
 
 				Transform m_Transform;
 			};
