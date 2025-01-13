@@ -116,11 +116,7 @@ namespace coopscoop
 
 				// Update the model matrix for the mesh
 				chickenMesh.GetTransform().SetPosition({ 0.0f, 0.0f, 5.0f }); // Example position
-
-				// Update the model matrix.
-				// Update the camera matrices
-				m_Camera.SetPosition({ 0.0f, 0.0f, -10.0f });
-				m_Camera.SetTarget({ 0.0f, 0.0f, 0.0f });
+				chickenMesh.GetTransform().GetRotation().y += 0.1f;
 
 				auto viewMatrix = m_Camera.GetViewMatrix();
 				auto projectionMatrix = m_Camera.GetProjectionMatrix();

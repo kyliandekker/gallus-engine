@@ -32,7 +32,7 @@ namespace coopscoop
 				void UpdateBufferResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, ID3D12Resource** a_pDestinationResource, ID3D12Resource** a_pIntermediateResource, size_t a_NumElements, size_t a_ElementSize, const void* a_BufferData, D3D12_RESOURCE_FLAGS a_Flags = D3D12_RESOURCE_FLAG_NONE);
 
 				std::vector<VertexPosColorUV> m_Vertices;
-				std::vector<uint32_t> m_Indices;
+				std::vector<uint16_t> m_Indices;
 
 				// Vertex buffer for the cube.
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;

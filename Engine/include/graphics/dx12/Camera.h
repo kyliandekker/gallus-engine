@@ -2,6 +2,8 @@
 
 #include <DirectXMath.h>
 
+#include "graphics/dx12/Transform.h"
+
 namespace coopscoop
 {
     namespace graphics
@@ -13,18 +15,14 @@ namespace coopscoop
             public:
                 Camera();
 
-                void SetPosition(const DirectX::XMFLOAT3& position);
-                void SetTarget(const DirectX::XMFLOAT3& target);
                 void SetProjection(float fov, float aspectRatio, float nearPlane, float farPlane);
 
-                DirectX::XMMATRIX GetViewMatrix() const;
-                DirectX::XMMATRIX GetProjectionMatrix() const;
+                Transform& GetTransform();
+                DirectX::XMMATRIX GetViewMatrix();
+                DirectX::XMMATRIX GetProjectionMatrix();
 
             private:
-                DirectX::XMFLOAT3 m_Position;
-                DirectX::XMFLOAT3 m_Target;
-                DirectX::XMFLOAT3 m_Up;
-                DirectX::XMMATRIX m_ViewMatrix;
+                Transform m_Transform;
                 DirectX::XMMATRIX m_ProjectionMatrix;
             };
         }

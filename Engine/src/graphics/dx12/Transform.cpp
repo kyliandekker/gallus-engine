@@ -27,6 +27,21 @@ namespace coopscoop
                 m_Scale = scale;
             }
 
+            DirectX::XMFLOAT3& Transform::GetPosition()
+            {
+                return m_Position;
+            }
+
+            DirectX::XMFLOAT3& Transform::GetRotation()
+            {
+                return m_Rotation;
+            }
+
+            DirectX::XMFLOAT3& Transform::GetScale()
+            {
+                return m_Scale;
+            }
+
             DirectX::XMFLOAT3 Transform::GetPosition() const
             {
                 return m_Position;

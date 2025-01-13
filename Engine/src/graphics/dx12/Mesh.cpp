@@ -63,14 +63,8 @@ namespace coopscoop
 						const auto& indexBufferView = model.bufferViews[indexAccessor.bufferView];
 						const auto& indexBuffer = model.buffers[indexBufferView.buffer];
 
-						if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
-							const uint16_t* buf = reinterpret_cast<const uint16_t*>(&indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset]);
-							m_Indices.insert(m_Indices.end(), buf, buf + indexAccessor.count);
-						}
-						else if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
-							const uint32_t* buf = reinterpret_cast<const uint32_t*>(&indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset]);
-							m_Indices.insert(m_Indices.end(), buf, buf + indexAccessor.count);
-						}
+						const uint16_t* buf = reinterpret_cast<const uint16_t*>(&indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset]);
+						m_Indices.insert(m_Indices.end(), buf, buf + indexAccessor.count);
 					}
 				}
 

@@ -19,6 +19,10 @@ namespace coopscoop
                 void SetScale(const DirectX::XMFLOAT3& scale);
 
                 // Getters
+                DirectX::XMFLOAT3& GetPosition();
+                DirectX::XMFLOAT3& GetRotation();
+                DirectX::XMFLOAT3& GetScale();
+
                 DirectX::XMFLOAT3 GetPosition() const;
                 DirectX::XMFLOAT3 GetRotation() const;
                 DirectX::XMFLOAT3 GetScale() const;
