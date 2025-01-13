@@ -2,17 +2,13 @@
 
 #include "core/System.h"
 
-#include <Windows.h>
-#include <dx12/directx/d3dx12.h>  // Or any related d3dx12 header
-#include <d3d12.h>
-#include <dxgi1_6.h>
-#include <wrl.h>
+#include "graphics/dx12/DX12PCH.h"
 #include <chrono>
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
-#include <DirectXMath.h>
 
 #include "graphics/dx12/CommandQueue.h"
+#include "graphics/dx12/Mesh.h"
 
 #undef min
 #undef max
@@ -88,7 +84,13 @@ namespace coopscoop
 				/// <returns>True if destruction succeeds, otherwise false.</returns>
 				bool Destroy() override;
 
+				Microsoft::WRL::ComPtr<ID3D12Device2> GetDevice() const;
+
+				std::shared_ptr<CommandQueue> GetCommandQueue(D3D12_COMMAND_LIST_TYPE a_Type = D3D12_COMMAND_LIST_TYPE_DIRECT) const;
+
 				void IncreaseFov();
+
+				void TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList, Microsoft::WRL::ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState);
 
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderTargetTexture; /// The render target texture used for rendering.
 				CD3DX12_CPU_DESCRIPTOR_HANDLE m_RenderTargetSrvHandleCPU; /// The CPU handle for the render target SRV.
@@ -111,8 +113,6 @@ namespace coopscoop
 				UINT GetCurrentBackBufferIndex() const;
 
 				D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentRenderTargetView() const;
-
-				void TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList, Microsoft::WRL::ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState);
 
 				void ClearRTV(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtv, FLOAT* clearColor);
 
@@ -138,10 +138,6 @@ namespace coopscoop
 				/// <returns>True if tearing is supported, otherwise false.</returns>
 				bool CheckTearingSupport();
 
-				Microsoft::WRL::ComPtr<ID3D12Device2> GetDevice() const;
-
-				std::shared_ptr<CommandQueue> GetCommandQueue(D3D12_COMMAND_LIST_TYPE a_Type = D3D12_COMMAND_LIST_TYPE_DIRECT) const;
-				
 				/// <summary>
 				/// Ensures all previously submitted GPU commands are completed before continuing execution.
 				/// </summary>
@@ -192,14 +188,9 @@ namespace coopscoop
 				std::shared_ptr<CommandQueue> m_ComputeCommandQueue;
 				std::shared_ptr<CommandQueue> m_CopyCommandQueue;
 
-				uint64_t m_FenceValues[BufferCount] = {};
+				Mesh chickenMesh;
 
-				// Vertex buffer for the cube.
-				Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
-				D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
-				// Index buffer for the cube.
-				Microsoft::WRL::ComPtr<ID3D12Resource> m_IndexBuffer;
-				D3D12_INDEX_BUFFER_VIEW m_IndexBufferView;
+				uint64_t m_FenceValues[BufferCount] = {};
 
 				// Depth buffer.
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_DepthBuffer;
@@ -241,6 +232,13 @@ namespace coopscoop
 				glm::ivec2 m_Size;
 
 				FPSCounter m_FpsCounter;
+
+				// Vertex buffer for the cube.
+				Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
+				D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
+				// Index buffer for the cube.
+				Microsoft::WRL::ComPtr<ID3D12Resource> m_IndexBuffer;
+				D3D12_INDEX_BUFFER_VIEW m_IndexBufferView;
 			};
 		}
 	}

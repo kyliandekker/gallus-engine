@@ -10,6 +10,12 @@
 
 namespace coopscoop
 {
+#define LOG_CATEGORY_ENGINE "ENGINE"
+#define LOG_CATEGORY_INPUT "INPUT"
+#define LOG_CATEGORY_WINDOW "WINDOW"
+#define LOG_CATEGORY_LOGGER "LOGGER"
+#define LOG_CATEGORY_DX12 "DX12"
+
 	// This one is out of the other namespaces so they can be easily used in other classes.
 	typedef enum LogSeverity {
 		LOGSEVERITY_ASSERT,

@@ -1,9 +1,14 @@
+#include <dx12/directx/d3dx12.h>
+
 #include "graphics/dx12/DX12System.h"
 
 #include <d3dcompiler.h>
 #include <memory>
+#include <tiny_gltf/tiny_gltf.h>
 
 #include "core/logger/Logger.h"
+#include "core/DataStream.h"
+#include "core/FileUtils.h"
 
 namespace coopscoop
 {
@@ -11,8 +16,10 @@ namespace coopscoop
 	{
 		namespace dx12
 		{
-
 #pragma region DX12_FPS
+
+			std::vector<VertexPosColorUV> m_Vertices;
+			std::vector<uint16_t> m_Indices;
 
 			double FPSCounter::GetFPS() const
 			{
@@ -54,39 +61,12 @@ namespace coopscoop
 
 #pragma region DX12_SYSTEM
 
-			struct VertexPosColor
-			{
-				DirectX::XMFLOAT3 Position;
-				DirectX::XMFLOAT3 Color;
-			};
-
-			static VertexPosColor g_Vertices[8] = {
-				{ DirectX::XMFLOAT3(-1.0f, -1.0f, -1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f) }, // 0
-				{ DirectX::XMFLOAT3(-1.0f,  1.0f, -1.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f) }, // 1
-				{ DirectX::XMFLOAT3(1.0f,  1.0f, -1.0f), DirectX::XMFLOAT3(1.0f, 1.0f, 0.0f) }, // 2
-				{ DirectX::XMFLOAT3(1.0f, -1.0f, -1.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f) }, // 3
-				{ DirectX::XMFLOAT3(-1.0f, -1.0f,  1.0f), DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f) }, // 4
-				{ DirectX::XMFLOAT3(-1.0f,  1.0f,  1.0f), DirectX::XMFLOAT3(0.0f, 1.0f, 1.0f) }, // 5
-				{ DirectX::XMFLOAT3(1.0f,  1.0f,  1.0f), DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f) }, // 6
-				{ DirectX::XMFLOAT3(1.0f, -1.0f,  1.0f), DirectX::XMFLOAT3(1.0f, 0.0f, 1.0f) }  // 7
-			};
-
-			static WORD g_Indicies[36] =
-			{
-				0, 1, 2, 0, 2, 3,
-				4, 6, 5, 4, 7, 6,
-				4, 5, 1, 4, 1, 0,
-				3, 2, 6, 3, 6, 7,
-				1, 5, 6, 1, 6, 2,
-				4, 0, 3, 4, 3, 7
-			};
-
 			bool DX12System::Initialize(bool a_Wait, HWND a_hWnd, const glm::ivec2 a_Size)
 			{
 				m_hWnd = a_hWnd;
 				m_Size = a_Size;
 
-				LOG(LOGSEVERITY_INFO, CATEGORY_DX12, "Initializing dx12 system.");
+				LOG(LOGSEVERITY_INFO, LOG_CATEGORY_DX12, "Initializing dx12 system.");
 				return ThreadedSystem::Initialize(a_Wait);
 			}
 
@@ -150,8 +130,6 @@ namespace coopscoop
 				m_ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(m_FoV), aspectRatio, 0.1f, 100.0f);
 
 				// Render part.
-
-
 				auto commandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
 				auto commandList = commandQueue->GetCommandList();
 
@@ -174,6 +152,8 @@ namespace coopscoop
 				commandList->SetPipelineState(m_PipelineState.Get());
 				commandList->SetGraphicsRootSignature(m_RootSignature.Get());
 
+				chickenMesh.Update(commandList);
+
 				commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				commandList->IASetVertexBuffers(0, 1, &m_VertexBufferView);
 				commandList->IASetIndexBuffer(&m_IndexBufferView);
@@ -188,7 +168,8 @@ namespace coopscoop
 				mvpMatrix = XMMatrixMultiply(mvpMatrix, m_ProjectionMatrix);
 				commandList->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &mvpMatrix, 0);
 
-				commandList->DrawIndexedInstanced(_countof(g_Indicies), 1, 0, 0, 0);
+				commandList->DrawIndexedInstanced(m_Indices.size(), 1, 0, 0, 0);
+				chickenMesh.Render(commandList);
 
 				// Present
 				{
@@ -201,7 +182,7 @@ namespace coopscoop
 					UINT presentFlags = m_IsTearingSupported && !m_VSync ? DXGI_PRESENT_ALLOW_TEARING : 0;
 					if (FAILED(m_dxgiSwapChain->Present(syncInterval, presentFlags)))
 					{
-						LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed presenting.");
+						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed presenting.");
 						return;
 					}
 					m_CurrentBackBufferIndex = m_dxgiSwapChain->GetCurrentBackBufferIndex();
@@ -212,7 +193,7 @@ namespace coopscoop
 
 			bool DX12System::Destroy()
 			{
-				LOG(LOGSEVERITY_INFO, CATEGORY_DX12, "Destroying dx12 system.");
+				LOG(LOGSEVERITY_INFO, LOG_CATEGORY_DX12, "Destroying dx12 system.");
 				return ThreadedSystem::Destroy();
 			}
 
@@ -239,20 +220,20 @@ namespace coopscoop
 				Microsoft::WRL::ComPtr<ID3D12Debug> debugInterface;
 				if (FAILED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugInterface))))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed retrieving debug interface.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed retrieving debug interface.");
 					return false;
 				}
 				debugInterface->EnableDebugLayer();
 #endif
 				if (!GetAdapter(false))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed retrieving adapter.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed retrieving adapter.");
 					return false;
 				}
 
 				if (!CreateDevice())
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating device.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating device.");
 					return false;
 				}
 
@@ -271,13 +252,13 @@ namespace coopscoop
 
 				if (!DirectX::XMVerifyCPUSupport())
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed verifying DirectX Math library support.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed verifying DirectX Math library support.");
 					return false;
 				}
 
 				if (!CreateSwapChain())
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating swap chain.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating swap chain.");
 					return false;
 				}
 
@@ -293,26 +274,81 @@ namespace coopscoop
 				Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList = commandQueue->GetCommandList();
 
 				// Upload vertex buffer data.
+				core::DataStream data;
+				if (!file::FileLoader::LoadFile("C:/resources/chicken.gltf", data))
+				{
+					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading mesh file %s.", "C:/resources/chicken.gltf");
+					return false;
+				}
+
+				tinygltf::Model model;
+				tinygltf::TinyGLTF loader;
+				std::string err, warn;
+				if (!loader.LoadASCIIFromString(&model, &err, &warn, data.dataAs<const char>(), data.size(), "C:/resources/"))
+				{
+					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading mesh file %s.", "C:/resources/chicken.gltf");
+					return false;
+				}
+
+				for (const auto& mesh : model.meshes) {
+					for (const auto& primitive : mesh.primitives) {
+						const auto& posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
+						const auto& posBufferView = model.bufferViews[posAccessor.bufferView];
+						const auto& posBuffer = model.buffers[posBufferView.buffer];
+
+						const float* positions = reinterpret_cast<const float*>(&posBuffer.data[posBufferView.byteOffset + posAccessor.byteOffset]);
+
+						const float* colors = nullptr;
+						if (primitive.attributes.find("COLOR_0") != primitive.attributes.end()) {
+							const auto& colorAccessor = model.accessors[primitive.attributes.find("COLOR_0")->second];
+							const auto& colorBufferView = model.bufferViews[colorAccessor.bufferView];
+							const auto& colorBuffer = model.buffers[colorBufferView.buffer];
+							colors = reinterpret_cast<const float*>(&colorBuffer.data[colorBufferView.byteOffset + colorAccessor.byteOffset]);
+						}
+
+						for (size_t i = 0; i < posAccessor.count; ++i) {
+							DirectX::XMFLOAT3 position(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
+							DirectX::XMFLOAT3 color = colors ? DirectX::XMFLOAT3(colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]) : DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
+							m_Vertices.push_back({ position, color });
+						}
+
+						// Extract indices
+						const auto& indexAccessor = model.accessors[primitive.indices];
+						const auto& indexBufferView = model.bufferViews[indexAccessor.bufferView];
+						const auto& indexBuffer = model.buffers[indexBufferView.buffer];
+
+						if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
+							const uint16_t* buf = reinterpret_cast<const uint16_t*>(&indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset]);
+							m_Indices.insert(m_Indices.end(), buf, buf + indexAccessor.count);
+						}
+						else if (indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT) {
+							const uint32_t* buf = reinterpret_cast<const uint32_t*>(&indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset]);
+							m_Indices.insert(m_Indices.end(), buf, buf + indexAccessor.count);
+						}
+					}
+				}
+
+				// Upload vertex buffer data.
 				Microsoft::WRL::ComPtr<ID3D12Resource> intermediateVertexBuffer;
 				UpdateBufferResource(commandList,
 					&m_VertexBuffer, &intermediateVertexBuffer,
-					_countof(g_Vertices), sizeof(VertexPosColor), g_Vertices);
+					m_Vertices.size(), sizeof(VertexPosColorUV), m_Vertices.data());
 
 				// Create the vertex buffer view.
 				m_VertexBufferView.BufferLocation = m_VertexBuffer->GetGPUVirtualAddress();
-				m_VertexBufferView.SizeInBytes = sizeof(g_Vertices);
-				m_VertexBufferView.StrideInBytes = sizeof(VertexPosColor);
+				m_VertexBufferView.SizeInBytes = sizeof(VertexPosColorUV) * m_Vertices.size();
+				m_VertexBufferView.StrideInBytes = sizeof(VertexPosColorUV);
 
 				// Upload index buffer data.
 				Microsoft::WRL::ComPtr<ID3D12Resource> intermediateIndexBuffer;
 				UpdateBufferResource(commandList,
 					&m_IndexBuffer, &intermediateIndexBuffer,
-					_countof(g_Indicies), sizeof(WORD), g_Indicies);
+					m_Indices.size(), sizeof(WORD), m_Indices.data());
 
 				// Create index buffer view.
 				m_IndexBufferView.BufferLocation = m_IndexBuffer->GetGPUVirtualAddress();
 				m_IndexBufferView.Format = DXGI_FORMAT_R16_UINT;
-				m_IndexBufferView.SizeInBytes = sizeof(g_Indicies);
+				m_IndexBufferView.SizeInBytes = sizeof(uint16_t) * m_Indices.size();
 
 				// Create the descriptor heap for the depth-stencil view.
 				D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
@@ -321,7 +357,7 @@ namespace coopscoop
 				dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 				if (FAILED(device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&m_DSVHeap))))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed to create descriptor heap.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create descriptor heap.");
 					return false;
 				}
 
@@ -345,11 +381,11 @@ namespace coopscoop
 					{
 						std::string errorMessage(static_cast<const char*>(errorBlob->GetBufferPointer()), errorBlob->GetBufferSize());
 
-						LOGF(LOGSEVERITY_ERROR, CATEGORY_DX12, "Shader Compilation Error: %s", errorMessage.c_str());
+						LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Shader Compilation Error: %s", errorMessage.c_str());
 					}
 					else
 					{
-						LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed loading vertex shader.");
+						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading vertex shader.");
 					}
 					return false;
 				}
@@ -372,11 +408,11 @@ namespace coopscoop
 					{
 						std::string errorMessage(static_cast<const char*>(errorBlob->GetBufferPointer()), errorBlob->GetBufferSize());
 
-						LOGF(LOGSEVERITY_ERROR, CATEGORY_DX12, "Shader Compilation Error: %s", errorMessage.c_str());
+						LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Shader Compilation Error: %s", errorMessage.c_str());
 					}
 					else
 					{
-						LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed loading pixel shader.");
+						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading pixel shader.");
 					}
 					return false;
 				}
@@ -415,14 +451,14 @@ namespace coopscoop
 				if (FAILED(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription,
 					featureData.HighestVersion, &rootSignatureBlob, &errorBlob)))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed serializing vesioned root signature.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed serializing vesioned root signature.");
 					return false;
 				}
 				// Create the root signature.
 				if (FAILED(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
 					rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature))))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating root signature.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating root signature.");
 					return false;
 				}
 
@@ -454,7 +490,7 @@ namespace coopscoop
 				};
 				if (FAILED(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&m_PipelineState))))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating pipeline state.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating pipeline state.");
 					return false;
 				}
 
@@ -463,6 +499,8 @@ namespace coopscoop
 
 				// Resize/Create the depth buffer.
 				ResizeDepthBuffer(m_Size);
+
+				LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_DX12, "Initialized dx12 system.");
 
 				return ThreadedSystem::InitializeThread();
 			}
@@ -473,7 +511,7 @@ namespace coopscoop
 
 				ThreadedSystem::Finalize();
 
-				LOG(LOGSEVERITY_SUCCESS, CATEGORY_DX12, "Destroyed dx12 system.");
+				LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_DX12, "Destroyed dx12 system.");
 			}
 
 			bool DX12System::GetAdapter(bool a_UseWarp)
@@ -486,7 +524,7 @@ namespace coopscoop
 
 				if (FAILED(CreateDXGIFactory2(createFactoryFlags, IID_PPV_ARGS(&dxgiFactory))))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating DXGI Factory.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating DXGI Factory.");
 					return false;
 				}
 
@@ -496,12 +534,12 @@ namespace coopscoop
 				{
 					if (FAILED(dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&dxgiAdapter1))))
 					{
-						LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating warp adapter.");
+						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating warp adapter.");
 						return false;
 					}
 					if (FAILED(dxgiAdapter1.As(&m_dxgiAdapter)))
 					{
-						LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed casting adapter.");
+						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed casting adapter.");
 						return false;
 					}
 				}
@@ -524,7 +562,7 @@ namespace coopscoop
 							maxDedicatedVideoMemory = dxgiAdapterDesc1.DedicatedVideoMemory;
 							if ((dxgiAdapter1.As(&m_dxgiAdapter)))
 							{
-								LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed casting adapter.");
+								LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed casting adapter.");
 								return false;
 							}
 						}
@@ -538,7 +576,7 @@ namespace coopscoop
 			{
 				if (FAILED(D3D12CreateDevice(m_dxgiAdapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_d3d12Device))))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating device.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating device.");
 					return false;
 				}
 				//    NAME_D3D12_OBJECT(d3d12Device2);
@@ -578,7 +616,7 @@ namespace coopscoop
 
 					if (FAILED(pInfoQueue->PushStorageFilter(&NewFilter)))
 					{
-						LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed pushing storage filter.");
+						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed pushing storage filter.");
 						return false;
 					}
 				}
@@ -660,7 +698,7 @@ namespace coopscoop
 
 				if (FAILED(CreateDXGIFactory2(createFactoryFlags, IID_PPV_ARGS(&dxgiFactory4))))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating DXGI factory.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating DXGI factory.");
 					return false;
 				}
 
@@ -688,7 +726,7 @@ namespace coopscoop
 					nullptr,
 					&swapChain1)))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating swap chain.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating swap chain.");
 					return false;
 				}
 
@@ -696,13 +734,13 @@ namespace coopscoop
 				// will be handled manually.
 				if (FAILED(dxgiFactory4->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER)))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed associating window.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed associating window.");
 					return false;
 				}
 
 				if (FAILED(swapChain1.As(&m_dxgiSwapChain)))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed casting swapchain.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed casting swapchain.");
 					return false;
 				}
 
@@ -722,7 +760,7 @@ namespace coopscoop
 				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap;
 				if (FAILED(m_d3d12Device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&descriptorHeap))))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating descriptor heap.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating descriptor heap.");
 					return nullptr;
 				}
 
@@ -745,7 +783,7 @@ namespace coopscoop
 					Microsoft::WRL::ComPtr<ID3D12Resource> backBuffer;
 					if (FAILED(m_dxgiSwapChain->GetBuffer(i, IID_PPV_ARGS(&backBuffer))))
 					{
-						LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed retrieving buffer.");
+						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed retrieving buffer.");
 						return;
 					}
 
@@ -779,7 +817,7 @@ namespace coopscoop
 					nullptr,
 					IID_PPV_ARGS(a_pDestinationResource))))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating committed resource.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating committed resource.");
 					return;
 				}
 
@@ -796,7 +834,7 @@ namespace coopscoop
 						nullptr,
 						IID_PPV_ARGS(a_pIntermediateResource))))
 					{
-						LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating committed resource.");
+						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating committed resource.");
 						return;
 					}
 
@@ -838,7 +876,7 @@ namespace coopscoop
 					IID_PPV_ARGS(&m_DepthBuffer)
 				)))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating committed resource.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating committed resource.");
 					return;
 				}
 

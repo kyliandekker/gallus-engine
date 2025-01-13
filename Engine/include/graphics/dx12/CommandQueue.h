@@ -10,7 +10,6 @@ namespace coopscoop
 	{
 		namespace dx12
 		{
-#define CATEGORY_DX12 "DX12"
 			/// <summary>
 			/// A wrapper for an ID3D12CommandQueue to manage DirectX 12 command 
 			/// lists, allocators, and fence synchronization.

@@ -40,6 +40,12 @@ namespace coopscoop
 			/// </summary>
 			/// <returns>Reference to the window instance.</returns>
 			graphics::win32::Window& GetWindow();
+
+			/// <summary>
+			/// Retrieves the dx12 ssem.
+			/// </summary>
+			/// <returns>Reference to the dx12 instance.</returns>
+			graphics::dx12::DX12System& GetDX12();
 		private:
 			graphics::win32::Window m_Window;
 			graphics::dx12::DX12System m_DX12System;

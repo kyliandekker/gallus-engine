@@ -47,15 +47,16 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_OPTIMIZE;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_OPTIMIZE;_DEBUG;_CONSOLE;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)external;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dxgi.lib;d3d12.lib;d3dcompiler.lib;dxguid.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxgi.lib;d3d12.lib;d3dcompiler.lib;dxguid.lib;Shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -79,21 +80,37 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="external\dx12\directx\d3dx12_property_format_table.cpp" />
+    <ClCompile Include="external\tiny_gltf\tiny_gltf.cc" />
+    <ClCompile Include="src\core\FileUtils.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\core\Data.cpp" />
+    <ClCompile Include="src\core\DataStream.cpp" />
     <ClCompile Include="src\core\Engine.cpp" />
     <ClCompile Include="src\core\input\InputSystem.cpp" />
     <ClCompile Include="src\core\logger\Logger.cpp" />
     <ClCompile Include="src\core\System.cpp" />
+    <ClCompile Include="src\graphics\dx12\Camera.cpp" />
     <ClCompile Include="src\graphics\dx12\CommandQueue.cpp" />
     <ClCompile Include="src\graphics\dx12\DX12System.cpp" />
+    <ClCompile Include="src\graphics\dx12\Mesh.cpp" />
     <ClCompile Include="src\graphics\win32\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="external\tiny_gltf\json.hpp" />
+    <ClInclude Include="include\core\Data.h" />
+    <ClInclude Include="include\core\DataStream.h" />
     <ClInclude Include="include\core\Engine.h" />
+    <ClInclude Include="include\core\FileUtils.h" />
     <ClInclude Include="include\core\logger\Logger.h" />
     <ClInclude Include="include\core\System.h" />
+    <ClInclude Include="include\core\utils.h" />
+    <ClInclude Include="include\graphics\dx12\CommandList.h" />
     <ClInclude Include="include\graphics\dx12\CommandQueue.h" />
+    <ClInclude Include="include\graphics\dx12\DX12PCH.h" />
     <ClInclude Include="include\graphics\dx12\DX12System.h" />
+    <ClInclude Include="include\graphics\dx12\Camera.h" />
+    <ClInclude Include="include\graphics\dx12\DxMath.h" />
+    <ClInclude Include="include\graphics\dx12\Mesh.h" />
     <ClInclude Include="include\graphics\dx12\UploadBuffer.h" />
     <ClInclude Include="include\graphics\win32\Window.h" />
     <ClInclude Include="include\core\input\InputSystem.h" />

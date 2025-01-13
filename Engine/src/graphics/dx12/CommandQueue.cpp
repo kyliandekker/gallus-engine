@@ -24,19 +24,19 @@ namespace coopscoop
 
 				if (FAILED(m_d3d12Device->CreateCommandQueue(&desc, IID_PPV_ARGS(&m_d3d12CommandQueue))))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating command queue.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating command queue.");
 					return;
 				}
 				if (FAILED(m_d3d12Device->CreateFence(m_FenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_d3d12Fence))))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating fence.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating fence.");
 					return;
 				}
 
 				m_FenceEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
 				if (!m_FenceEvent)
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating fence event.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating fence event.");
 					return;
 				}
 			}
@@ -53,7 +53,7 @@ namespace coopscoop
 
 					if (FAILED(commandAllocator->Reset()))
 					{
-						LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed resetting command allocator.");
+						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed resetting command allocator.");
 						return nullptr;
 					}
 				}
@@ -69,7 +69,7 @@ namespace coopscoop
 
 					if (FAILED((commandList->Reset(commandAllocator.Get(), nullptr))))
 					{
-						LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed resetting command list.");
+						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed resetting command list.");
 						return nullptr;
 					}
 				}
@@ -82,7 +82,7 @@ namespace coopscoop
 				// retrieved when the command list is executed.
 				if (FAILED(commandList->SetPrivateDataInterface(__uuidof(ID3D12CommandAllocator), commandAllocator.Get())))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed associating command allocator with command list.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed associating command allocator with command list.");
 					return nullptr;
 				}
 
@@ -97,7 +97,7 @@ namespace coopscoop
 				UINT dataSize = sizeof(commandAllocator);
 				if (FAILED(commandList->GetPrivateData(__uuidof(ID3D12CommandAllocator), &dataSize, &commandAllocator)))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed setting private data for command list.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed setting private data for command list.");
 					return -1;
 				}
 
@@ -155,7 +155,7 @@ namespace coopscoop
 				Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
 				if (FAILED(m_d3d12Device->CreateCommandAllocator(m_CommandListType, IID_PPV_ARGS(&commandAllocator))))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating command allocator.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating command allocator.");
 					return nullptr;
 				}
 
@@ -167,7 +167,7 @@ namespace coopscoop
 				Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList;
 				if (FAILED(m_d3d12Device->CreateCommandList(0, m_CommandListType, allocator.Get(), nullptr, IID_PPV_ARGS(&commandList))))
 				{
-					LOG(LOGSEVERITY_ERROR, CATEGORY_DX12, "Failed creating command list.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating command list.");
 					return nullptr;
 				}
 

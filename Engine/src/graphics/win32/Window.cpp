@@ -11,8 +11,6 @@ namespace coopscoop
 	{
 		namespace win32
 		{
-#define CATEGORY_WINDOW "WINDOW"
-
 			LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				return core::ENGINE.GetWindow().WndProcHandler(hwnd, msg, wParam, lParam);
@@ -22,7 +20,7 @@ namespace coopscoop
 			{
 				m_hInstance = a_hInstance;
 
-				LOG(LOGSEVERITY_INFO, CATEGORY_WINDOW, "Initializing window.");
+				LOG(LOGSEVERITY_INFO, LOG_CATEGORY_WINDOW, "Initializing window.");
 				return ThreadedSystem::Initialize(a_Wait);
 			}
 
@@ -52,7 +50,7 @@ namespace coopscoop
 
 			bool Window::Destroy()
 			{
-				LOG(LOGSEVERITY_INFO, CATEGORY_WINDOW, "Destroying window.");
+				LOG(LOGSEVERITY_INFO, LOG_CATEGORY_WINDOW, "Destroying window.");
 				return ThreadedSystem::Destroy();
 			}
 
@@ -182,7 +180,7 @@ namespace coopscoop
 			{
 				CreateWindow(m_hInstance);
 
-				LOG(LOGSEVERITY_SUCCESS, CATEGORY_WINDOW, "Initialized window.");
+				LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_WINDOW, "Initialized window.");
 
 				return ThreadedSystem::InitializeThread();
 			}
@@ -194,7 +192,7 @@ namespace coopscoop
 
 				ThreadedSystem::Finalize();
 
-				LOG(LOGSEVERITY_SUCCESS, CATEGORY_WINDOW, "Destroyed window.");
+				LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_WINDOW, "Destroyed window.");
 			}
 
 			bool Window::CreateWindow(HINSTANCE a_hInstance)
@@ -221,7 +219,7 @@ namespace coopscoop
 
 				if (!RegisterClassEx(&m_Wc))
 				{
-					LOG(LOGSEVERITY_ASSERT, CATEGORY_WINDOW, "Failed window registration.");
+					LOG(LOGSEVERITY_ASSERT, LOG_CATEGORY_WINDOW, "Failed window registration.");
 					return false;
 				}
 
@@ -237,7 +235,7 @@ namespace coopscoop
 
 				if (!m_hWnd)
 				{
-					LOG(LOGSEVERITY_ASSERT, CATEGORY_WINDOW, "Failed window creation.");
+					LOG(LOGSEVERITY_ASSERT, LOG_CATEGORY_WINDOW, "Failed window creation.");
 					return false;
 				}
 

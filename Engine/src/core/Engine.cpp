@@ -84,5 +84,10 @@ namespace coopscoop
 		{
 			return m_Window;
 		}
+
+		graphics::dx12::DX12System& Engine::GetDX12()
+		{
+			return m_DX12System;
+		}
 	}
 }
