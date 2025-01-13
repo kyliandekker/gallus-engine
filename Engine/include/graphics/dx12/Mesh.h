@@ -13,9 +13,11 @@ namespace coopscoop
 	{
 		namespace dx12
 		{
-			struct VertexPosColorUV {
+			struct VertexPosColorUV
+			{
 				DirectX::XMFLOAT3 Position;
 				DirectX::XMFLOAT3 Color;
+				DirectX::XMFLOAT2 UV;
 			};
 
 			struct MeshData

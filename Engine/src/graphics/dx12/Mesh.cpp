@@ -93,11 +93,21 @@ namespace coopscoop
 							colors = reinterpret_cast<const float*>(&colorBuffer.data[colorBufferView.byteOffset + colorAccessor.byteOffset]);
 						}
 
+						const float* uvs = nullptr;
+						if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end())
+						{
+							const auto& uvAccessor = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
+							const auto& uvBufferView = model.bufferViews[uvAccessor.bufferView];
+							const auto& uvBuffer = model.buffers[uvBufferView.buffer];
+							uvs = reinterpret_cast<const float*>(&uvBuffer.data[uvBufferView.byteOffset + uvAccessor.byteOffset]);
+						}
+
 						for (size_t i = 0; i < posAccessor.count; ++i)
 						{
 							DirectX::XMFLOAT3 position(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
 							DirectX::XMFLOAT3 color = colors ? DirectX::XMFLOAT3(colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]) : DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
-							meshData->m_Vertices.push_back({ position, color });
+							DirectX::XMFLOAT2 uv = uvs ? DirectX::XMFLOAT2(uvs[i * 2], uvs[i * 2 + 1]) : DirectX::XMFLOAT2(0.0f, 0.0f);
+							meshData->m_Vertices.push_back({ position, color, uv });
 						}
 
 						const uint8_t* indices = &indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset];
