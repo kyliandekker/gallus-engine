@@ -3,6 +3,7 @@
 #include <tiny_gltf/tiny_gltf.h>
 #include <stb_image.h>
 #include <filesystem>
+#include <format>
 
 #include "core/Engine.h"
 #include "core/FileUtils.h"
@@ -42,6 +43,9 @@ namespace coopscoop
 				for (const auto& mesh : model.meshes)
 				{
 					MeshData* meshData = new MeshData();
+
+					std::wstring name = std::format(L"{0}_{1}", std::filesystem::path(a_Path).stem().wstring(), std::wstring(mesh.name.begin(), mesh.name.end()));
+					meshData->m_VertexBufferN = VertexBuffer(name);
 
 					size_t indexSize = 0;
 					for (const auto& primitive : mesh.primitives)

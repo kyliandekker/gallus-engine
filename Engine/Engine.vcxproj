@@ -89,12 +89,16 @@
     <ClCompile Include="src\core\input\InputSystem.cpp" />
     <ClCompile Include="src\core\logger\Logger.cpp" />
     <ClCompile Include="src\core\System.cpp" />
+    <ClCompile Include="src\graphics\dx12\Buffer.cpp" />
     <ClCompile Include="src\graphics\dx12\Camera.cpp" />
     <ClCompile Include="src\graphics\dx12\CommandQueue.cpp" />
+    <ClCompile Include="src\graphics\dx12\DX12Resource.cpp" />
     <ClCompile Include="src\graphics\dx12\DX12System.cpp" />
+    <ClCompile Include="src\graphics\dx12\IndexBuffer.cpp" />
     <ClCompile Include="src\graphics\dx12\Mesh.cpp" />
     <ClCompile Include="src\graphics\dx12\Shader.cpp" />
     <ClCompile Include="src\graphics\dx12\Transform.cpp" />
+    <ClCompile Include="src\graphics\dx12\VertexBuffer.cpp" />
     <ClCompile Include="src\graphics\win32\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -106,16 +110,20 @@
     <ClInclude Include="include\core\logger\Logger.h" />
     <ClInclude Include="include\core\System.h" />
     <ClInclude Include="include\core\utils.h" />
+    <ClInclude Include="include\graphics\dx12\Buffer.h" />
     <ClInclude Include="include\graphics\dx12\CommandQueue.h" />
     <ClInclude Include="include\graphics\dx12\DX12PCH.h" />
     <ClInclude Include="include\graphics\dx12\DX12System.h" />
     <ClInclude Include="include\graphics\dx12\Camera.h" />
     <ClInclude Include="include\graphics\dx12\DxMath.h" />
+    <ClInclude Include="include\graphics\dx12\IndexBuffer.h" />
     <ClInclude Include="include\graphics\dx12\Mesh.h" />
+    <ClInclude Include="include\graphics\dx12\DX12Resource.h" />
     <ClInclude Include="include\graphics\dx12\Shader.h" />
     <ClInclude Include="include\graphics\dx12\TextureUsage.h" />
     <ClInclude Include="include\graphics\dx12\Transform.h" />
     <ClInclude Include="include\graphics\dx12\UploadBuffer.h" />
+    <ClInclude Include="include\graphics\dx12\VertexBuffer.h" />
     <ClInclude Include="include\graphics\win32\Window.h" />
     <ClInclude Include="include\core\input\InputSystem.h" />
   </ItemGroup>
