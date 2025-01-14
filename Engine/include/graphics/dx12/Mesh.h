@@ -6,6 +6,7 @@
 #include <cstdint>
 
 #include "graphics/dx12/Transform.h"
+#include "graphics/dx12/Shader.h"
 
 namespace coopscoop
 {
@@ -48,6 +49,8 @@ namespace coopscoop
 			public:
 				Mesh();
 				bool LoadMesh(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
+				bool LoadTexture(const std::string& a_Path);
+				bool SetShader(Shader& a_Shader);
 
 				Transform& GetTransform();
 
@@ -56,9 +59,16 @@ namespace coopscoop
 			private:
 				void UpdateBufferResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, ID3D12Resource** a_pDestinationResource, ID3D12Resource** a_pIntermediateResource, size_t a_NumElements, size_t a_ElementSize, const void* a_BufferData, D3D12_RESOURCE_FLAGS a_Flags = D3D12_RESOURCE_FLAG_NONE);
 
+				D3D12_RESOURCE_DESC textureDesc = {};
+				Microsoft::WRL::ComPtr<ID3D12Resource> textureUploadHeap;
+				Microsoft::WRL::ComPtr<ID3D12Resource> m_TextureResource;
+				D3D12_SHADER_RESOURCE_VIEW_DESC m_ShaderResourceView;
 				std::vector<MeshData*> m_MeshData;
-
+				Shader m_Shader;
 				Transform m_Transform;
+
+				D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;
+				D3D12_GPU_DESCRIPTOR_HANDLE m_TextureGPUHandle{};
 			};
 		}
 	}

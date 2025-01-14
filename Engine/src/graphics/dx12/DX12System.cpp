@@ -145,8 +145,6 @@ namespace coopscoop
 					ClearDepth(commandList, dsv);
 				}
 
-				commandList->SetPipelineState(m_PipelineState.Get());
-				commandList->SetGraphicsRootSignature(m_RootSignature.Get());
 
 				commandList->RSSetViewports(1, &m_Viewport);
 				commandList->RSSetScissorRects(1, &m_ScissorRect);
@@ -247,9 +245,6 @@ namespace coopscoop
 				std::shared_ptr<CommandQueue> commandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
 				Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList = commandQueue->GetCommandList();
 
-				chickenMesh.LoadMesh("./resources/chicken.gltf", commandList);
-				faucetMesh.LoadMesh("./resources/mod_faucet.gltf", commandList);
-
 				// Create the descriptor heap for the depth-stencil view.
 				D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
 				dsvHeapDesc.NumDescriptors = 1;
@@ -261,68 +256,20 @@ namespace coopscoop
 					return false;
 				}
 
-				// Load the vertex shader.
-				// Load the vertex shader.
-				Microsoft::WRL::ComPtr<ID3DBlob> vertexShaderBlob;
-				Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
-				if (D3DCompileFromFile(
-					L"./resources/shaders/vertexshader.hlsl",
-					nullptr,
-					D3D_COMPILE_STANDARD_FILE_INCLUDE,
-					"main",
-					"vs_5_1",
-					D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
-					0,
-					&vertexShaderBlob,
-					&errorBlob
-				))
-				{
-					if (errorBlob)
-					{
-						std::string errorMessage(static_cast<const char*>(errorBlob->GetBufferPointer()), errorBlob->GetBufferSize());
+				D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
+				srvHeapDesc.NumDescriptors = 1; // Number of SRVs you need (increase for multiple textures)
+				srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+				srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // Make it accessible to shaders
 
-						LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Shader Compilation Error: %s", errorMessage.c_str());
-					}
-					else
-					{
-						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading vertex shader.");
-					}
+				HRESULT hr = device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_SRVHeap));
+				if (FAILED(hr))
+				{
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create descriptor heap.");
 					return false;
 				}
 
-				// Load the pixel shader.
-				Microsoft::WRL::ComPtr<ID3DBlob> pixelShaderBlob;
-				if (D3DCompileFromFile(
-					L"./resources/shaders/pixelshader.hlsl",
-					nullptr,
-					D3D_COMPILE_STANDARD_FILE_INCLUDE,
-					"main",
-					"ps_5_1",
-					D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
-					0,
-					&pixelShaderBlob,
-					&errorBlob
-				))
-				{
-					if (errorBlob)
-					{
-						std::string errorMessage(static_cast<const char*>(errorBlob->GetBufferPointer()), errorBlob->GetBufferSize());
-
-						LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Shader Compilation Error: %s", errorMessage.c_str());
-					}
-					else
-					{
-						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading pixel shader.");
-					}
-					return false;
-				}
-
-				// Create the vertex input layout
-				D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
-					{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-					{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-					{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-				};
+				chickenMesh.LoadMesh("./resources/chicken.gltf", commandList);
+				faucetMesh.LoadMesh("./resources/mod_faucet.gltf", commandList);
 
 				// Create a root signature.
 				D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
@@ -341,11 +288,32 @@ namespace coopscoop
 					D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
 
 				// A single 32-bit constant root parameter that is used by the vertex shader.
-				CD3DX12_ROOT_PARAMETER1 rootParameters[1];
+				CD3DX12_DESCRIPTOR_RANGE1 descriptorRanges[2];
+
+				// SRV for the texture at register t0
+				descriptorRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+
+				// Sampler at register s0
+				descriptorRanges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0);
+
+				CD3DX12_DESCRIPTOR_RANGE1 descriptorRangeCBV;
+				descriptorRangeCBV.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0); // 1 CBV at register b0
+
+				CD3DX12_ROOT_PARAMETER1 rootParameters[3];
+				// CBV at b0
 				rootParameters[0].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 
+				// Texture SRV at t0
+				rootParameters[1].InitAsDescriptorTable(1, &descriptorRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);
+
+				// Sampler at s0
+				rootParameters[2].InitAsDescriptorTable(1, &descriptorRanges[1], D3D12_SHADER_VISIBILITY_PIXEL);
+
 				CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
-				rootSignatureDescription.Init_1_1(_countof(rootParameters), rootParameters, 0, nullptr, rootSignatureFlags);
+				rootSignatureDescription.Init_1_1(
+					_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+				Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
 
 				// Serialize the root signature.
 				Microsoft::WRL::ComPtr<ID3DBlob> rootSignatureBlob;
@@ -363,37 +331,43 @@ namespace coopscoop
 					return false;
 				}
 
-				struct PipelineStateStream
-				{
-					CD3DX12_PIPELINE_STATE_STREAM_ROOT_SIGNATURE pRootSignature;
-					CD3DX12_PIPELINE_STATE_STREAM_INPUT_LAYOUT InputLayout;
-					CD3DX12_PIPELINE_STATE_STREAM_PRIMITIVE_TOPOLOGY PrimitiveTopologyType;
-					CD3DX12_PIPELINE_STATE_STREAM_VS VS;
-					CD3DX12_PIPELINE_STATE_STREAM_PS PS;
-					CD3DX12_PIPELINE_STATE_STREAM_DEPTH_STENCIL_FORMAT DSVFormat;
-					CD3DX12_PIPELINE_STATE_STREAM_RENDER_TARGET_FORMATS RTVFormats;
-				} pipelineStateStream;
+				D3D12_SAMPLER_DESC samplerDesc = {};
+				samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR; // Sample filtering
+				samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP; // U coordinate addressing mode
+				samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP; // V coordinate addressing mode
+				samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP; // W coordinate addressing mode
+				samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER; // Comparison function (not used here)
+				samplerDesc.MipLODBias = 0.0f; // Mipmap LOD bias
+				samplerDesc.MaxAnisotropy = 1; // Max anisotropy
+				samplerDesc.BorderColor[0] = 0.0f; // Border color (RGBA)
+				samplerDesc.BorderColor[1] = 0.0f;
+				samplerDesc.BorderColor[2] = 0.0f;
+				samplerDesc.BorderColor[3] = 0.0f;
+				samplerDesc.MinLOD = 0.0f; // Minimum LOD
+				samplerDesc.MaxLOD = D3D12_FLOAT32_MAX; // Maximum LOD (use the maximum available LOD)
 
-				D3D12_RT_FORMAT_ARRAY rtvFormats = {};
-				rtvFormats.NumRenderTargets = 1;
-				rtvFormats.RTFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+				D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+				heapDesc.NumDescriptors = 1; // Only one descriptor
+				heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER; // Descriptor heap type
+				heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // Make the sampler visible to shaders
+				heapDesc.NodeMask = 0;
 
-				pipelineStateStream.pRootSignature = m_RootSignature.Get();
-				pipelineStateStream.InputLayout = { inputLayout, _countof(inputLayout) };
-				pipelineStateStream.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-				pipelineStateStream.VS = CD3DX12_SHADER_BYTECODE(vertexShaderBlob.Get());
-				pipelineStateStream.PS = CD3DX12_SHADER_BYTECODE(pixelShaderBlob.Get());
-				pipelineStateStream.DSVFormat = DXGI_FORMAT_D32_FLOAT;
-				pipelineStateStream.RTVFormats = rtvFormats;
-
-				D3D12_PIPELINE_STATE_STREAM_DESC pipelineStateStreamDesc = {
-					sizeof(PipelineStateStream), &pipelineStateStream
-				};
-				if (FAILED(device->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&m_PipelineState))))
-				{
-					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating pipeline state.");
-					return false;
+				hr = device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(samplerHeap.GetAddressOf()));
+				if (FAILED(hr)) {
+					// Handle error
 				}
+
+				CD3DX12_CPU_DESCRIPTOR_HANDLE handle(samplerHeap->GetCPUDescriptorHandleForHeapStart());
+				device->CreateSampler(&samplerDesc, handle);
+
+				// SHADERS
+				m_ShaderOneColor = Shader(L"./resources/shaders/color_vertexshader.hlsl", L"./resources/shaders/color_pixelshader.hlsl");
+				m_ShaderAlbedo = Shader(L"./resources/shaders/albedo_vertexshader.hlsl", L"./resources/shaders/albedo_pixelshader.hlsl");
+
+				chickenMesh.SetShader(m_ShaderAlbedo);
+				faucetMesh.SetShader(m_ShaderOneColor);
+
+				chickenMesh.LoadTexture("./resources/tex_chicken_normal.png");
 
 				auto fenceValue = commandQueue->ExecuteCommandList(commandList);
 				commandQueue->WaitForFenceValue(fenceValue);
@@ -551,6 +525,21 @@ namespace coopscoop
 			Microsoft::WRL::ComPtr<ID3D12Device2> DX12System::GetDevice() const
 			{
 				return m_d3d12Device;
+			}
+
+			Microsoft::WRL::ComPtr<ID3D12RootSignature> DX12System::GetRootSignature() const
+			{
+				return m_RootSignature;
+			}
+
+			Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DX12System::GetSRVHeap() const
+			{
+				return m_SRVHeap;
+			}
+
+			Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DX12System::GetSamplerHeap() const
+			{
+				return samplerHeap;
 			}
 
 			std::shared_ptr<CommandQueue> DX12System::GetCommandQueue(D3D12_COMMAND_LIST_TYPE a_Type) const

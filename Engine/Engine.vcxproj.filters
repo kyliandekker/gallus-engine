@@ -63,6 +63,9 @@
     <ClCompile Include="src\graphics\dx12\Transform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\dx12\Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\core\Engine.h">
@@ -98,9 +101,6 @@
     <ClInclude Include="include\graphics\dx12\DxMath.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\graphics\dx12\CommandList.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="external\tiny_gltf\json.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -120,6 +120,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\graphics\dx12\Transform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\graphics\dx12\Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\graphics\dx12\TextureUsage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

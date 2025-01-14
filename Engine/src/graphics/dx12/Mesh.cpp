@@ -1,6 +1,8 @@
 #include "graphics/dx12/Mesh.h"
 
 #include <tiny_gltf/tiny_gltf.h>
+#include <stb_image.h>
+#include <filesystem>
 
 #include "core/Engine.h"
 #include "core/FileUtils.h"
@@ -30,9 +32,9 @@ namespace coopscoop
 				tinygltf::Model model;
 				tinygltf::TinyGLTF loader;
 				std::string err, warn;
-				if (!loader.LoadASCIIFromString(&model, &err, &warn, data.dataAs<const char>(), data.size(), "C:/resources/"))
+				if (!loader.LoadASCIIFromString(&model, &err, &warn, data.dataAs<const char>(), data.size(), std::filesystem::path(a_Path).parent_path().string()))
 				{
-					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading mesh file %s.", a_Path.c_str());
+					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading mesh file %s.", err.c_str());
 					return false;
 				}
 
@@ -140,6 +142,98 @@ namespace coopscoop
                 return true;
             }
 
+			bool Mesh::LoadTexture(const std::string& a_Path)
+			{
+				int width, height, channels;
+				unsigned char* imageData = stbi_load(a_Path.c_str(), &width, &height, &channels, STBI_rgb_alpha);
+				if (!imageData)
+				{
+					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to load texture: %s", a_Path.c_str());
+					return false;
+				}
+
+				auto device = core::ENGINE.GetDX12().GetDevice();
+				size_t imageSize = width * height * 4;
+
+				CD3DX12_RESOURCE_DESC textureDesc = CD3DX12_RESOURCE_DESC::Tex2D(
+					DXGI_FORMAT_R8G8B8A8_UNORM, width, height, 1, 1);
+
+				Microsoft::WRL::ComPtr<ID3D12Resource> texture;
+				CD3DX12_HEAP_PROPERTIES defaultHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+				if (FAILED(device->CreateCommittedResource(
+					&defaultHeap,
+					D3D12_HEAP_FLAG_NONE,
+					&textureDesc,
+					D3D12_RESOURCE_STATE_COPY_DEST,
+					nullptr,
+					IID_PPV_ARGS(&texture))))
+				{
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create texture resource.");
+					stbi_image_free(imageData);
+					return false;
+				}
+
+				CD3DX12_HEAP_PROPERTIES uploadHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+				CD3DX12_RESOURCE_DESC buffer = CD3DX12_RESOURCE_DESC::Buffer(imageSize);
+				Microsoft::WRL::ComPtr<ID3D12Resource> textureUploadHeap;
+				if (FAILED(device->CreateCommittedResource(
+					&uploadHeap,
+					D3D12_HEAP_FLAG_NONE,
+					&buffer,
+					D3D12_RESOURCE_STATE_GENERIC_READ,
+					nullptr,
+					IID_PPV_ARGS(&textureUploadHeap))))
+				{
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create upload heap.");
+					stbi_image_free(imageData);
+					return false;
+				}
+
+				D3D12_SUBRESOURCE_DATA textureData = {};
+				textureData.pData = imageData;
+				textureData.RowPitch = width * 4;
+				textureData.SlicePitch = textureData.RowPitch * height;
+
+				// Use COPY command list for data upload
+				auto copyCommandQueue = core::ENGINE.GetDX12().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
+				auto copyCommandList = copyCommandQueue->GetCommandList();
+
+				UpdateSubresources(copyCommandList.Get(), texture.Get(), textureUploadHeap.Get(), 0, 0, 1, &textureData);
+
+				auto copyFenceValue = copyCommandQueue->ExecuteCommandList(copyCommandList);
+				copyCommandQueue->WaitForFenceValue(copyFenceValue);
+
+				auto directCommandQueue = core::ENGINE.GetDX12().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
+				auto directCommandList = directCommandQueue->GetCommandList();
+
+				// Use DIRECT command list for state transition
+				CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+					texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+				directCommandList->ResourceBarrier(1, &barrier);
+
+				D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+				srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+				srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+				srvDesc.Texture2D.MipLevels = 1;
+
+				srvHandle = core::ENGINE.GetDX12().GetSRVHeap()->GetCPUDescriptorHandleForHeapStart();
+				device->CreateShaderResourceView(texture.Get(), &srvDesc, srvHandle);
+
+				auto srvHeap = core::ENGINE.GetDX12().GetSRVHeap();
+				m_TextureGPUHandle = srvHeap->GetGPUDescriptorHandleForHeapStart();
+
+				stbi_image_free(imageData);
+
+				return true;
+			}
+
+			bool Mesh::SetShader(Shader& a_Shader)
+			{
+				m_Shader = a_Shader;
+				return true;
+			}
+
             void Mesh::UpdateBufferResource(
                 Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList,
                 ID3D12Resource** a_pDestinationResource,
@@ -205,6 +299,19 @@ namespace coopscoop
 
             void Mesh::Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, DirectX::XMMATRIX view, DirectX::XMMATRIX projection)
 			{
+				m_Shader.Bind(a_CommandList);
+
+				if (m_TextureResource)
+				{
+					ID3D12DescriptorHeap* descriptorHeaps[] = { core::ENGINE.GetDX12().GetSRVHeap().Get() };
+					a_CommandList->SetDescriptorHeaps(1, descriptorHeaps);
+					D3D12_GPU_DESCRIPTOR_HANDLE m_SamplerGPUHandle = core::ENGINE.GetDX12().GetSamplerHeap()->GetGPUDescriptorHandleForHeapStart();
+
+					// Bind the texture SRV to the pixel shader (register t0)
+					a_CommandList->SetGraphicsRootDescriptorTable(1, m_TextureGPUHandle);
+					a_CommandList->SetGraphicsRootDescriptorTable(2, m_SamplerGPUHandle);
+				}
+
 				for (auto& meshData : m_MeshData)
 				{
 					a_CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
