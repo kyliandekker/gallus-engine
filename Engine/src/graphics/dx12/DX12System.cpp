@@ -256,18 +256,6 @@ namespace coopscoop
 					return false;
 				}
 
-				D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-				srvHeapDesc.NumDescriptors = 1; // Number of SRVs you need (increase for multiple textures)
-				srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-				srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // Make it accessible to shaders
-
-				HRESULT hr = device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_SRVHeap));
-				if (FAILED(hr))
-				{
-					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create descriptor heap.");
-					return false;
-				}
-
 				chickenMesh.LoadMesh("./resources/chicken.gltf", commandList);
 				faucetMesh.LoadMesh("./resources/mod_faucet.gltf", commandList);
 
@@ -331,43 +319,12 @@ namespace coopscoop
 					return false;
 				}
 
-				D3D12_SAMPLER_DESC samplerDesc = {};
-				samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR; // Sample filtering
-				samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_CLAMP; // U coordinate addressing mode
-				samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_CLAMP; // V coordinate addressing mode
-				samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_CLAMP; // W coordinate addressing mode
-				samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER; // Comparison function (not used here)
-				samplerDesc.MipLODBias = 0.0f; // Mipmap LOD bias
-				samplerDesc.MaxAnisotropy = 1; // Max anisotropy
-				samplerDesc.BorderColor[0] = 0.0f; // Border color (RGBA)
-				samplerDesc.BorderColor[1] = 0.0f;
-				samplerDesc.BorderColor[2] = 0.0f;
-				samplerDesc.BorderColor[3] = 0.0f;
-				samplerDesc.MinLOD = 0.0f; // Minimum LOD
-				samplerDesc.MaxLOD = D3D12_FLOAT32_MAX; // Maximum LOD (use the maximum available LOD)
-
-				D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-				heapDesc.NumDescriptors = 1; // Only one descriptor
-				heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER; // Descriptor heap type
-				heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // Make the sampler visible to shaders
-				heapDesc.NodeMask = 0;
-
-				hr = device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(samplerHeap.GetAddressOf()));
-				if (FAILED(hr)) {
-					// Handle error
-				}
-
-				CD3DX12_CPU_DESCRIPTOR_HANDLE handle(samplerHeap->GetCPUDescriptorHandleForHeapStart());
-				device->CreateSampler(&samplerDesc, handle);
-
 				// SHADERS
 				m_ShaderOneColor = Shader(L"./resources/shaders/color_vertexshader.hlsl", L"./resources/shaders/color_pixelshader.hlsl");
 				m_ShaderAlbedo = Shader(L"./resources/shaders/albedo_vertexshader.hlsl", L"./resources/shaders/albedo_pixelshader.hlsl");
 
 				chickenMesh.SetShader(m_ShaderAlbedo);
 				faucetMesh.SetShader(m_ShaderOneColor);
-
-				chickenMesh.LoadTexture("./resources/tex_chicken_normal.png");
 
 				auto fenceValue = commandQueue->ExecuteCommandList(commandList);
 				commandQueue->WaitForFenceValue(fenceValue);
@@ -532,16 +489,6 @@ namespace coopscoop
 				return m_RootSignature;
 			}
 
-			Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DX12System::GetSRVHeap() const
-			{
-				return m_SRVHeap;
-			}
-
-			Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DX12System::GetSamplerHeap() const
-			{
-				return samplerHeap;
-			}
-
 			std::shared_ptr<CommandQueue> DX12System::GetCommandQueue(D3D12_COMMAND_LIST_TYPE a_Type) const
 			{
 				std::shared_ptr<CommandQueue> commandQueue = nullptr;
@@ -682,60 +629,6 @@ namespace coopscoop
 					m_d3d12BackBuffers[i] = backBuffer;
 
 					rtvHandle.Offset(m_RTVDescriptorSize);
-				}
-			}
-
-			void DX12System::UpdateBufferResource(
-				Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList,
-				ID3D12Resource** a_pDestinationResource,
-				ID3D12Resource** a_pIntermediateResource,
-				size_t a_NumElements, size_t a_ElementSize, const void* a_BufferData,
-				D3D12_RESOURCE_FLAGS a_Flags)
-			{
-				auto device = GetDevice();
-
-				size_t bufferSize = a_NumElements * a_ElementSize;
-
-				CD3DX12_HEAP_PROPERTIES defaultHeaptype = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-				CD3DX12_RESOURCE_DESC buffer = CD3DX12_RESOURCE_DESC::Buffer(bufferSize, a_Flags);
-				// Create a committed resource for the GPU resource in a default heap.
-				if (FAILED(device->CreateCommittedResource(
-					&defaultHeaptype,
-					D3D12_HEAP_FLAG_NONE,
-					&buffer,
-					D3D12_RESOURCE_STATE_COMMON,
-					nullptr,
-					IID_PPV_ARGS(a_pDestinationResource))))
-				{
-					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating committed resource.");
-					return;
-				}
-
-				// Create an committed resource for the upload.
-				if (a_BufferData)
-				{
-					CD3DX12_HEAP_PROPERTIES uploadHeaptype = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-					CD3DX12_RESOURCE_DESC buff = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-					if (FAILED(device->CreateCommittedResource(
-						&uploadHeaptype,
-						D3D12_HEAP_FLAG_NONE,
-						&buff,
-						D3D12_RESOURCE_STATE_GENERIC_READ,
-						nullptr,
-						IID_PPV_ARGS(a_pIntermediateResource))))
-					{
-						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating committed resource.");
-						return;
-					}
-
-					D3D12_SUBRESOURCE_DATA subresourceData = {};
-					subresourceData.pData = a_BufferData;
-					subresourceData.RowPitch = bufferSize;
-					subresourceData.SlicePitch = subresourceData.RowPitch;
-
-					UpdateSubresources(a_CommandList.Get(),
-						*a_pDestinationResource, *a_pIntermediateResource,
-						0, 0, 1, &subresourceData);
 				}
 			}
 

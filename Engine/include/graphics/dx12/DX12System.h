@@ -89,9 +89,6 @@ namespace coopscoop
 
 				Microsoft::WRL::ComPtr<ID3D12RootSignature> GetRootSignature() const;
 
-				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> GetSRVHeap() const;
-				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> GetSamplerHeap() const;
-
 				std::shared_ptr<CommandQueue> GetCommandQueue(D3D12_COMMAND_LIST_TYPE a_Type = D3D12_COMMAND_LIST_TYPE_DIRECT) const;
 
 				void IncreaseFov();
@@ -180,8 +177,6 @@ namespace coopscoop
 				/// <param name="a_NumDescriptors">Number of descriptors in the heap.</param>
 				void UpdateRenderTargetViews();
 
-				void UpdateBufferResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, ID3D12Resource** a_pDestinationResource, ID3D12Resource** a_pIntermediateResource, size_t a_NumElements, size_t a_ElementSize, const void* a_BufferData, D3D12_RESOURCE_FLAGS a_Flags = D3D12_RESOURCE_FLAG_NONE);
-
 				void ResizeDepthBuffer(const glm::ivec2& a_Size);
 
 				// The application instance handle that this application was created with.
@@ -204,8 +199,6 @@ namespace coopscoop
 
 				// Descriptor heap for depth buffer.
 				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_DSVHeap;
-				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_SRVHeap;
-				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> samplerHeap;
 
 				// Root signature
 				Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
@@ -217,8 +210,6 @@ namespace coopscoop
 				D3D12_RECT m_ScissorRect;
 
 				HWND m_hWnd;
-
-				std::wstring m_WindowName;
 
 				bool m_VSync;
 				bool m_Fullscreen;
@@ -238,6 +229,7 @@ namespace coopscoop
 				FPSCounter m_FpsCounter;
 
 				Camera m_Camera;
+
 				Shader m_ShaderOneColor;
 				Shader m_ShaderAlbedo;
 			};
