@@ -18,7 +18,6 @@ namespace coopscoop
 				Buffer(const D3D12_RESOURCE_DESC& a_ResDesc,
 					size_t a_NumElements, size_t a_ElementSize,
 					const std::wstring& a_Name = L"");
-			protected:
 				virtual void CreateViews(size_t a_NumElements, size_t a_ElementSize);
 			};
 		}

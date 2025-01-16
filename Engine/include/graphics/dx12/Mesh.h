@@ -8,6 +8,7 @@
 #include "graphics/dx12/Transform.h"
 #include "graphics/dx12/Shader.h"
 #include "graphics/dx12/VertexBuffer.h"
+#include "graphics/dx12/IndexBuffer.h"
 
 namespace coopscoop
 {
@@ -34,14 +35,8 @@ namespace coopscoop
 				std::vector<uint16_t> m_Indices;
 				IndexSize m_IndexSize;
 
-				VertexBuffer m_VertexBufferN;
-
-				// Vertex buffer for the cube.
-				Microsoft::WRL::ComPtr<ID3D12Resource> m_VertexBuffer;
-				D3D12_VERTEX_BUFFER_VIEW m_VertexBufferView;
-				// Index buffer for the cube.
-				Microsoft::WRL::ComPtr<ID3D12Resource> m_IndexBuffer;
-				D3D12_INDEX_BUFFER_VIEW m_IndexBufferView;
+				VertexBuffer m_VertexBuffer;
+				IndexBuffer m_IndexBuffer;
 
 				Microsoft::WRL::ComPtr<ID3D12Resource> intermediateVertexBuffer;
 				Microsoft::WRL::ComPtr<ID3D12Resource> intermediateIndexBuffer;

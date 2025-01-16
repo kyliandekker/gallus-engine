@@ -19,9 +19,11 @@ namespace coopscoop
 
 				bool IsValid() const;
 
-				Microsoft::WRL::ComPtr<ID3D12Resource> GetResource();
+				Microsoft::WRL::ComPtr<ID3D12Resource>& GetResource();
 
 				D3D12_RESOURCE_DESC GetResourceDesc() const;
+
+				void SetResource(Microsoft::WRL::ComPtr<ID3D12Resource> a_Resource);
 			protected:
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_Resource;
 				std::wstring m_Name;

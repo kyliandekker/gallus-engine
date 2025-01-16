@@ -43,7 +43,7 @@ namespace coopscoop
 				return (m_Resource != nullptr);
 			}
 
-			Microsoft::WRL::ComPtr<ID3D12Resource> DX12Resource::GetResource()
+			Microsoft::WRL::ComPtr<ID3D12Resource>& DX12Resource::GetResource()
 			{
 				return m_Resource;
 			}
@@ -57,6 +57,11 @@ namespace coopscoop
 				}
 
 				return resDesc;
+			}
+			
+			void DX12Resource::SetResource(Microsoft::WRL::ComPtr<ID3D12Resource> a_Resource)
+			{
+				m_Resource = a_Resource;
 			}
 		}
 	}

@@ -16,7 +16,6 @@ namespace coopscoop
 	{
 		namespace dx12
 		{
-
 			Mesh::Mesh()
 			{ }
 
@@ -26,7 +25,7 @@ namespace coopscoop
 				core::DataStream data;
 				if (!file::FileLoader::LoadFile(a_Path, data))
 				{
-					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading mesh file %s.", a_Path.c_str());
+					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading gltf file %s.", a_Path.c_str());
 					return false;
 				}
 
@@ -35,7 +34,7 @@ namespace coopscoop
 				std::string err, warn;
 				if (!loader.LoadASCIIFromString(&model, &err, &warn, data.dataAs<const char>(), data.size(), std::filesystem::path(a_Path).parent_path().string()))
 				{
-					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading mesh file %s.", err.c_str());
+					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading bin file %s.", err.c_str());
 					return false;
 				}
 
@@ -45,7 +44,7 @@ namespace coopscoop
 					MeshData* meshData = new MeshData();
 
 					std::wstring name = std::format(L"{0}_{1}", std::filesystem::path(a_Path).stem().wstring(), std::wstring(mesh.name.begin(), mesh.name.end()));
-					meshData->m_VertexBufferN = VertexBuffer(name);
+					meshData->m_VertexBuffer = VertexBuffer(name);
 
 					size_t indexSize = 0;
 					for (const auto& primitive : mesh.primitives)
@@ -124,23 +123,19 @@ namespace coopscoop
 
 					// Upload vertex buffer data.
 					UpdateBufferResource(a_CommandList,
-						&meshData->m_VertexBuffer, &meshData->intermediateVertexBuffer,
+						&meshData->m_VertexBuffer.GetResource(), &meshData->intermediateVertexBuffer,
 						meshData->m_Vertices.size(), sizeof(VertexPosColorUV), meshData->m_Vertices.data());
 
 					// Create the vertex buffer view.
-					meshData->m_VertexBufferView.BufferLocation = meshData->m_VertexBuffer->GetGPUVirtualAddress();
-					meshData->m_VertexBufferView.SizeInBytes = sizeof(VertexPosColorUV) * meshData->m_Vertices.size();
-					meshData->m_VertexBufferView.StrideInBytes = sizeof(VertexPosColorUV);
+					meshData->m_VertexBuffer.CreateViews(meshData->m_Vertices.size(), sizeof(VertexPosColorUV));
 
 					// Upload index buffer data.
 					UpdateBufferResource(a_CommandList,
-						&meshData->m_IndexBuffer, &meshData->intermediateIndexBuffer,
+						&meshData->m_IndexBuffer.GetResource(), &meshData->intermediateIndexBuffer,
 						meshData->m_Indices.size(), indexSize, meshData->m_Indices.data());
 
 					// Create index buffer view.
-					meshData->m_IndexBufferView.BufferLocation = meshData->m_IndexBuffer->GetGPUVirtualAddress();
-					meshData->m_IndexBufferView.Format = DXGI_FORMAT_R16_UINT;
-					meshData->m_IndexBufferView.SizeInBytes = indexSize * meshData->m_Indices.size();
+					meshData->m_IndexBuffer.CreateViews(meshData->m_Indices.size(), indexSize);
 				}
 
                 return true;
@@ -222,8 +217,8 @@ namespace coopscoop
 				for (auto& meshData : m_MeshData)
 				{
 					a_CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-					a_CommandList->IASetVertexBuffers(0, 1, &meshData->m_VertexBufferView);
-					a_CommandList->IASetIndexBuffer(&meshData->m_IndexBufferView);
+					a_CommandList->IASetVertexBuffers(0, 1, &meshData->m_VertexBuffer.GetVertexBufferView());
+					a_CommandList->IASetIndexBuffer(&meshData->m_IndexBuffer.GetIndexBufferView());
 
 					// Update the MVP matrix
 					DirectX::XMMATRIX mvpMatrix = m_Transform.GetWorldMatrix() * view * projection;
