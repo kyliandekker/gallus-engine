@@ -41,10 +41,8 @@ namespace coopscoop
 				m_MeshData.reserve(model.meshes.size());
 				for (const auto& mesh : model.meshes)
 				{
-					MeshData* meshData = new MeshData();
-
 					std::wstring name = std::format(L"{0}_{1}", std::filesystem::path(a_Path).stem().wstring(), std::wstring(mesh.name.begin(), mesh.name.end()));
-					meshData->m_VertexBuffer = VertexBuffer(name);
+					MeshData* meshData = new MeshData(name);
 
 					size_t indexSize = 0;
 					for (const auto& primitive : mesh.primitives)
@@ -227,6 +225,9 @@ namespace coopscoop
 					a_CommandList->DrawIndexedInstanced(meshData->m_Indices.size(), 1, 0, 0, 0);
 				}
 			}
+
+			MeshData::MeshData(const std::wstring& a_Name) : m_VertexBuffer(a_Name)
+			{ }
 		}
 	}
 }

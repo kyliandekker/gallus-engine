@@ -58,7 +58,34 @@ namespace coopscoop
 
 				return resDesc;
 			}
-			
+
+			const std::wstring& DX12Resource::GetName() const
+			{
+				return m_Name;
+			}
+
+			bool DX12Resource::CheckFormatSupport(D3D12_FORMAT_SUPPORT1 formatSupport) const
+			{
+				return (m_FormatSupport.Support1 & formatSupport) != 0;
+			}
+
+			bool DX12Resource::CheckFormatSupport(D3D12_FORMAT_SUPPORT2 formatSupport) const
+			{
+				return (m_FormatSupport.Support2 & formatSupport) != 0;
+			}
+
+			void DX12Resource::CheckFeatureSupport()
+			{
+				auto desc = m_Resource->GetDesc();
+				m_FormatSupport.Format = desc.Format;
+				if (FAILED(core::ENGINE.GetDX12().GetDevice()->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &m_FormatSupport,
+					sizeof(D3D12_FEATURE_DATA_FORMAT_SUPPORT))))
+				{
+					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed checking feature support for resource: \"%s\".", m_Name.c_str());
+					return;
+				}
+			}
+
 			void DX12Resource::SetResource(Microsoft::WRL::ComPtr<ID3D12Resource> a_Resource)
 			{
 				m_Resource = a_Resource;

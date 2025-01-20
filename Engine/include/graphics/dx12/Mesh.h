@@ -25,6 +25,9 @@ namespace coopscoop
 
 			struct MeshData
 			{
+				MeshData() = default;
+				MeshData(const std::wstring& a_Name);
+
 				enum class IndexSize
 				{
 					INDEXSIZE_16,
