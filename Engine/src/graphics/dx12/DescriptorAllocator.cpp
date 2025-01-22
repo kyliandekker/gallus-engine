@@ -13,8 +13,8 @@ namespace coopscoop
             struct MakeAllocatorPage : public DescriptorAllocatorPage
             {
             public:
-                MakeAllocatorPage(D3D12_DESCRIPTOR_HEAP_TYPE a_Type, uint32_t a_NumDescriptors)
-                    : DescriptorAllocatorPage(a_Type, a_NumDescriptors)
+                MakeAllocatorPage(D3D12_DESCRIPTOR_HEAP_TYPE a_Type, uint32_t a_NumDescriptors, D3D12_DESCRIPTOR_HEAP_FLAGS a_Flags)
+                    : DescriptorAllocatorPage(a_Type, a_NumDescriptors, a_Flags)
                 {}
 
                 virtual ~MakeAllocatorPage() {}
@@ -78,14 +78,15 @@ namespace coopscoop
                 }
             }
 
-            DescriptorAllocator::DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE a_Type, uint32_t a_NumDescriptorsPerHeap)
+            DescriptorAllocator::DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE a_Type, uint32_t a_NumDescriptorsPerHeap, D3D12_DESCRIPTOR_HEAP_FLAGS a_Flags)
                 : m_HeapType(a_Type)
                 , m_NumDescriptorsPerHeap(a_NumDescriptorsPerHeap)
+                , m_Flags(a_Flags)
             { }
 
             std::shared_ptr<DescriptorAllocatorPage> DescriptorAllocator::CreateAllocatorPage()
             {
-                std::shared_ptr<DescriptorAllocatorPage> newPage = std::make_shared<MakeAllocatorPage>(m_HeapType, m_NumDescriptorsPerHeap);
+                std::shared_ptr<DescriptorAllocatorPage> newPage = std::make_shared<MakeAllocatorPage>(m_HeapType, m_NumDescriptorsPerHeap, m_Flags);
 
                 m_HeapPool.emplace_back(newPage);
                 m_AvailableHeaps.insert(m_HeapPool.size() - 1);

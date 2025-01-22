@@ -42,7 +42,7 @@ namespace coopscoop
 				Microsoft::WRL::ComPtr<ID3D12Resource> intermediateIndexBuffer;
 			};
 
-			class Mesh
+			class Mesh : DX12Resource
 			{
 			public:
 				Mesh();
@@ -54,8 +54,6 @@ namespace coopscoop
 				void Update(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
 				void Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, DirectX::XMMATRIX view, DirectX::XMMATRIX projection);
 			private:
-				void UpdateBufferResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, ID3D12Resource** a_pDestinationResource, ID3D12Resource** a_pIntermediateResource, size_t a_NumElements, size_t a_ElementSize, const void* a_BufferData, D3D12_RESOURCE_FLAGS a_Flags = D3D12_RESOURCE_FLAG_NONE);
-
 				D3D12_SHADER_RESOURCE_VIEW_DESC m_ShaderResourceView;
 				std::vector<MeshData*> m_MeshData;
 				Shader m_Shader;

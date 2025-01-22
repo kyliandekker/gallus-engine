@@ -76,6 +76,7 @@ namespace coopscoop
 
                 // Get a descriptor at a particular offset in the allocation.
                 D3D12_CPU_DESCRIPTOR_HANDLE GetDescriptorHandle(uint32_t a_Offset = 0) const;
+                D3D12_GPU_DESCRIPTOR_HANDLE GetDescriptorHandleGPU(uint32_t a_Offset = 0) const;
 
                 // Get the number of (consecutive) handles for this allocation.
                 uint32_t GetNumHandles() const;

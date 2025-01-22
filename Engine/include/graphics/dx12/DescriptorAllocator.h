@@ -33,7 +33,7 @@ namespace coopscoop
                 friend class std::default_delete<DescriptorAllocator>;
 
                 // Can only be created by the Device.
-                DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE a_Type, uint32_t a_NumDescriptorsPerHeap = 256);
+                DescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE a_Type, uint32_t a_NumDescriptorsPerHeap, D3D12_DESCRIPTOR_HEAP_FLAGS a_Flags);
             private:
                 using DescriptorHeapPool = std::vector<std::shared_ptr<DescriptorAllocatorPage>>;
 
@@ -43,6 +43,7 @@ namespace coopscoop
                 // The device that was use to create this DescriptorAllocator.
                 D3D12_DESCRIPTOR_HEAP_TYPE m_HeapType;
                 uint32_t                   m_NumDescriptorsPerHeap;
+                D3D12_DESCRIPTOR_HEAP_FLAGS m_Flags;
 
                 DescriptorHeapPool m_HeapPool;
                 // Indices of available heaps in the heap pool.

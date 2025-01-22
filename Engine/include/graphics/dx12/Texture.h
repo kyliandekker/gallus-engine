@@ -30,10 +30,13 @@
   *  @brief A wrapper for a DX12 Texture object.
   */
 
+#include "graphics/dx12/DX12PCH.h"
+
 #include "graphics/dx12/DX12Resource.h"
 
 #include <mutex>
 #include <unordered_map>
+#include <string>
 
 #include "DescriptorAllocation.h"
 
@@ -52,6 +55,8 @@ namespace coopscoop
                  * Resize the texture.
                  */
                 void Resize(uint32_t a_Width, uint32_t a_Height, uint32_t a_DepthOrArraySize = 1);
+
+                void Load(const std::wstring a_Path);
 
                 /**
                  * Get the RTV for the texture.
@@ -117,15 +122,20 @@ namespace coopscoop
                 static DXGI_FORMAT GetSRGBFormat(DXGI_FORMAT a_Format);
                 static DXGI_FORMAT GetUAVCompatableFormat(DXGI_FORMAT a_Format);
 
-            protected:
+                Texture() : DX12Resource() {}
                 Texture(const D3D12_RESOURCE_DESC& a_ResourceDesc);
 
+                void Bind();
+
+            protected:
                 /**
                  * Create SRV and UAVs for the resource.
                  */
                 void CreateViews();
 
             private:
+                Microsoft::WRL::ComPtr<ID3D12Resource> intermediateTexture;
+
                 DescriptorAllocation m_RenderTargetView;
                 DescriptorAllocation m_DepthStencilView;
                 DescriptorAllocation m_ShaderResourceView;

@@ -4,6 +4,8 @@
 
 #include "core/Engine.h"
 #include "core/logger/Logger.h"
+#include <tiny_gltf/stb_image.h>
+#include "graphics/dx12/DescriptorAllocatorPage.h"
 
 #undef max
 
@@ -40,6 +42,61 @@ namespace coopscoop
 
                     CreateViews();
                 }
+            }
+
+            void Texture::Load(const std::wstring a_Path)
+            {
+                DirectX::TexMetadata  metadata;
+                DirectX::ScratchImage scratchImage;
+                if (FAILED(DirectX::LoadFromTGAFile(a_Path.c_str(), &metadata, scratchImage)))
+                {
+                    LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading texture \"%s\".", a_Path.c_str());
+                    return;
+                }
+
+                D3D12_RESOURCE_DESC textureDesc = {};
+                textureDesc = CD3DX12_RESOURCE_DESC::Tex2D(metadata.format, static_cast<UINT64>(metadata.width),
+                    static_cast<UINT>(metadata.height),
+                    static_cast<UINT16>(metadata.arraySize));
+
+                m_Name = a_Path;
+                CD3DX12_HEAP_PROPERTIES defaultHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+                if (core::ENGINE.GetDX12().GetDevice()->CreateCommittedResource(
+                    &defaultHeap,
+                    D3D12_HEAP_FLAG_NONE,
+                    &textureDesc,
+                    D3D12_RESOURCE_STATE_COMMON,
+                    nullptr,
+                    IID_PPV_ARGS(&m_Resource)
+                ))
+                {
+                    LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating committed resource: \"%s\".", a_Path.c_str());
+                    return;
+                }
+                m_Resource->SetName(a_Path.c_str());
+
+                CheckFeatureSupport();
+
+                CreateViews();
+
+                std::vector<D3D12_SUBRESOURCE_DATA> subresources(scratchImage.GetImageCount());
+                const DirectX::Image* pImages = scratchImage.GetImages();
+                for (int i = 0; i < scratchImage.GetImageCount(); ++i)
+                {
+                    auto& subresource = subresources[i];
+                    subresource.RowPitch = pImages[i].rowPitch;
+                    subresource.SlicePitch = pImages[i].slicePitch;
+                    subresource.pData = pImages[i].pixels;
+                }
+
+                // Upload vertex buffer data.
+                UpdateBufferResource(core::ENGINE.GetDX12().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY)->GetCommandList(),
+                    &m_Resource, &intermediateTexture, static_cast<uint32_t>(subresources.size()), 1, subresources.data());
+
+   /*             if (subresources.size() < m_Resource->GetDesc().MipLevels)
+                {
+                    GenerateMips(texture);
+                }*/
             }
 
             D3D12_CPU_DESCRIPTOR_HANDLE Texture::GetRenderTargetView() const
@@ -452,6 +509,32 @@ namespace coopscoop
             Texture::Texture(const D3D12_RESOURCE_DESC& a_ResourceDesc) : DX12Resource(a_ResourceDesc, L"")
             {
                 CreateViews();
+            }
+
+            void Texture::Bind()
+            {
+                auto commandList = core::ENGINE.GetDX12().GetCommandQueue()->GetCommandList();
+
+                commandList->SetGraphicsRootSignature(core::ENGINE.GetDX12().m_RootSignature.Get());
+
+                // Set the descriptor heap for SRVs and Samplers
+                ID3D12DescriptorHeap* heaps[] = { core::ENGINE.GetDX12().m_SRV.GetDescriptorAllocatorPage()->GetHeap().Get() };
+                commandList->SetDescriptorHeaps(_countof(heaps), heaps);
+
+                // Set root parameters
+                D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = core::ENGINE.GetDX12().m_SRV.GetDescriptorHandleGPU();
+                commandList->SetGraphicsRootDescriptorTable(1, srvHandle); // Root parameter index 1 for SRV
+
+                D3D12_GPU_DESCRIPTOR_HANDLE samplerHandle = core::ENGINE.GetDX12().m_Sampler.GetDescriptorHandleGPU();
+                commandList->SetGraphicsRootDescriptorTable(2, samplerHandle); // Root parameter index 2 for Sampler
+
+                // Transition the resource to the appropriate state
+                CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+                    m_Resource.Get(),
+                    D3D12_RESOURCE_STATE_COPY_DEST,        // Current state
+                    D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE // New state
+                );
+                commandList->ResourceBarrier(1, &barrier);
             }
 
             D3D12_UNORDERED_ACCESS_VIEW_DESC GetUAVDesc(const D3D12_RESOURCE_DESC& a_ResDesc, UINT a_MipSlice, UINT a_ArraySlice = 0,

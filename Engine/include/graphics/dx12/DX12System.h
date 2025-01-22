@@ -9,6 +9,7 @@
 
 #include "graphics/dx12/CommandQueue.h"
 #include "graphics/dx12/Mesh.h"
+#include "graphics/dx12/Texture.h"
 #include "graphics/dx12/Camera.h"
 #include "graphics/dx12/DescriptorAllocator.h"
 #include "graphics/dx12/DescriptorAllocation.h"
@@ -100,6 +101,14 @@ namespace coopscoop
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderTargetTexture; /// The render target texture used for rendering.
 				CD3DX12_CPU_DESCRIPTOR_HANDLE m_RenderTargetSrvHandleCPU; /// The CPU handle for the render target SRV.
 				CD3DX12_GPU_DESCRIPTOR_HANDLE m_RenderTargetSrvHandleGPU; /// The GPU handle for the render target SRV.
+
+				DescriptorAllocation m_RenderTargetView;
+				DescriptorAllocation m_DSV;
+				DescriptorAllocation m_SRV;
+				DescriptorAllocation m_Sampler;
+
+				// Root signature
+				Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
 			protected:
 				/// <summary>
 				/// Initializes the thread.
@@ -159,17 +168,6 @@ namespace coopscoop
 				bool CreateSwapChain();
 
 				/// <summary>
-				/// Creates a descriptor heap.
-				/// </summary>
-				/// <param name="a_NumDescriptors">Number of descriptors in the heap.</param>
-				/// <param name="a_Type">The type of descriptor heap (e.g., RTV, DSV, CBV_SRV_UAV).</param>
-				/// <param name="a_Flags">Flags for the descriptor heap (e.g., SHADER_VISIBLE).</param>
-				/// <returns>The descriptor heap.</returns>
-				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeap(UINT a_NumDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE a_Type);
-
-				UINT GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE a_Type) const;
-
-				/// <summary>
 				/// Updates the render target views (RTVs) for the back buffers.
 				/// </summary>
 				/// <param name="a_Device">The DirectX 12 device.</param>
@@ -195,17 +193,12 @@ namespace coopscoop
 
 				Mesh chickenMesh;
 				Mesh faucetMesh;
+				Texture chickenTexture;
 
 				uint64_t m_FenceValues[BufferCount] = {};
 
 				// Depth buffer.
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_DepthBuffer;
-
-				// Descriptor heap for depth buffer.
-				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_DSVHeap;
-
-				// Root signature
-				Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
 
 				// Pipeline state object.
 				Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
@@ -219,10 +212,8 @@ namespace coopscoop
 				bool m_Fullscreen;
 
 				Microsoft::WRL::ComPtr<IDXGISwapChain4> m_dxgiSwapChain;
-				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_d3d12RTVDescriptorHeap;
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_d3d12BackBuffers[BufferCount];
 
-				UINT m_RTVDescriptorSize;
 				UINT m_CurrentBackBufferIndex;
 
 				RECT m_WindowRect;

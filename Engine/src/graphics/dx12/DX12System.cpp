@@ -82,8 +82,7 @@ namespace coopscoop
 
 			D3D12_CPU_DESCRIPTOR_HANDLE DX12System::GetCurrentRenderTargetView() const
 			{
-				return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_d3d12RTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
-					m_CurrentBackBufferIndex, m_RTVDescriptorSize);
+				return m_RenderTargetView.GetDescriptorHandle(m_CurrentBackBufferIndex);
 			}
 
 			void DX12System::TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList,
@@ -132,7 +131,7 @@ namespace coopscoop
 				UINT currentBackBufferIndex = GetCurrentBackBufferIndex();
 				auto backBuffer = GetCurrentBackBuffer();
 				auto rtv = GetCurrentRenderTargetView();
-				auto dsv = m_DSVHeap->GetCPUDescriptorHandleForHeapStart();
+				auto dsv = m_DSV.GetDescriptorHandle();
 
 				// Clear the render targets.
 				{
@@ -151,6 +150,7 @@ namespace coopscoop
 
 				commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
 
+				chickenTexture.Bind();
 				chickenMesh.Render(commandList, viewMatrix, projectionMatrix);
 				faucetMesh.Render(commandList, viewMatrix, projectionMatrix);
 
@@ -184,6 +184,16 @@ namespace coopscoop
 			{
 				return m_DescriptorAllocators[a_Type]->Allocate(a_NumDescriptors);
 			}
+
+			class MakeDescriptorAllocator : public DescriptorAllocator
+			{
+			public:
+				MakeDescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE a_Type, uint32_t a_NumDescriptorsPerHeap = 256, D3D12_DESCRIPTOR_HEAP_FLAGS a_Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE)
+					: DescriptorAllocator(a_Type, a_NumDescriptorsPerHeap, a_Flags)
+				{}
+
+				virtual ~MakeDescriptorAllocator() {}
+			};
 
 			bool DX12System::InitializeThread()
 			{
@@ -235,8 +245,16 @@ namespace coopscoop
 					return false;
 				}
 
-				m_d3d12RTVDescriptorHeap = CreateDescriptorHeap(BufferCount, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-				m_RTVDescriptorSize = GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+				// Create descriptor allocators
+				m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV] = std::make_unique<MakeDescriptorAllocator>(static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), 256, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
+				m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER] = std::make_unique<MakeDescriptorAllocator>(static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER), 1, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
+				m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV] = std::make_unique<MakeDescriptorAllocator>(static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(D3D12_DESCRIPTOR_HEAP_TYPE_RTV), BufferCount);
+				m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_DSV] = std::make_unique<MakeDescriptorAllocator>(static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(D3D12_DESCRIPTOR_HEAP_TYPE_DSV), BufferCount);
+
+				m_RenderTargetView = m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV]->Allocate(BufferCount);
+				m_DSV = m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_DSV]->Allocate(256);
+				m_SRV = m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV]->Allocate(256);
+				m_Sampler = m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER]->Allocate(1);
 
 				UpdateRenderTargetViews();
 
@@ -246,19 +264,9 @@ namespace coopscoop
 				std::shared_ptr<CommandQueue> commandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
 				Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList = commandQueue->GetCommandList();
 
-				// Create the descriptor heap for the depth-stencil view.
-				D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
-				dsvHeapDesc.NumDescriptors = 1;
-				dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-				dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-				if (FAILED(device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&m_DSVHeap))))
-				{
-					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create descriptor heap.");
-					return false;
-				}
-
 				chickenMesh.LoadMesh("./resources/chicken.gltf", commandList);
 				faucetMesh.LoadMesh("./resources/mod_faucet.gltf", commandList);
+				chickenTexture.Load(L"./resources/tex_chicken_normal.tga");
 
 				// Create a root signature.
 				D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
@@ -587,34 +595,11 @@ namespace coopscoop
 				return m_dxgiSwapChain;
 			}
 
-			Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DX12System::CreateDescriptorHeap(UINT a_NumDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE a_Type)
-			{
-				D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-				desc.Type = a_Type;
-				desc.NumDescriptors = a_NumDescriptors;
-				desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-				desc.NodeMask = 0;
-
-				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap;
-				if (FAILED(m_d3d12Device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&descriptorHeap))))
-				{
-					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating descriptor heap.");
-					return nullptr;
-				}
-
-				return descriptorHeap;
-			}
-
-			UINT DX12System::GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE a_Type) const
-			{
-				return m_d3d12Device->GetDescriptorHandleIncrementSize(a_Type);
-			}
-
 			void DX12System::UpdateRenderTargetViews()
 			{
 				auto device = GetDevice();
 
-				CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_d3d12RTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+				CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_RenderTargetView.GetDescriptorHandle());
 
 				for (int i = 0; i < BufferCount; ++i)
 				{
@@ -629,7 +614,7 @@ namespace coopscoop
 
 					m_d3d12BackBuffers[i] = backBuffer;
 
-					rtvHandle.Offset(m_RTVDescriptorSize);
+					rtvHandle.Offset(m_d3d12Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV));
 				}
 			}
 
@@ -672,7 +657,7 @@ namespace coopscoop
 				dsv.Flags = D3D12_DSV_FLAG_NONE;
 
 				device->CreateDepthStencilView(m_DepthBuffer.Get(), &dsv,
-					m_DSVHeap->GetCPUDescriptorHandleForHeapStart());
+					m_DSV.GetDescriptorHandle());
 			}
 
 #pragma endregion DX12_SYSTEM
