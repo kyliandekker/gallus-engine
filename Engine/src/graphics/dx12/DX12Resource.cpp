@@ -26,6 +26,8 @@ namespace coopscoop
 					return;
 				}
 				m_Resource->SetName(a_Name.c_str());
+
+				CheckFeatureSupport();
 			}
 
 			DX12Resource::DX12Resource(const std::wstring& a_Name)
@@ -58,10 +60,34 @@ namespace coopscoop
 
 				return resDesc;
 			}
+
+			bool DX12Resource::CheckFormatSupport(D3D12_FORMAT_SUPPORT1 a_FormatSupport) const
+			{
+				return (m_FormatSupport.Support1 & a_FormatSupport) != 0;
+			}
+
+			bool DX12Resource::CheckFormatSupport(D3D12_FORMAT_SUPPORT2 a_FormatSupport) const
+			{
+				return (m_FormatSupport.Support2 & a_FormatSupport) != 0;
+			}
 			
 			void DX12Resource::SetResource(Microsoft::WRL::ComPtr<ID3D12Resource> a_Resource)
 			{
 				m_Resource = a_Resource;
+			}
+
+			void DX12Resource::CheckFeatureSupport()
+			{
+				auto d3d12Device = core::ENGINE.GetDX12().GetDevice();
+
+				auto desc = m_Resource->GetDesc();
+				m_FormatSupport.Format = desc.Format;
+				if (FAILED(d3d12Device->CheckFeatureSupport(D3D12_FEATURE_FORMAT_SUPPORT, &m_FormatSupport,
+					sizeof(D3D12_FEATURE_DATA_FORMAT_SUPPORT))))
+				{
+					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed checking feature support.");
+					return;
+				}
 			}
 		}
 	}

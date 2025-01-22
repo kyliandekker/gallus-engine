@@ -10,6 +10,8 @@
 #include "graphics/dx12/CommandQueue.h"
 #include "graphics/dx12/Mesh.h"
 #include "graphics/dx12/Camera.h"
+#include "graphics/dx12/DescriptorAllocator.h"
+#include "graphics/dx12/DescriptorAllocation.h"
 
 #undef min
 #undef max
@@ -85,13 +87,13 @@ namespace coopscoop
 				/// <returns>True if destruction succeeds, otherwise false.</returns>
 				bool Destroy() override;
 
+				DescriptorAllocation AllocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE a_Type, uint32_t a_NumDescriptors = 1);
+
 				Microsoft::WRL::ComPtr<ID3D12Device2> GetDevice() const;
 
 				Microsoft::WRL::ComPtr<ID3D12RootSignature> GetRootSignature() const;
 
 				std::shared_ptr<CommandQueue> GetCommandQueue(D3D12_COMMAND_LIST_TYPE a_Type = D3D12_COMMAND_LIST_TYPE_DIRECT) const;
-
-				void IncreaseFov();
 
 				void TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList, Microsoft::WRL::ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState);
 
@@ -188,6 +190,8 @@ namespace coopscoop
 				std::shared_ptr<CommandQueue> m_DirectCommandQueue;
 				std::shared_ptr<CommandQueue> m_ComputeCommandQueue;
 				std::shared_ptr<CommandQueue> m_CopyCommandQueue;
+
+				std::unique_ptr<DescriptorAllocator> m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
 
 				Mesh chickenMesh;
 				Mesh faucetMesh;

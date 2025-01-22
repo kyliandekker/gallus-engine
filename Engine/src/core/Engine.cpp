@@ -50,10 +50,6 @@ namespace coopscoop
 
 			while (m_Ready.load())
 			{
-				if (m_InputSystem.IsKeyPressed('F'))
-				{
-					m_DX12System.IncreaseFov();
-				}
 			}
 
 			return true;

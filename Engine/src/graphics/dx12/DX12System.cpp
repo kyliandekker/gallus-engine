@@ -180,8 +180,9 @@ namespace coopscoop
 				return ThreadedSystem::Destroy();
 			}
 
-			void DX12System::IncreaseFov()
+			DescriptorAllocation DX12System::AllocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE a_Type, uint32_t a_NumDescriptors)
 			{
+				return m_DescriptorAllocators[a_Type]->Allocate(a_NumDescriptors);
 			}
 
 			bool DX12System::InitializeThread()

@@ -79,8 +79,30 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\BC.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\BC4BC5.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\BC6HBC7.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\BCDirectCompute.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexCompress.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexConvert.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexD3D11.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexD3D12.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexDDS.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexHDR.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexImage.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexMipmaps.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexMisc.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexResize.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexTGA.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexUtil.cpp" />
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexWIC.cpp" />
     <ClCompile Include="external\dx12\directx\d3dx12_property_format_table.cpp" />
     <ClCompile Include="external\tiny_gltf\tiny_gltf.cc" />
+    <ClCompile Include="src\graphics\dx12\DescriptorAllocator.cpp" />
     <ClCompile Include="src\core\FileUtils.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\core\Data.cpp" />
@@ -91,13 +113,15 @@
     <ClCompile Include="src\core\System.cpp" />
     <ClCompile Include="src\graphics\dx12\Buffer.cpp" />
     <ClCompile Include="src\graphics\dx12\Camera.cpp" />
-    <ClCompile Include="src\graphics\dx12\CommandList.cpp" />
     <ClCompile Include="src\graphics\dx12\CommandQueue.cpp" />
+    <ClCompile Include="src\graphics\dx12\DesciptorAllocatorPage.cpp" />
+    <ClCompile Include="src\graphics\dx12\DescriptorAllocation.cpp" />
     <ClCompile Include="src\graphics\dx12\DX12Resource.cpp" />
     <ClCompile Include="src\graphics\dx12\DX12System.cpp" />
     <ClCompile Include="src\graphics\dx12\IndexBuffer.cpp" />
     <ClCompile Include="src\graphics\dx12\Mesh.cpp" />
     <ClCompile Include="src\graphics\dx12\Shader.cpp" />
+    <ClCompile Include="src\graphics\dx12\Texture.cpp" />
     <ClCompile Include="src\graphics\dx12\Transform.cpp" />
     <ClCompile Include="src\graphics\dx12\VertexBuffer.cpp" />
     <ClCompile Include="src\graphics\win32\Window.cpp" />
@@ -112,8 +136,10 @@
     <ClInclude Include="include\core\System.h" />
     <ClInclude Include="include\core\utils.h" />
     <ClInclude Include="include\graphics\dx12\Buffer.h" />
-    <ClInclude Include="include\graphics\dx12\CommandList.h" />
     <ClInclude Include="include\graphics\dx12\CommandQueue.h" />
+    <ClInclude Include="include\graphics\dx12\DescriptorAllocatorPage.h" />
+    <ClInclude Include="include\graphics\dx12\DescriptorAllocation.h" />
+    <ClInclude Include="include\graphics\dx12\DescriptorAllocator.h" />
     <ClInclude Include="include\graphics\dx12\DX12PCH.h" />
     <ClInclude Include="include\graphics\dx12\DX12System.h" />
     <ClInclude Include="include\graphics\dx12\Camera.h" />
@@ -122,6 +148,7 @@
     <ClInclude Include="include\graphics\dx12\Mesh.h" />
     <ClInclude Include="include\graphics\dx12\DX12Resource.h" />
     <ClInclude Include="include\graphics\dx12\Shader.h" />
+    <ClInclude Include="include\graphics\dx12\Texture.h" />
     <ClInclude Include="include\graphics\dx12\TextureUsage.h" />
     <ClInclude Include="include\graphics\dx12\Transform.h" />
     <ClInclude Include="include\graphics\dx12\UploadBuffer.h" />

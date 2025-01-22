@@ -23,8 +23,13 @@ namespace coopscoop
 
 				D3D12_RESOURCE_DESC GetResourceDesc() const;
 
+				bool CheckFormatSupport(D3D12_FORMAT_SUPPORT1 a_FormatSupport) const;
+				bool CheckFormatSupport(D3D12_FORMAT_SUPPORT2 a_FormatSupport) const;
+
 				void SetResource(Microsoft::WRL::ComPtr<ID3D12Resource> a_Resource);
+				void CheckFeatureSupport();
 			protected:
+				D3D12_FEATURE_DATA_FORMAT_SUPPORT m_FormatSupport;
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_Resource;
 				std::wstring m_Name;
 			};

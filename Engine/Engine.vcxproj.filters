@@ -78,7 +78,79 @@
     <ClCompile Include="src\graphics\dx12\IndexBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\dx12\CommandList.cpp">
+    <ClCompile Include="src\graphics\dx12\DescriptorAllocation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\dx12\DesciptorAllocatorPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\dx12\Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\dx12\DescriptorAllocator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\BCDirectCompute.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\BC6HBC7.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\BC4BC5.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\BC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexCompress.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexD3D11.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexD3D12.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexDDS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexHDR.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexImage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexMipmaps.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexMisc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexResize.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexTGA.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexWIC.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexConvert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -155,7 +227,16 @@
     <ClInclude Include="include\graphics\dx12\Buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\graphics\dx12\CommandList.h">
+    <ClInclude Include="include\graphics\dx12\DescriptorAllocation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\graphics\dx12\DescriptorAllocatorPage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\graphics\dx12\Texture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\graphics\dx12\DescriptorAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
