@@ -43,6 +43,8 @@ namespace coopscoop
                 std::vector<D3D12_SUBRESOURCE_DATA> subresources;
                 DirectX::TexMetadata  metadata;
                 DirectX::ScratchImage scratchImage;
+                const DirectX::Image* pImages;
+                Microsoft::WRL::ComPtr<ID3D12Resource> intermediateResource;
             };
         }
     }
