@@ -39,30 +39,62 @@ namespace coopscoop
 
             bool Texture::LoadTexture(const std::wstring& a_FilePath, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
             {
-                if (FAILED(LoadFromTGAFile(a_FilePath.c_str(), &metadata, scratchImage)))
+                std::string s(a_FilePath.begin(), a_FilePath.end());
+                int width, height, channels;
+                stbi_uc* imageData = stbi_load(s.c_str(), &width, &height, &channels, STBI_rgb_alpha);
+                if (!imageData)
                 {
-                    LOG(LOGSEVERITY_INFO, LOG_CATEGORY_DX12, "Failed loading tga.");
+                    LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to load texture: \"%s\".", a_FilePath.c_str());
+                    return false;
+                }
+                LOGF(LOGSEVERITY_INFO, LOG_CATEGORY_DX12, "Texture loaded: Width = %d, Height = %d, Channels = %d", width, height, channels);
+
+                D3D12_RESOURCE_DESC textureDesc = {};
+                textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+                textureDesc.Width = width;
+                textureDesc.Height = height;
+                textureDesc.DepthOrArraySize = 1;
+                textureDesc.MipLevels = 1;
+                textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+                textureDesc.SampleDesc.Count = 1;
+                textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+                textureDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+
+                CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_DEFAULT);
+                if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateCommittedResource(
+                    &heapProperties,
+                    D3D12_HEAP_FLAG_NONE,
+                    &textureDesc,
+                    D3D12_RESOURCE_STATE_COPY_DEST,
+                    nullptr,
+                    IID_PPV_ARGS(&m_Resource))))
+                {
+                    LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create texture resource.");
                     return false;
                 }
 
-                D3D12_RESOURCE_DESC textureDesc = {};
-                textureDesc = CD3DX12_RESOURCE_DESC::Tex2D(metadata.format, static_cast<UINT64>(metadata.width),
-                    static_cast<UINT>(metadata.height),
-                    static_cast<UINT16>(metadata.arraySize));
-
-                CreateResource(textureDesc, a_FilePath);
-
-                subresources = std::vector<D3D12_SUBRESOURCE_DATA>(scratchImage.GetImageCount());
-                pImages = scratchImage.GetImages();
-                for (int i = 0; i < scratchImage.GetImageCount(); ++i)
+                UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_Resource.Get(), 0, 1);
+                CD3DX12_HEAP_PROPERTIES uploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
+                CD3DX12_RESOURCE_DESC bufferResource = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
+                if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateCommittedResource(
+                    &uploadHeapProperties,
+                    D3D12_HEAP_FLAG_NONE,
+                    &bufferResource,
+                    D3D12_RESOURCE_STATE_GENERIC_READ,
+                    nullptr,
+                    IID_PPV_ARGS(&m_ResourceUploadHeap))))
                 {
-                    auto& subresource = subresources[i];
-                    subresource.RowPitch = pImages[i].rowPitch;
-                    subresource.SlicePitch = pImages[i].slicePitch;
-                    subresource.pData = pImages[i].pixels;
+                    LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create upload heap.");
+                    return false;
                 }
 
-                CopyTextureSubresource(a_CommandList, 0, static_cast<uint32_t>(subresources.size()), subresources.data());
+                D3D12_SUBRESOURCE_DATA textureData = {};
+                textureData.pData = imageData;
+                textureData.RowPitch = width * channels;
+                textureData.SlicePitch = textureData.RowPitch * height;
+                UpdateSubresources(a_CommandList.Get(), m_Resource.Get(), m_ResourceUploadHeap.Get(), 0, 0, 1, &textureData);
+
+                stbi_image_free(imageData);
 
                 LOG(LOGSEVERITY_INFO, LOG_CATEGORY_DX12, "SRV created successfully.");
                 return true;
@@ -107,6 +139,7 @@ namespace coopscoop
                         GetRequiredIntermediateSize(m_Resource.Get(), a_FirstSubresource, a_NumSubresources);
 
                     // Create a temporary (intermediate) resource for uploading the subresources
+                    Microsoft::WRL::ComPtr<ID3D12Resource> intermediateResource;
                     CD3DX12_HEAP_PROPERTIES uploadHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
                     CD3DX12_RESOURCE_DESC buffer = CD3DX12_RESOURCE_DESC::Buffer(requiredSize);
                     if (FAILED(d3d12Device->CreateCommittedResource(

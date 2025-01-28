@@ -115,7 +115,7 @@ namespace coopscoop
 				m_FpsCounter.Update();
 
 				// Update the model matrix for the mesh
-				chickenMesh.GetTransform().SetPosition({ 0.0f, 0.0f, 5.0f }); // Example position
+				chickenMesh.GetTransform().SetPosition({ 0.0f, 0.0f, 2.0f }); // Example position
 				chickenMesh.GetTransform().GetRotation().y += 0.1f;
 
 				// Update the model matrix for the mesh
@@ -354,7 +354,7 @@ namespace coopscoop
 
 				chickenMesh.SetShader(m_ShaderAlbedo);
 
-				chickenTexture.LoadTexture(L"./resources/tex_chicken_normal.tga", commandList);
+				chickenTexture.LoadTexture(L"./resources/tex_chicken_normal_fix.png", commandList);
 
 				//faucetMesh.SetShader(m_ShaderOneColor);
 
