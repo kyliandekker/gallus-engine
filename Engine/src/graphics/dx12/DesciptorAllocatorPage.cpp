@@ -9,11 +9,6 @@ namespace coopscoop
     {
         namespace dx12
         {
-            Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DescriptorAllocatorPage::GetHeap()
-            {
-                return m_d3d12DescriptorHeap;
-            }
-
             D3D12_DESCRIPTOR_HEAP_TYPE DescriptorAllocatorPage::GetHeapType() const
             {
                 return m_HeapType;
@@ -109,14 +104,13 @@ namespace coopscoop
                 }
             }
 
-            DescriptorAllocatorPage::DescriptorAllocatorPage(D3D12_DESCRIPTOR_HEAP_TYPE a_Type, uint32_t a_NumDescriptors, D3D12_DESCRIPTOR_HEAP_FLAGS a_Flags)
+            DescriptorAllocatorPage::DescriptorAllocatorPage(D3D12_DESCRIPTOR_HEAP_TYPE a_Type, uint32_t a_NumDescriptors) 
                 : m_HeapType(a_Type)
                 , m_NumDescriptorsInHeap(a_NumDescriptors)
             {
                 D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
                 heapDesc.Type = m_HeapType;
                 heapDesc.NumDescriptors = m_NumDescriptorsInHeap;
-                heapDesc.Flags = a_Flags;
 
                 if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_d3d12DescriptorHeap))))
                 {

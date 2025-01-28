@@ -64,11 +64,6 @@ namespace coopscoop
                 return { m_Descriptor.ptr + (m_DescriptorSize * a_Offset) };
             }
 
-            D3D12_GPU_DESCRIPTOR_HANDLE DescriptorAllocation::GetDescriptorHandleGPU(uint32_t a_Offset) const
-            {
-                return m_Page->GetHeap()->GetGPUDescriptorHandleForHeapStart();
-            }
-
             uint32_t DescriptorAllocation::GetNumHandles() const
             {
                 return m_NumHandles;

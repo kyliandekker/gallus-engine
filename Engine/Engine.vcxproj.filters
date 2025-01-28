@@ -78,18 +78,6 @@
     <ClCompile Include="src\graphics\dx12\IndexBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\dx12\DescriptorAllocation.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\dx12\DesciptorAllocatorPage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\dx12\Texture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\dx12\DescriptorAllocator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="external\dx12\DirectXTex\DirectXTex\BCDirectCompute.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -153,6 +141,18 @@
     <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexConvert.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\graphics\dx12\Texture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\dx12\DesciptorAllocatorPage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\dx12\DescriptorAllocation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\graphics\dx12\DescriptorAllocator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\core\Engine.h">
@@ -212,9 +212,6 @@
     <ClInclude Include="include\graphics\dx12\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\graphics\dx12\TextureUsage.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\graphics\dx12\DX12Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -227,13 +224,13 @@
     <ClInclude Include="include\graphics\dx12\Buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\graphics\dx12\DescriptorAllocation.h">
+    <ClInclude Include="include\graphics\dx12\Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\graphics\dx12\DescriptorAllocatorPage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\graphics\dx12\Texture.h">
+    <ClInclude Include="include\graphics\dx12\DescriptorAllocation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\graphics\dx12\DescriptorAllocator.h">

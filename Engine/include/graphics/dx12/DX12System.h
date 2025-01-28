@@ -11,8 +11,6 @@
 #include "graphics/dx12/Mesh.h"
 #include "graphics/dx12/Texture.h"
 #include "graphics/dx12/Camera.h"
-#include "graphics/dx12/DescriptorAllocator.h"
-#include "graphics/dx12/DescriptorAllocation.h"
 
 #undef min
 #undef max
@@ -61,7 +59,7 @@ namespace coopscoop
 				std::chrono::high_resolution_clock m_Clock; /// The clock.
 				std::chrono::steady_clock::time_point m_T0 = m_Clock.now(); /// The clock from first frame.
 			};
-			
+
 			/// <summary>
 			/// Represents a DirectX 12 rendering window, managing device resources, rendering, and synchronization.
 			/// </summary>
@@ -88,27 +86,21 @@ namespace coopscoop
 				/// <returns>True if destruction succeeds, otherwise false.</returns>
 				bool Destroy() override;
 
-				DescriptorAllocation AllocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE a_Type, uint32_t a_NumDescriptors = 1);
-
 				Microsoft::WRL::ComPtr<ID3D12Device2> GetDevice() const;
 
 				Microsoft::WRL::ComPtr<ID3D12RootSignature> GetRootSignature() const;
 
 				std::shared_ptr<CommandQueue> GetCommandQueue(D3D12_COMMAND_LIST_TYPE a_Type = D3D12_COMMAND_LIST_TYPE_DIRECT) const;
 
+				void IncreaseFov();
+
 				void TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList, Microsoft::WRL::ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState);
+
+				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_SRVHeap;
 
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderTargetTexture; /// The render target texture used for rendering.
 				CD3DX12_CPU_DESCRIPTOR_HANDLE m_RenderTargetSrvHandleCPU; /// The CPU handle for the render target SRV.
 				CD3DX12_GPU_DESCRIPTOR_HANDLE m_RenderTargetSrvHandleGPU; /// The GPU handle for the render target SRV.
-
-				DescriptorAllocation m_RenderTargetView;
-				DescriptorAllocation m_DSV;
-				DescriptorAllocation m_SRV;
-				DescriptorAllocation m_Sampler;
-
-				// Root signature
-				Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
 			protected:
 				/// <summary>
 				/// Initializes the thread.
@@ -168,6 +160,17 @@ namespace coopscoop
 				bool CreateSwapChain();
 
 				/// <summary>
+				/// Creates a descriptor heap.
+				/// </summary>
+				/// <param name="a_NumDescriptors">Number of descriptors in the heap.</param>
+				/// <param name="a_Type">The type of descriptor heap (e.g., RTV, DSV, CBV_SRV_UAV).</param>
+				/// <param name="a_Flags">Flags for the descriptor heap (e.g., SHADER_VISIBLE).</param>
+				/// <returns>The descriptor heap.</returns>
+				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeap(UINT a_NumDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE a_Type);
+
+				UINT GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE a_Type) const;
+
+				/// <summary>
 				/// Updates the render target views (RTVs) for the back buffers.
 				/// </summary>
 				/// <param name="a_Device">The DirectX 12 device.</param>
@@ -189,19 +192,16 @@ namespace coopscoop
 				std::shared_ptr<CommandQueue> m_ComputeCommandQueue;
 				std::shared_ptr<CommandQueue> m_CopyCommandQueue;
 
-				std::unique_ptr<DescriptorAllocator> m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_NUM_TYPES];
-
-				Mesh chickenMesh;
-				Mesh faucetMesh;
-				Texture chickenTexture;
-
 				uint64_t m_FenceValues[BufferCount] = {};
 
 				// Depth buffer.
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_DepthBuffer;
 
-				// Pipeline state object.
-				Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
+				// Descriptor heap for depth buffer.
+				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_DSVHeap;
+
+				// Root signature
+				Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
 
 				D3D12_VIEWPORT m_Viewport;
 				D3D12_RECT m_ScissorRect;
@@ -212,8 +212,10 @@ namespace coopscoop
 				bool m_Fullscreen;
 
 				Microsoft::WRL::ComPtr<IDXGISwapChain4> m_dxgiSwapChain;
+				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_d3d12RTVDescriptorHeap;
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_d3d12BackBuffers[BufferCount];
 
+				UINT m_RTVDescriptorSize;
 				UINT m_CurrentBackBufferIndex;
 
 				RECT m_WindowRect;
@@ -225,7 +227,11 @@ namespace coopscoop
 
 				Camera m_Camera;
 
-				Shader m_ShaderOneColor;
+				Mesh chickenMesh;
+				//Mesh faucetMesh;
+				Texture chickenTexture;
+
+				//Shader m_ShaderOneColor;
 				Shader m_ShaderAlbedo;
 			};
 		}

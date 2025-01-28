@@ -18,6 +18,8 @@ namespace coopscoop
 				DX12Resource(const std::wstring& a_Name);
 				virtual ~DX12Resource();
 
+				void CreateResource(const D3D12_RESOURCE_DESC& a_ResourceDesc, const std::wstring& a_Name);
+
 				bool IsValid() const;
 
 				Microsoft::WRL::ComPtr<ID3D12Resource>& GetResource();

@@ -1,13 +1,8 @@
-#include "graphics/dx12/Texture.h"
+﻿#include "graphics/dx12/Texture.h"
 
-#include <dx12/DirectXTex/DirectXTex/DirectXTex.h>
+#include <stb_image.h>
 
 #include "core/Engine.h"
-#include "core/logger/Logger.h"
-#include <tiny_gltf/stb_image.h>
-#include "graphics/dx12/DescriptorAllocatorPage.h"
-
-#undef max
 
 namespace coopscoop
 {
@@ -15,618 +10,167 @@ namespace coopscoop
     {
         namespace dx12
         {
-            void Texture::Resize(uint32_t a_Width, uint32_t a_Height, uint32_t a_DepthOrArraySize)
+            Texture::~Texture()
             {
+                m_Resource.Reset();
+            }
+
+            bool Texture::CheckSRVSupport() const
+            {
+                return CheckFormatSupport(D3D12_FORMAT_SUPPORT1_SHADER_SAMPLE);
+            }
+
+            bool Texture::CheckRTVSupport() const
+            {
+                return CheckFormatSupport(D3D12_FORMAT_SUPPORT1_RENDER_TARGET);
+            }
+
+            bool Texture::CheckUAVSupport() const
+            {
+                return CheckFormatSupport(D3D12_FORMAT_SUPPORT1_TYPED_UNORDERED_ACCESS_VIEW) &&
+                    CheckFormatSupport(D3D12_FORMAT_SUPPORT2_UAV_TYPED_LOAD) &&
+                    CheckFormatSupport(D3D12_FORMAT_SUPPORT2_UAV_TYPED_STORE);
+            }
+
+            bool Texture::CheckDSVSupport() const
+            {
+                return CheckFormatSupport(D3D12_FORMAT_SUPPORT1_DEPTH_STENCIL);
+            }
+
+            bool Texture::LoadTexture(const std::wstring& a_FilePath, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+            {
+                std::string s(a_FilePath.begin(), a_FilePath.end());
+                int width, height, channels;
+                stbi_uc* imageData = stbi_load(s.c_str(), &width, &height, &channels, STBI_rgb_alpha);
+                if (!imageData)
+                {
+                    LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to load texture: \"%s\".", a_FilePath.c_str());
+                    return false;
+                }
+                LOGF(LOGSEVERITY_INFO, LOG_CATEGORY_DX12, "Texture loaded: Width = %d, Height = %d, Channels = %d", width, height, channels);
+
+                D3D12_RESOURCE_DESC textureDesc = {};
+                textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+                textureDesc.Width = width;
+                textureDesc.Height = height;
+                textureDesc.DepthOrArraySize = 1;
+                textureDesc.MipLevels = 1;
+                textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+                textureDesc.SampleDesc.Count = 1;
+                textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+                textureDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+
+                CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_DEFAULT);
+                if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateCommittedResource(
+                    &heapProperties,
+                    D3D12_HEAP_FLAG_NONE,
+                    &textureDesc,
+                    D3D12_RESOURCE_STATE_COPY_DEST,
+                    nullptr,
+                    IID_PPV_ARGS(&m_Resource))))
+                {
+                    LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create texture resource.");
+                    return false;
+                }
+
+                UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_Resource.Get(), 0, 1);
+                CD3DX12_HEAP_PROPERTIES uploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
+                CD3DX12_RESOURCE_DESC bufferResource = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
+                if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateCommittedResource(
+                    &uploadHeapProperties,
+                    D3D12_HEAP_FLAG_NONE,
+                    &bufferResource,
+                    D3D12_RESOURCE_STATE_GENERIC_READ,
+                    nullptr,
+                    IID_PPV_ARGS(&m_ResourceUploadHeap))))
+                {
+                    LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create upload heap.");
+                    return false;
+                }
+
+                D3D12_SUBRESOURCE_DATA textureData = {};
+                textureData.pData = imageData;
+                textureData.RowPitch = width * channels;
+                textureData.SlicePitch = textureData.RowPitch * height;
+                UpdateSubresources(a_CommandList.Get(), m_Resource.Get(), m_ResourceUploadHeap.Get(), 0, 0, 1, &textureData);
+
+                stbi_image_free(imageData);
+
+                LOG(LOGSEVERITY_INFO, LOG_CATEGORY_DX12, "SRV created successfully.");
+                return true;
+            }
+
+            bool Texture::Transition(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+            {
+                CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+                    m_Resource.Get(),
+                    D3D12_RESOURCE_STATE_COPY_DEST,
+                    D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+                a_CommandList->ResourceBarrier(1, &barrier);
+
+                D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+                srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+                srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+                srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+                srvDesc.Texture2D.MostDetailedMip = 0;
+                srvDesc.Texture2D.MipLevels = -1;
+                srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
+
+                srvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(core::ENGINE.GetDX12().m_SRVHeap->GetCPUDescriptorHandleForHeapStart());
+
+                // Offset by the index for the SRV
+                srvHandle.Offset(0, core::ENGINE.GetDX12().GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+
+                core::ENGINE.GetDX12().GetDevice()->CreateShaderResourceView(m_Resource.Get(), &srvDesc, srvHandle);
+
+                return false;
+            }
+
+            void Texture::CopyTextureSubresource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, uint32_t a_FirstSubresource,
+                uint32_t a_NumSubresources, D3D12_SUBRESOURCE_DATA* a_SubresourceData)
+            {
+                auto d3d12Device = core::ENGINE.GetDX12().GetDevice();
+
                 if (m_Resource)
                 {
-                    // ResourceStateTracker::RemoveGlobalResourceState( m_d3d12Resource.Get() );
+                    auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_Resource.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
 
-                    CD3DX12_RESOURCE_DESC resDesc(m_Resource->GetDesc());
+                    UINT64 requiredSize =
+                        GetRequiredIntermediateSize(m_Resource.Get(), a_FirstSubresource, a_NumSubresources);
 
-                    resDesc.Width = std::max(a_Width, 1u);
-                    resDesc.Height = std::max(a_Height, 1u);
-                    resDesc.DepthOrArraySize = a_DepthOrArraySize;
-                    resDesc.MipLevels = resDesc.SampleDesc.Count > 1 ? 1 : 0;
-
-                    CD3DX12_HEAP_PROPERTIES defaultHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-                    if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateCommittedResource(
-                        &defaultHeap, D3D12_HEAP_FLAG_NONE, &resDesc,
-                        D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&m_Resource))))
+                    // Create a temporary (intermediate) resource for uploading the subresources
+                    Microsoft::WRL::ComPtr<ID3D12Resource> intermediateResource;
+                    CD3DX12_HEAP_PROPERTIES uploadHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+                    CD3DX12_RESOURCE_DESC buffer = CD3DX12_RESOURCE_DESC::Buffer(requiredSize);
+                    if (FAILED(d3d12Device->CreateCommittedResource(
+                        &uploadHeap, D3D12_HEAP_FLAG_NONE,
+                        &buffer, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+                        IID_PPV_ARGS(&intermediateResource))))
                     {
-                        LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating resource.");
+                        LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed uploading texture.");
                         return;
                     }
 
-                    // Retain the name of the resource if one was already specified.
-                    m_Resource->SetName(m_Name.c_str());
-
-                    CreateViews();
-                }
-            }
-
-            void Texture::Load(const std::wstring a_Path)
-            {
-                DirectX::TexMetadata  metadata;
-                DirectX::ScratchImage scratchImage;
-                if (FAILED(DirectX::LoadFromTGAFile(a_Path.c_str(), &metadata, scratchImage)))
-                {
-                    LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading texture \"%s\".", a_Path.c_str());
-                    return;
-                }
-
-                D3D12_RESOURCE_DESC textureDesc = {};
-                textureDesc = CD3DX12_RESOURCE_DESC::Tex2D(metadata.format, static_cast<UINT64>(metadata.width),
-                    static_cast<UINT>(metadata.height),
-                    static_cast<UINT16>(metadata.arraySize));
-
-                m_Name = a_Path;
-                CD3DX12_HEAP_PROPERTIES defaultHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-                if (core::ENGINE.GetDX12().GetDevice()->CreateCommittedResource(
-                    &defaultHeap,
-                    D3D12_HEAP_FLAG_NONE,
-                    &textureDesc,
-                    D3D12_RESOURCE_STATE_COMMON,
-                    nullptr,
-                    IID_PPV_ARGS(&m_Resource)
-                ))
-                {
-                    LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating committed resource: \"%s\".", a_Path.c_str());
-                    return;
-                }
-                m_Resource->SetName(a_Path.c_str());
-
-                CheckFeatureSupport();
-
-                CreateViews();
-
-                std::vector<D3D12_SUBRESOURCE_DATA> subresources(scratchImage.GetImageCount());
-                const DirectX::Image* pImages = scratchImage.GetImages();
-                for (int i = 0; i < scratchImage.GetImageCount(); ++i)
-                {
-                    auto& subresource = subresources[i];
-                    subresource.RowPitch = pImages[i].rowPitch;
-                    subresource.SlicePitch = pImages[i].slicePitch;
-                    subresource.pData = pImages[i].pixels;
-                }
-
-                // Upload vertex buffer data.
-                UpdateBufferResource(core::ENGINE.GetDX12().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY)->GetCommandList(),
-                    &m_Resource, &intermediateTexture, static_cast<uint32_t>(subresources.size()), 1, subresources.data());
-
-   /*             if (subresources.size() < m_Resource->GetDesc().MipLevels)
-                {
-                    GenerateMips(texture);
-                }*/
-            }
-
-            D3D12_CPU_DESCRIPTOR_HANDLE Texture::GetRenderTargetView() const
-            {
-                return m_RenderTargetView.GetDescriptorHandle();
-            }
-
-            D3D12_CPU_DESCRIPTOR_HANDLE Texture::GetDepthStencilView() const
-            {
-                return m_DepthStencilView.GetDescriptorHandle();
-            }
-
-            D3D12_CPU_DESCRIPTOR_HANDLE Texture::GetShaderResourceView() const
-            {
-                return m_ShaderResourceView.GetDescriptorHandle();
-            }
-
-            D3D12_CPU_DESCRIPTOR_HANDLE Texture::GetUnorderedAccessView(uint32_t a_Mip) const
-            {
-                return m_UnorderedAccessView.GetDescriptorHandle(a_Mip);
-            }
-
-            bool Texture::HasAlpha() const
-            {
-                DXGI_FORMAT format = GetResourceDesc().Format;
-
-                bool hasAlpha = false;
-
-                switch (format)
-                {
-                    case DXGI_FORMAT_R32G32B32A32_TYPELESS:
-                    case DXGI_FORMAT_R32G32B32A32_FLOAT:
-                    case DXGI_FORMAT_R32G32B32A32_UINT:
-                    case DXGI_FORMAT_R32G32B32A32_SINT:
-                    case DXGI_FORMAT_R16G16B16A16_TYPELESS:
-                    case DXGI_FORMAT_R16G16B16A16_FLOAT:
-                    case DXGI_FORMAT_R16G16B16A16_UNORM:
-                    case DXGI_FORMAT_R16G16B16A16_UINT:
-                    case DXGI_FORMAT_R16G16B16A16_SNORM:
-                    case DXGI_FORMAT_R16G16B16A16_SINT:
-                    case DXGI_FORMAT_R10G10B10A2_TYPELESS:
-                    case DXGI_FORMAT_R10G10B10A2_UNORM:
-                    case DXGI_FORMAT_R10G10B10A2_UINT:
-                    case DXGI_FORMAT_R8G8B8A8_TYPELESS:
-                    case DXGI_FORMAT_R8G8B8A8_UNORM:
-                    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-                    case DXGI_FORMAT_R8G8B8A8_UINT:
-                    case DXGI_FORMAT_R8G8B8A8_SNORM:
-                    case DXGI_FORMAT_R8G8B8A8_SINT:
-                    case DXGI_FORMAT_BC1_TYPELESS:
-                    case DXGI_FORMAT_BC1_UNORM:
-                    case DXGI_FORMAT_BC1_UNORM_SRGB:
-                    case DXGI_FORMAT_BC2_TYPELESS:
-                    case DXGI_FORMAT_BC2_UNORM:
-                    case DXGI_FORMAT_BC2_UNORM_SRGB:
-                    case DXGI_FORMAT_BC3_TYPELESS:
-                    case DXGI_FORMAT_BC3_UNORM:
-                    case DXGI_FORMAT_BC3_UNORM_SRGB:
-                    case DXGI_FORMAT_B5G5R5A1_UNORM:
-                    case DXGI_FORMAT_B8G8R8A8_UNORM:
-                    case DXGI_FORMAT_B8G8R8X8_UNORM:
-                    case DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM:
-                    case DXGI_FORMAT_B8G8R8A8_TYPELESS:
-                    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-                    case DXGI_FORMAT_B8G8R8X8_TYPELESS:
-                    case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
-                    case DXGI_FORMAT_BC6H_TYPELESS:
-                    case DXGI_FORMAT_BC7_TYPELESS:
-                    case DXGI_FORMAT_BC7_UNORM:
-                    case DXGI_FORMAT_BC7_UNORM_SRGB:
-                    case DXGI_FORMAT_A8P8:
-                    case DXGI_FORMAT_B4G4R4A4_UNORM:
+                    if (FAILED(UpdateSubresources(a_CommandList.Get(), m_Resource.Get(), intermediateResource.Get(), 0,
+                        a_FirstSubresource, a_NumSubresources, a_SubresourceData)))
                     {
-                        hasAlpha = true;
-                        break;
+                        LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed updating sub resources for texture.");
+                        return;
                     }
                 }
-
-                return hasAlpha;
-            }
-
-            size_t Texture::BitsPerPixel() const
-            {
-                auto format = GetResourceDesc().Format;
-                return DirectX::BitsPerPixel(format);
-            }
-
-            bool Texture::IsUAVCompatibleFormat(DXGI_FORMAT a_Format)
-            {
-                switch (a_Format)
-                {
-                    case DXGI_FORMAT_R32G32B32A32_FLOAT:
-                    case DXGI_FORMAT_R32G32B32A32_UINT:
-                    case DXGI_FORMAT_R32G32B32A32_SINT:
-                    case DXGI_FORMAT_R16G16B16A16_FLOAT:
-                    case DXGI_FORMAT_R16G16B16A16_UINT:
-                    case DXGI_FORMAT_R16G16B16A16_SINT:
-                    case DXGI_FORMAT_R8G8B8A8_UNORM:
-                    case DXGI_FORMAT_R8G8B8A8_UINT:
-                    case DXGI_FORMAT_R8G8B8A8_SINT:
-                    case DXGI_FORMAT_R32_FLOAT:
-                    case DXGI_FORMAT_R32_UINT:
-                    case DXGI_FORMAT_R32_SINT:
-                    case DXGI_FORMAT_R16_FLOAT:
-                    case DXGI_FORMAT_R16_UINT:
-                    case DXGI_FORMAT_R16_SINT:
-                    case DXGI_FORMAT_R8_UNORM:
-                    case DXGI_FORMAT_R8_UINT:
-                    case DXGI_FORMAT_R8_SINT:
-                    {
-                        return true;
-                    }
-                    default:
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            bool Texture::IsSRGBFormat(DXGI_FORMAT a_Format)
-            {
-                switch (a_Format)
-                {
-                    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-                    case DXGI_FORMAT_BC1_UNORM_SRGB:
-                    case DXGI_FORMAT_BC2_UNORM_SRGB:
-                    case DXGI_FORMAT_BC3_UNORM_SRGB:
-                    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-                    case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
-                    case DXGI_FORMAT_BC7_UNORM_SRGB:
-                    {
-                        return true;
-                    }
-                    default:
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            bool Texture::IsBGRFormat(DXGI_FORMAT a_Format)
-            {
-                switch (a_Format)
-                {
-                    case DXGI_FORMAT_B8G8R8A8_UNORM:
-                    case DXGI_FORMAT_B8G8R8X8_UNORM:
-                    case DXGI_FORMAT_B8G8R8A8_TYPELESS:
-                    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-                    case DXGI_FORMAT_B8G8R8X8_TYPELESS:
-                    case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
-                    {
-                        return true;
-                    }
-                    default:
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            bool Texture::IsDepthFormat(DXGI_FORMAT a_Format)
-            {
-                switch (a_Format)
-                {
-                    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-                    case DXGI_FORMAT_D32_FLOAT:
-                    case DXGI_FORMAT_D24_UNORM_S8_UINT:
-                    case DXGI_FORMAT_D16_UNORM:
-                    {
-                        return true;
-                    }
-                    default:
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            DXGI_FORMAT Texture::GetTypelessFormat(DXGI_FORMAT a_Format)
-            {
-                DXGI_FORMAT typelessFormat = a_Format;
-
-                switch (a_Format)
-                {
-                    case DXGI_FORMAT_R32G32B32A32_FLOAT:
-                    case DXGI_FORMAT_R32G32B32A32_UINT:
-                    case DXGI_FORMAT_R32G32B32A32_SINT:
-                    {
-                        typelessFormat = DXGI_FORMAT_R32G32B32A32_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_R32G32B32_FLOAT:
-                    case DXGI_FORMAT_R32G32B32_UINT:
-                    case DXGI_FORMAT_R32G32B32_SINT:
-                    {
-                        typelessFormat = DXGI_FORMAT_R32G32B32_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_R16G16B16A16_FLOAT:
-                    case DXGI_FORMAT_R16G16B16A16_UNORM:
-                    case DXGI_FORMAT_R16G16B16A16_UINT:
-                    case DXGI_FORMAT_R16G16B16A16_SNORM:
-                    case DXGI_FORMAT_R16G16B16A16_SINT:
-                    {
-                        typelessFormat = DXGI_FORMAT_R16G16B16A16_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_R32G32_FLOAT:
-                    case DXGI_FORMAT_R32G32_UINT:
-                    case DXGI_FORMAT_R32G32_SINT:
-                    {
-                        typelessFormat = DXGI_FORMAT_R32G32_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-                    {
-                        typelessFormat = DXGI_FORMAT_R32G8X24_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_R10G10B10A2_UNORM:
-                    case DXGI_FORMAT_R10G10B10A2_UINT:
-                    {
-                        typelessFormat = DXGI_FORMAT_R10G10B10A2_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_R8G8B8A8_UNORM:
-                    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-                    case DXGI_FORMAT_R8G8B8A8_UINT:
-                    case DXGI_FORMAT_R8G8B8A8_SNORM:
-                    case DXGI_FORMAT_R8G8B8A8_SINT:
-                    {
-                        typelessFormat = DXGI_FORMAT_R8G8B8A8_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_R16G16_FLOAT:
-                    case DXGI_FORMAT_R16G16_UNORM:
-                    case DXGI_FORMAT_R16G16_UINT:
-                    case DXGI_FORMAT_R16G16_SNORM:
-                    case DXGI_FORMAT_R16G16_SINT:
-                    {
-                        typelessFormat = DXGI_FORMAT_R16G16_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_D32_FLOAT:
-                    case DXGI_FORMAT_R32_FLOAT:
-                    case DXGI_FORMAT_R32_UINT:
-                    case DXGI_FORMAT_R32_SINT:
-                    {
-                        typelessFormat = DXGI_FORMAT_R32_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_R8G8_UNORM:
-                    case DXGI_FORMAT_R8G8_UINT:
-                    case DXGI_FORMAT_R8G8_SNORM:
-                    case DXGI_FORMAT_R8G8_SINT:
-                    {
-                        typelessFormat = DXGI_FORMAT_R8G8_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_R16_FLOAT:
-                    case DXGI_FORMAT_D16_UNORM:
-                    case DXGI_FORMAT_R16_UNORM:
-                    case DXGI_FORMAT_R16_UINT:
-                    case DXGI_FORMAT_R16_SNORM:
-                    case DXGI_FORMAT_R16_SINT:
-                    {
-                        typelessFormat = DXGI_FORMAT_R16_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_R8_UNORM:
-                    case DXGI_FORMAT_R8_UINT:
-                    case DXGI_FORMAT_R8_SNORM:
-                    case DXGI_FORMAT_R8_SINT:
-                    {
-                        typelessFormat = DXGI_FORMAT_R8_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_BC1_UNORM:
-                    case DXGI_FORMAT_BC1_UNORM_SRGB:
-                    {
-                        typelessFormat = DXGI_FORMAT_BC1_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_BC2_UNORM:
-                    case DXGI_FORMAT_BC2_UNORM_SRGB:
-                    {
-                        typelessFormat = DXGI_FORMAT_BC2_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_BC3_UNORM:
-                    case DXGI_FORMAT_BC3_UNORM_SRGB:
-                    {
-                        typelessFormat = DXGI_FORMAT_BC3_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_BC4_UNORM:
-                    case DXGI_FORMAT_BC4_SNORM:
-                    {
-                        typelessFormat = DXGI_FORMAT_BC4_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_BC5_UNORM:
-                    case DXGI_FORMAT_BC5_SNORM:
-                    {
-                        typelessFormat = DXGI_FORMAT_BC5_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-                    {
-                        typelessFormat = DXGI_FORMAT_B8G8R8A8_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
-                    {
-                        typelessFormat = DXGI_FORMAT_B8G8R8X8_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_BC6H_UF16:
-                    case DXGI_FORMAT_BC6H_SF16:
-                    {
-                        typelessFormat = DXGI_FORMAT_BC6H_TYPELESS;
-                        break;
-                    }
-                    case DXGI_FORMAT_BC7_UNORM:
-                    case DXGI_FORMAT_BC7_UNORM_SRGB:
-                    {
-                        typelessFormat = DXGI_FORMAT_BC7_TYPELESS;
-                        break;
-                    }
-                }
-
-                return typelessFormat;
-            }
-
-            DXGI_FORMAT Texture::GetSRGBFormat(DXGI_FORMAT a_Format)
-            {
-                DXGI_FORMAT srgbFormat = a_Format;
-
-                switch (a_Format)
-                {
-                    case DXGI_FORMAT_R8G8B8A8_UNORM:
-                    {
-                        srgbFormat = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
-                        break;
-                    }
-                    case DXGI_FORMAT_BC1_UNORM:
-                    {
-                        srgbFormat = DXGI_FORMAT_BC1_UNORM_SRGB;
-                        break;
-                    }
-                    case DXGI_FORMAT_BC2_UNORM:
-                    {
-                        srgbFormat = DXGI_FORMAT_BC2_UNORM_SRGB;
-                        break;
-                    }
-                    case DXGI_FORMAT_BC3_UNORM:
-                    {
-                        srgbFormat = DXGI_FORMAT_BC3_UNORM_SRGB;
-                        break;
-                    }
-                    case DXGI_FORMAT_B8G8R8A8_UNORM:
-                    {
-                        srgbFormat = DXGI_FORMAT_B8G8R8A8_UNORM_SRGB;
-                        break;
-                    }
-                    case DXGI_FORMAT_B8G8R8X8_UNORM:
-                    {
-                        srgbFormat = DXGI_FORMAT_B8G8R8X8_UNORM_SRGB;
-                        break;
-                    }
-                    case DXGI_FORMAT_BC7_UNORM:
-                    {
-                        srgbFormat = DXGI_FORMAT_BC7_UNORM_SRGB;
-                        break;
-                    }
-                }
-
-                return srgbFormat;
-            }
-
-            DXGI_FORMAT Texture::GetUAVCompatableFormat(DXGI_FORMAT a_Format)
-            {
-                DXGI_FORMAT uavFormat = a_Format;
-
-                switch (a_Format)
-                {
-                    case DXGI_FORMAT_R8G8B8A8_TYPELESS:
-                    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-                    case DXGI_FORMAT_B8G8R8A8_UNORM:
-                    case DXGI_FORMAT_B8G8R8X8_UNORM:
-                    case DXGI_FORMAT_B8G8R8A8_TYPELESS:
-                    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-                    case DXGI_FORMAT_B8G8R8X8_TYPELESS:
-                    case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
-                    {
-                        uavFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-                        break;
-                    }
-                    case DXGI_FORMAT_R32_TYPELESS:
-                    case DXGI_FORMAT_D32_FLOAT:
-                    {
-                        uavFormat = DXGI_FORMAT_R32_FLOAT;
-                        break;
-                    }
-                }
-
-                return uavFormat;
-            }
-
-            Texture::Texture(const D3D12_RESOURCE_DESC& a_ResourceDesc) : DX12Resource(a_ResourceDesc, L"")
-            {
-                CreateViews();
             }
 
             void Texture::Bind()
             {
-                auto commandList = core::ENGINE.GetDX12().GetCommandQueue()->GetCommandList();
+                auto commandList = core::ENGINE.GetDX12().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT)->GetCommandList();
 
-                commandList->SetGraphicsRootSignature(core::ENGINE.GetDX12().m_RootSignature.Get());
+                commandList->SetGraphicsRootSignature(core::ENGINE.GetDX12().GetRootSignature().Get());
+                commandList->SetDescriptorHeaps(1, core::ENGINE.GetDX12().m_SRVHeap.GetAddressOf());
 
-                // Set the descriptor heap for SRVs and Samplers
-                ID3D12DescriptorHeap* heaps[] = { core::ENGINE.GetDX12().m_SRV.GetDescriptorAllocatorPage()->GetHeap().Get() };
-                commandList->SetDescriptorHeaps(_countof(heaps), heaps);
+                CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(core::ENGINE.GetDX12().m_SRVHeap->GetGPUDescriptorHandleForHeapStart());
+                gpuHandle.Offset(0, core::ENGINE.GetDX12().GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
 
-                // Set root parameters
-                D3D12_GPU_DESCRIPTOR_HANDLE srvHandle = core::ENGINE.GetDX12().m_SRV.GetDescriptorHandleGPU();
-                commandList->SetGraphicsRootDescriptorTable(1, srvHandle); // Root parameter index 1 for SRV
-
-                D3D12_GPU_DESCRIPTOR_HANDLE samplerHandle = core::ENGINE.GetDX12().m_Sampler.GetDescriptorHandleGPU();
-                commandList->SetGraphicsRootDescriptorTable(2, samplerHandle); // Root parameter index 2 for Sampler
-
-                // Transition the resource to the appropriate state
-                CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-                    m_Resource.Get(),
-                    D3D12_RESOURCE_STATE_COPY_DEST,        // Current state
-                    D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE // New state
-                );
-                commandList->ResourceBarrier(1, &barrier);
-            }
-
-            D3D12_UNORDERED_ACCESS_VIEW_DESC GetUAVDesc(const D3D12_RESOURCE_DESC& a_ResDesc, UINT a_MipSlice, UINT a_ArraySlice = 0,
-                UINT planeSlice = 0)
-            {
-                D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
-                uavDesc.Format = a_ResDesc.Format;
-
-                switch (a_ResDesc.Dimension)
-                {
-                    case D3D12_RESOURCE_DIMENSION_TEXTURE1D:
-                        if (a_ResDesc.DepthOrArraySize > 1)
-                        {
-                            uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1DARRAY;
-                            uavDesc.Texture1DArray.ArraySize = a_ResDesc.DepthOrArraySize - a_ArraySlice;
-                            uavDesc.Texture1DArray.FirstArraySlice = a_ArraySlice;
-                            uavDesc.Texture1DArray.MipSlice = a_MipSlice;
-                        }
-                        else
-                        {
-                            uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE1D;
-                            uavDesc.Texture1D.MipSlice = a_MipSlice;
-                        }
-                        break;
-                    case D3D12_RESOURCE_DIMENSION_TEXTURE2D:
-                        if (a_ResDesc.DepthOrArraySize > 1)
-                        {
-                            uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
-                            uavDesc.Texture2DArray.ArraySize = a_ResDesc.DepthOrArraySize - a_ArraySlice;
-                            uavDesc.Texture2DArray.FirstArraySlice = a_ArraySlice;
-                            uavDesc.Texture2DArray.PlaneSlice = planeSlice;
-                            uavDesc.Texture2DArray.MipSlice = a_MipSlice;
-                        }
-                        else
-                        {
-                            uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-                            uavDesc.Texture2D.PlaneSlice = planeSlice;
-                            uavDesc.Texture2D.MipSlice = a_MipSlice;
-                        }
-                        break;
-                    case D3D12_RESOURCE_DIMENSION_TEXTURE3D:
-                        uavDesc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE3D;
-                        uavDesc.Texture3D.WSize = a_ResDesc.DepthOrArraySize - a_ArraySlice;
-                        uavDesc.Texture3D.FirstWSlice = a_ArraySlice;
-                        uavDesc.Texture3D.MipSlice = a_MipSlice;
-                        break;
-                    default:
-                        throw std::exception("Invalid resource dimension.");
-                }
-
-                return uavDesc;
-            }
-
-            void Texture::CreateViews()
-            {
-                if (m_Resource)
-                {
-                    CD3DX12_RESOURCE_DESC desc(m_Resource->GetDesc());
-
-                    // Create RTV
-                    if ((desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET) != 0 && CheckRTVSupport())
-                    {
-                        m_RenderTargetView = core::ENGINE.GetDX12().AllocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-                        core::ENGINE.GetDX12().GetDevice()->CreateRenderTargetView(m_Resource.Get(), nullptr,
-                            m_RenderTargetView.GetDescriptorHandle());
-                    }
-                    // Create DSV
-                    if ((desc.Flags & D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL) != 0 && CheckDSVSupport())
-                    {
-                        m_DepthStencilView = core::ENGINE.GetDX12().AllocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-                        core::ENGINE.GetDX12().GetDevice()->CreateDepthStencilView(m_Resource.Get(), nullptr,
-                            m_DepthStencilView.GetDescriptorHandle());
-                    }
-                    // Create SRV
-                    if ((desc.Flags & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE) == 0 && CheckSRVSupport())
-                    {
-                        m_ShaderResourceView = core::ENGINE.GetDX12().AllocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-                        core::ENGINE.GetDX12().GetDevice()->CreateShaderResourceView(m_Resource.Get(), nullptr,
-                            m_ShaderResourceView.GetDescriptorHandle());
-                    }
-                    // Create UAV for each mip (only supported for 1D and 2D textures).
-                    if ((desc.Flags & D3D12_RESOURCE_STATE_UNORDERED_ACCESS) != 0 && CheckUAVSupport() && desc.DepthOrArraySize == 1)
-                    {
-                        m_UnorderedAccessView = core::ENGINE.GetDX12().AllocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, desc.MipLevels);
-                        for (int i = 0; i < desc.MipLevels; ++i)
-                        {
-                            auto uavDesc = GetUAVDesc(desc, i);
-                            core::ENGINE.GetDX12().GetDevice()->CreateUnorderedAccessView(m_Resource.Get(), nullptr, &uavDesc,
-                                m_UnorderedAccessView.GetDescriptorHandle(i));
-                        }
-                    }
-                }
+                commandList->SetGraphicsRootDescriptorTable(1, gpuHandle);
             }
         }
     }

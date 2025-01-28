@@ -16,7 +16,6 @@ namespace coopscoop
             class DescriptorAllocatorPage : public std::enable_shared_from_this<DescriptorAllocatorPage>
             {
             public:
-                Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> GetHeap();
                 D3D12_DESCRIPTOR_HEAP_TYPE GetHeapType() const;
 
                 /**
@@ -51,7 +50,7 @@ namespace coopscoop
                 void ReleaseStaleDescriptors();
 
             protected:
-                DescriptorAllocatorPage(D3D12_DESCRIPTOR_HEAP_TYPE a_Type, uint32_t a_NumDescriptors, D3D12_DESCRIPTOR_HEAP_FLAGS a_Flags);
+                DescriptorAllocatorPage(D3D12_DESCRIPTOR_HEAP_TYPE a_Type, uint32_t a_NumDescriptors);
                 virtual ~DescriptorAllocatorPage() = default;
 
                 // Compute the offset of the descriptor handle from the start of the heap.

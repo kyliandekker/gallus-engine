@@ -154,12 +154,11 @@ namespace coopscoop
 
 			void Mesh::Update(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
             {
+				m_Shader.Bind(a_CommandList);
             }
 
             void Mesh::Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, DirectX::XMMATRIX view, DirectX::XMMATRIX projection)
 			{
-				m_Shader.Bind(a_CommandList);
-
 				for (auto& meshData : m_MeshData)
 				{
 					a_CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

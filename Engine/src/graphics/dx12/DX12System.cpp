@@ -82,7 +82,8 @@ namespace coopscoop
 
 			D3D12_CPU_DESCRIPTOR_HANDLE DX12System::GetCurrentRenderTargetView() const
 			{
-				return m_RenderTargetView.GetDescriptorHandle(m_CurrentBackBufferIndex);
+				return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_d3d12RTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart(),
+					m_CurrentBackBufferIndex, m_RTVDescriptorSize);
 			}
 
 			void DX12System::TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList,
@@ -118,8 +119,8 @@ namespace coopscoop
 				chickenMesh.GetTransform().GetRotation().y += 0.1f;
 
 				// Update the model matrix for the mesh
-				faucetMesh.GetTransform().SetPosition({ -2.0f, 0.0f, 5.0f }); // Example position
-				faucetMesh.GetTransform().GetRotation().y += 0.1f;
+				//faucetMesh.GetTransform().SetPosition({ -2.0f, 0.0f, 5.0f }); // Example position
+				//faucetMesh.GetTransform().GetRotation().y += 0.1f;
 
 				auto viewMatrix = m_Camera.GetViewMatrix();
 				auto projectionMatrix = m_Camera.GetProjectionMatrix();
@@ -131,7 +132,7 @@ namespace coopscoop
 				UINT currentBackBufferIndex = GetCurrentBackBufferIndex();
 				auto backBuffer = GetCurrentBackBuffer();
 				auto rtv = GetCurrentRenderTargetView();
-				auto dsv = m_DSV.GetDescriptorHandle();
+				auto dsv = m_DSVHeap->GetCPUDescriptorHandleForHeapStart();
 
 				// Clear the render targets.
 				{
@@ -150,9 +151,10 @@ namespace coopscoop
 
 				commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
 
+				chickenMesh.Update(commandList);
 				chickenTexture.Bind();
 				chickenMesh.Render(commandList, viewMatrix, projectionMatrix);
-				faucetMesh.Render(commandList, viewMatrix, projectionMatrix);
+				//faucetMesh.Render(commandList, viewMatrix, projectionMatrix);
 
 				// Present
 				{
@@ -180,20 +182,9 @@ namespace coopscoop
 				return ThreadedSystem::Destroy();
 			}
 
-			DescriptorAllocation DX12System::AllocateDescriptors(D3D12_DESCRIPTOR_HEAP_TYPE a_Type, uint32_t a_NumDescriptors)
+			void DX12System::IncreaseFov()
 			{
-				return m_DescriptorAllocators[a_Type]->Allocate(a_NumDescriptors);
 			}
-
-			class MakeDescriptorAllocator : public DescriptorAllocator
-			{
-			public:
-				MakeDescriptorAllocator(D3D12_DESCRIPTOR_HEAP_TYPE a_Type, uint32_t a_NumDescriptorsPerHeap = 256, D3D12_DESCRIPTOR_HEAP_FLAGS a_Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE)
-					: DescriptorAllocator(a_Type, a_NumDescriptorsPerHeap, a_Flags)
-				{}
-
-				virtual ~MakeDescriptorAllocator() {}
-			};
 
 			bool DX12System::InitializeThread()
 			{
@@ -245,16 +236,8 @@ namespace coopscoop
 					return false;
 				}
 
-				// Create descriptor allocators
-				m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV] = std::make_unique<MakeDescriptorAllocator>(static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV), 256, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
-				m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER] = std::make_unique<MakeDescriptorAllocator>(static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER), 1, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE);
-				m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV] = std::make_unique<MakeDescriptorAllocator>(static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(D3D12_DESCRIPTOR_HEAP_TYPE_RTV), BufferCount);
-				m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_DSV] = std::make_unique<MakeDescriptorAllocator>(static_cast<D3D12_DESCRIPTOR_HEAP_TYPE>(D3D12_DESCRIPTOR_HEAP_TYPE_DSV), BufferCount);
-
-				m_RenderTargetView = m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_RTV]->Allocate(BufferCount);
-				m_DSV = m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_DSV]->Allocate(256);
-				m_SRV = m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV]->Allocate(256);
-				m_Sampler = m_DescriptorAllocators[D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER]->Allocate(1);
+				m_d3d12RTVDescriptorHeap = CreateDescriptorHeap(BufferCount, D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+				m_RTVDescriptorSize = GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 				UpdateRenderTargetViews();
 
@@ -264,9 +247,30 @@ namespace coopscoop
 				std::shared_ptr<CommandQueue> commandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
 				Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList = commandQueue->GetCommandList();
 
+				// Create the descriptor heap for the depth-stencil view.
+				D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+				dsvHeapDesc.NumDescriptors = 1;
+				dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+				dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+				if (FAILED(device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&m_DSVHeap))))
+				{
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create descriptor heap.");
+					return false;
+				}
+
+				D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
+				srvHeapDesc.NumDescriptors = 100;  // Adjust based on how many textures you need
+				srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+				srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // Important for binding!
+
+				HRESULT hr = device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_SRVHeap));
+				if (FAILED(hr)) {
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create SRV descriptor heap.");
+					return false;
+				}
+
 				chickenMesh.LoadMesh("./resources/chicken.gltf", commandList);
-				faucetMesh.LoadMesh("./resources/mod_faucet.gltf", commandList);
-				chickenTexture.Load(L"./resources/tex_chicken_normal.tga");
+				//faucetMesh.LoadMesh("./resources/mod_faucet.gltf", commandList);
 
 				// Create a root signature.
 				D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
@@ -276,67 +280,91 @@ namespace coopscoop
 					featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
 				}
 
-				// Allow input layout and deny unnecessary access to certain pipeline stages.
-				D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-					D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-					D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-					D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-					D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS |
-					D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS;
-
-				// A single 32-bit constant root parameter that is used by the vertex shader.
-				CD3DX12_DESCRIPTOR_RANGE1 descriptorRanges[2];
+				// Define descriptor ranges
+				CD3DX12_DESCRIPTOR_RANGE1 descriptorRanges[1];
 
 				// SRV for the texture at register t0
 				descriptorRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
 
-				// Sampler at register s0
-				descriptorRanges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0);
+				// Define root parameters
+				CD3DX12_ROOT_PARAMETER1 rootParameters[2];
 
-				CD3DX12_DESCRIPTOR_RANGE1 descriptorRangeCBV;
-				descriptorRangeCBV.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 0); // 1 CBV at register b0
-
-				CD3DX12_ROOT_PARAMETER1 rootParameters[3];
-				// CBV at b0
+				// CBV at register b0 (Model-View-Projection Matrix)
 				rootParameters[0].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 
-				// Texture SRV at t0
+				// Texture SRV at register t0 (binds a texture)
 				rootParameters[1].InitAsDescriptorTable(1, &descriptorRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);
 
-				// Sampler at s0
-				rootParameters[2].InitAsDescriptorTable(1, &descriptorRanges[1], D3D12_SHADER_VISIBILITY_PIXEL);
+				// Define static sampler at register s0 (replaces the removed descriptor table sampler)
+				CD3DX12_STATIC_SAMPLER_DESC staticSamplers[] = {
+					CD3DX12_STATIC_SAMPLER_DESC(
+						0,  // Register s0
+						D3D12_FILTER_MIN_MAG_MIP_LINEAR,  // Bilinear filtering
+						D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+						D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+						D3D12_TEXTURE_ADDRESS_MODE_WRAP
+					)
+				};
 
+				// Define root signature flags
+				D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
+					D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+					D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+					D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+					D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+
+				// Create root signature descriptor
 				CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
 				rootSignatureDescription.Init_1_1(
-					_countof(rootParameters), rootParameters, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+					_countof(rootParameters), rootParameters,
+					_countof(staticSamplers), staticSamplers, // Use static samplers
+					rootSignatureFlags
+				);
 
-				Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
-
-				// Serialize the root signature.
+				// Serialize the root signature
 				Microsoft::WRL::ComPtr<ID3DBlob> rootSignatureBlob;
-				if (FAILED(D3DX12SerializeVersionedRootSignature(&rootSignatureDescription,
-					featureData.HighestVersion, &rootSignatureBlob, &errorBlob)))
-				{
-					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed serializing vesioned root signature.");
+				Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
+				hr = D3DX12SerializeVersionedRootSignature(
+					&rootSignatureDescription,
+					D3D_ROOT_SIGNATURE_VERSION_1_1,
+					&rootSignatureBlob,
+					&errorBlob
+				);
+
+				if (FAILED(hr)) {
+					std::string errorMessage(static_cast<const char*>(errorBlob->GetBufferPointer()), errorBlob->GetBufferSize());
+					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed serializing root signature: \"%s\".", errorMessage.c_str());
 					return false;
 				}
-				// Create the root signature.
-				if (FAILED(device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(),
-					rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature))))
-				{
+
+				// Create the root signature
+				hr = device->CreateRootSignature(0,
+					rootSignatureBlob->GetBufferPointer(),
+					rootSignatureBlob->GetBufferSize(),
+					IID_PPV_ARGS(&m_RootSignature));
+
+				if (FAILED(hr)) {
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating root signature.");
 					return false;
 				}
 
 				// SHADERS
-				m_ShaderOneColor = Shader(L"./resources/shaders/color_vertexshader.hlsl", L"./resources/shaders/color_pixelshader.hlsl");
+				//m_ShaderOneColor = Shader(L"./resources/shaders/color_vertexshader.hlsl", L"./resources/shaders/color_pixelshader.hlsl");
 				m_ShaderAlbedo = Shader(L"./resources/shaders/albedo_vertexshader.hlsl", L"./resources/shaders/albedo_pixelshader.hlsl");
 
 				chickenMesh.SetShader(m_ShaderAlbedo);
-				faucetMesh.SetShader(m_ShaderOneColor);
+
+				chickenTexture.LoadTexture(L"./resources/tex_chicken_normal.tga", commandList);
+
+				//faucetMesh.SetShader(m_ShaderOneColor);
 
 				auto fenceValue = commandQueue->ExecuteCommandList(commandList);
 				commandQueue->WaitForFenceValue(fenceValue);
+
+				auto dCommandQueue = GetCommandQueue();
+				auto dCommandList = dCommandQueue->GetCommandList();
+				chickenTexture.Transition(dCommandList);
+				dCommandQueue->ExecuteCommandList(dCommandList);
 
 				// Resize/Create the depth buffer.
 				ResizeDepthBuffer(m_Size);
@@ -595,11 +623,34 @@ namespace coopscoop
 				return m_dxgiSwapChain;
 			}
 
+			Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> DX12System::CreateDescriptorHeap(UINT a_NumDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE a_Type)
+			{
+				D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+				desc.Type = a_Type;
+				desc.NumDescriptors = a_NumDescriptors;
+				desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+				desc.NodeMask = 0;
+
+				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap;
+				if (FAILED(m_d3d12Device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&descriptorHeap))))
+				{
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating descriptor heap.");
+					return nullptr;
+				}
+
+				return descriptorHeap;
+			}
+
+			UINT DX12System::GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE a_Type) const
+			{
+				return m_d3d12Device->GetDescriptorHandleIncrementSize(a_Type);
+			}
+
 			void DX12System::UpdateRenderTargetViews()
 			{
 				auto device = GetDevice();
 
-				CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_RenderTargetView.GetDescriptorHandle());
+				CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_d3d12RTVDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
 
 				for (int i = 0; i < BufferCount; ++i)
 				{
@@ -614,7 +665,7 @@ namespace coopscoop
 
 					m_d3d12BackBuffers[i] = backBuffer;
 
-					rtvHandle.Offset(m_d3d12Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV));
+					rtvHandle.Offset(m_RTVDescriptorSize);
 				}
 			}
 
@@ -657,7 +708,7 @@ namespace coopscoop
 				dsv.Flags = D3D12_DSV_FLAG_NONE;
 
 				device->CreateDepthStencilView(m_DepthBuffer.Get(), &dsv,
-					m_DSV.GetDescriptorHandle());
+					m_DSVHeap->GetCPUDescriptorHandleForHeapStart());
 			}
 
 #pragma endregion DX12_SYSTEM

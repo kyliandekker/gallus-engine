@@ -11,6 +11,21 @@ namespace coopscoop
 		{
 			DX12Resource::DX12Resource(const D3D12_RESOURCE_DESC& a_ResourceDesc, const std::wstring& a_Name)
 			{
+				CreateResource(a_ResourceDesc, a_Name);
+			}
+
+			DX12Resource::DX12Resource(const std::wstring& a_Name)
+			{
+				m_Name = a_Name;
+			}
+
+			DX12Resource::~DX12Resource()
+			{
+
+			}
+
+			void DX12Resource::CreateResource(const D3D12_RESOURCE_DESC& a_ResourceDesc, const std::wstring& a_Name)
+			{
 				m_Name = a_Name;
 				CD3DX12_HEAP_PROPERTIES defaultHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 				if (core::ENGINE.GetDX12().GetDevice()->CreateCommittedResource(
@@ -28,16 +43,6 @@ namespace coopscoop
 				m_Resource->SetName(a_Name.c_str());
 
 				CheckFeatureSupport();
-			}
-
-			DX12Resource::DX12Resource(const std::wstring& a_Name)
-			{
-				m_Name = a_Name;
-			}
-
-			DX12Resource::~DX12Resource()
-			{
-
 			}
 
 			bool DX12Resource::IsValid() const
