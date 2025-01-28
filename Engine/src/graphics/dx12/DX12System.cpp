@@ -152,7 +152,7 @@ namespace coopscoop
 				commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
 
 				chickenMesh.Update(commandList);
-				chickenTexture.Bind();
+				chickenTexture.Bind(commandList);
 				chickenMesh.Render(commandList, viewMatrix, projectionMatrix);
 				//faucetMesh.Render(commandList, viewMatrix, projectionMatrix);
 

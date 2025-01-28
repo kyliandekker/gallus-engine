@@ -160,17 +160,15 @@ namespace coopscoop
                 }
             }
 
-            void Texture::Bind()
+            void Texture::Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
             {
-                auto commandList = core::ENGINE.GetDX12().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT)->GetCommandList();
-
-                commandList->SetGraphicsRootSignature(core::ENGINE.GetDX12().GetRootSignature().Get());
-                commandList->SetDescriptorHeaps(1, core::ENGINE.GetDX12().m_SRVHeap.GetAddressOf());
+                a_CommandList->SetGraphicsRootSignature(core::ENGINE.GetDX12().GetRootSignature().Get());
+                a_CommandList->SetDescriptorHeaps(1, core::ENGINE.GetDX12().m_SRVHeap.GetAddressOf());
 
                 CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(core::ENGINE.GetDX12().m_SRVHeap->GetGPUDescriptorHandleForHeapStart());
                 gpuHandle.Offset(0, core::ENGINE.GetDX12().GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
 
-                commandList->SetGraphicsRootDescriptorTable(1, gpuHandle);
+                a_CommandList->SetGraphicsRootDescriptorTable(1, gpuHandle);
             }
         }
     }

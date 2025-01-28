@@ -32,7 +32,7 @@ namespace coopscoop
                 bool LoadTexture(const std::wstring& a_FilePath, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
                 bool Transition(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
                 void CopyTextureSubresource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, uint32_t a_FirstSubresource, uint32_t a_NumSubresources, D3D12_SUBRESOURCE_DATA* a_SubresourceData);
-                void Bind();
+                void Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
             private:
                 Microsoft::WRL::ComPtr<ID3D12Resource> m_ResourceUploadHeap;
 
