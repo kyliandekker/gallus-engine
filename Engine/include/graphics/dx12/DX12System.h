@@ -228,10 +228,10 @@ namespace coopscoop
 				Camera m_Camera;
 
 				Mesh chickenMesh;
-				//Mesh faucetMesh;
+				Mesh faucetMesh;
 				Texture chickenTexture;
 
-				//Shader m_ShaderOneColor;
+				Shader m_ShaderOneColor;
 				Shader m_ShaderAlbedo;
 			};
 		}

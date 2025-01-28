@@ -119,8 +119,8 @@ namespace coopscoop
 				chickenMesh.GetTransform().GetRotation().y += 0.1f;
 
 				// Update the model matrix for the mesh
-				//faucetMesh.GetTransform().SetPosition({ -2.0f, 0.0f, 5.0f }); // Example position
-				//faucetMesh.GetTransform().GetRotation().y += 0.1f;
+				faucetMesh.GetTransform().SetPosition({ -2.0f, 0.0f, 5.0f }); // Example position
+				faucetMesh.GetTransform().GetRotation().y += 0.1f;
 
 				auto viewMatrix = m_Camera.GetViewMatrix();
 				auto projectionMatrix = m_Camera.GetProjectionMatrix();
@@ -151,10 +151,15 @@ namespace coopscoop
 
 				commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
 
+				commandList->SetGraphicsRootSignature(m_RootSignature.Get());
+
 				chickenMesh.Update(commandList);
 				chickenTexture.Bind(commandList);
 				chickenMesh.Render(commandList, viewMatrix, projectionMatrix);
-				//faucetMesh.Render(commandList, viewMatrix, projectionMatrix);
+				chickenTexture.Unbind(commandList);
+
+				faucetMesh.Update(commandList);
+				faucetMesh.Render(commandList, viewMatrix, projectionMatrix);
 
 				// Present
 				{
@@ -270,7 +275,7 @@ namespace coopscoop
 				}
 
 				chickenMesh.LoadMesh("./resources/chicken.gltf", commandList);
-				//faucetMesh.LoadMesh("./resources/mod_faucet.gltf", commandList);
+				faucetMesh.LoadMesh("./resources/mod_faucet.gltf", commandList);
 
 				// Create a root signature.
 				D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
@@ -349,14 +354,14 @@ namespace coopscoop
 				}
 
 				// SHADERS
-				//m_ShaderOneColor = Shader(L"./resources/shaders/color_vertexshader.hlsl", L"./resources/shaders/color_pixelshader.hlsl");
+				m_ShaderOneColor = Shader(L"./resources/shaders/color_vertexshader.hlsl", L"./resources/shaders/color_pixelshader.hlsl");
 				m_ShaderAlbedo = Shader(L"./resources/shaders/albedo_vertexshader.hlsl", L"./resources/shaders/albedo_pixelshader.hlsl");
 
 				chickenMesh.SetShader(m_ShaderAlbedo);
 
 				chickenTexture.LoadTexture(L"./resources/tex_chicken_normal_fix.png", commandList);
 
-				//faucetMesh.SetShader(m_ShaderOneColor);
+				faucetMesh.SetShader(m_ShaderOneColor);
 
 				auto fenceValue = commandQueue->ExecuteCommandList(commandList);
 				commandQueue->WaitForFenceValue(fenceValue);
