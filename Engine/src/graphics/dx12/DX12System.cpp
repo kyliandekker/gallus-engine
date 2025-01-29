@@ -9,6 +9,7 @@
 #include "core/logger/Logger.h"
 #include "core/DataStream.h"
 #include "core/FileUtils.h"
+#include "core/Engine.h"
 
 namespace coopscoop
 {
@@ -63,7 +64,6 @@ namespace coopscoop
 
 			bool DX12System::Initialize(bool a_Wait, HWND a_hWnd, const glm::ivec2 a_Size)
 			{
-				m_hWnd = a_hWnd;
 				m_Size = a_Size;
 
 				LOG(LOGSEVERITY_INFO, LOG_CATEGORY_DX12, "Initializing dx12 system.");
@@ -144,20 +144,20 @@ namespace coopscoop
 
 				commandList->SetGraphicsRootSignature(m_RootSignature.Get());
 
-				m_ChickenTransform1.SetPosition({ 0.0f, 0.0f, 2.0f }); // Example position
-				m_ChickenTransform1.GetRotation().y += 0.1f;
-
-				m_ChickenMesh.Render(commandList, m_ChickenTransform1, viewMatrix, projectionMatrix);
-
 				m_FaucetTransform.SetPosition({ -2.0f, 0.0f, 5.0f }); // Example position
 				m_FaucetTransform.GetRotation().y += 0.1f;
 
-				m_FaucetMesh.Render(commandList, m_FaucetTransform, viewMatrix, projectionMatrix);
+				m_FaucetMesh->Render(commandList, m_FaucetTransform, viewMatrix, projectionMatrix);
+
+				m_ChickenTransform1.SetPosition({ 0.0f, 0.0f, 2.0f }); // Example position
+				m_ChickenTransform1.GetRotation().y += 0.1f;
+
+				m_ChickenMesh->Render(commandList, m_ChickenTransform1, viewMatrix, projectionMatrix);
 
 				m_ChickenTransform2.SetPosition({ 1.0f, 1.0f, 5.0f }); // Example position
 				m_ChickenTransform2.GetRotation().y -= 0.1f;
 
-				m_ChickenMesh.Render(commandList, m_ChickenTransform2, viewMatrix, projectionMatrix);
+				m_ChickenMesh->Render(commandList, m_ChickenTransform2, viewMatrix, projectionMatrix);
 
 				// Present
 				{
@@ -165,8 +165,8 @@ namespace coopscoop
 
 					m_FenceValues[currentBackBufferIndex] = commandQueue->ExecuteCommandList(commandList);
 
-					UINT syncInterval = m_VSync ? 1 : 0;
-					UINT presentFlags = m_IsTearingSupported && !m_VSync ? DXGI_PRESENT_ALLOW_TEARING : 0;
+					UINT syncInterval = g_VSync ? 1 : 0;
+					UINT presentFlags = m_IsTearingSupported && !g_VSync ? DXGI_PRESENT_ALLOW_TEARING : 0;
 					if (FAILED(m_SwapChain->Present(syncInterval, presentFlags)))
 					{
 						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed presenting.");
@@ -184,17 +184,17 @@ namespace coopscoop
 				return ThreadedSystem::Destroy();
 			}
 
-			HeapAllocation DX12System::GetDSV()
+			HeapAllocation& DX12System::GetDSV()
 			{
 				return m_DSV;
 			}
 
-			HeapAllocation DX12System::GetRTV()
+			HeapAllocation& DX12System::GetRTV()
 			{
 				return m_RTV;
 			}
 
-			HeapAllocation DX12System::GetSRV()
+			HeapAllocation& DX12System::GetSRV()
 			{
 				return m_SRV;
 			}
@@ -278,11 +278,13 @@ namespace coopscoop
 				srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // Important for binding!
 				m_SRV = HeapAllocation(srvHeapDesc);
 
-				m_ChickenMesh.LoadMesh("./resources/chicken.gltf", commandList);
-				m_ChickenMesh.LoadTexture("./resources/tex_chicken_normal_fix.png", commandList);
+				m_ResourceAtlas.LoadTexture("./resources/tex_missing.png", commandList);
 
-				m_FaucetMesh.LoadMesh("./resources/mod_faucet.gltf", commandList);
-				m_FaucetMesh.LoadTexture("./resources/tex_chicken_normal_fix.png", commandList);
+				m_ChickenMesh = &m_ResourceAtlas.LoadMesh("./resources/chicken.gltf", commandList);
+				m_ChickenMesh->LoadTexture("./resources/tex_chicken_normal.png", commandList);
+
+				m_FaucetMesh = &m_ResourceAtlas.LoadMesh("./resources/mod_faucet.gltf", commandList);
+				m_FaucetMesh->LoadTexture("./resources/tex_missing.png", commandList);
 
 				// Create a root signature.
 				D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
@@ -361,11 +363,11 @@ namespace coopscoop
 				}
 
 				// SHADERS
-				m_ShaderOneColor = Shader(L"./resources/shaders/color_vertexshader.hlsl", L"./resources/shaders/color_pixelshader.hlsl");
-				m_ShaderAlbedo = Shader(L"./resources/shaders/albedo_vertexshader.hlsl", L"./resources/shaders/albedo_pixelshader.hlsl");
+				m_ShaderOneColor = &m_ResourceAtlas.LoadShader("./resources/shaders/color");
+				m_ShaderAlbedo = &m_ResourceAtlas.LoadShader("./resources/shaders/albedo");
 
-				m_ChickenMesh.SetShader(m_ShaderAlbedo);
-				m_FaucetMesh.SetShader(m_ShaderOneColor);
+				m_ChickenMesh->SetShader(*m_ShaderAlbedo);
+				m_FaucetMesh->SetShader(*m_ShaderAlbedo);
 
 				auto fenceValue = commandQueue->ExecuteCommandList(commandList);
 				commandQueue->WaitForFenceValue(fenceValue);
@@ -373,7 +375,8 @@ namespace coopscoop
 				auto dCommandQueue = GetCommandQueue();
 				auto dCommandList = dCommandQueue->GetCommandList();
 
-				m_ChickenMesh.Transition(dCommandList);
+				m_ChickenMesh->Transition(dCommandList);
+				m_FaucetMesh->Transition(dCommandList);
 				dCommandQueue->ExecuteCommandList(dCommandList);
 				dCommandQueue->WaitForFenceValue(fenceValue);
 
@@ -605,7 +608,7 @@ namespace coopscoop
 				Microsoft::WRL::ComPtr<IDXGISwapChain1> swapChain1;
 				if (FAILED(dxgiFactory4->CreateSwapChainForHwnd(
 					pCommandQueue,
-					m_hWnd,
+					core::ENGINE.GetWindow().GetHWnd(),
 					&swapChainDesc,
 					nullptr,
 					nullptr,
@@ -617,7 +620,7 @@ namespace coopscoop
 
 				// Disable the Alt+Enter fullscreen toggle feature. Switching to fullscreen
 				// will be handled manually.
-				if (FAILED(dxgiFactory4->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER)))
+				if (FAILED(dxgiFactory4->MakeWindowAssociation(core::ENGINE.GetWindow().GetHWnd(), DXGI_MWA_NO_ALT_ENTER)))
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed associating window.");
 					return false;

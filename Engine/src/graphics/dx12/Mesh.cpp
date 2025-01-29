@@ -20,7 +20,7 @@ namespace coopscoop
 			Mesh::Mesh() : DX12Resource()
 			{ }
 
-            bool Mesh::LoadMesh(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+            bool Mesh::Load(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
             {
 				// Upload vertex buffer data.
 				core::DataStream data;
@@ -139,12 +139,13 @@ namespace coopscoop
 					meshData->m_IndexBuffer.CreateViews(meshData->m_Indices.size(), indexSize);
 				}
 
+				LOGF(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_DX12, "Loaded mesh: \"%s\".", a_Path.c_str());
                 return true;
             }
 
 			bool Mesh::LoadTexture(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
 			{
-				m_Texture = &core::ENGINE.GetDX12().GetTextureAtlas().LoadTexture(a_Path, a_CommandList);
+				m_Texture = &core::ENGINE.GetDX12().GetResourceAtlas().LoadTexture(a_Path, a_CommandList);
 				return m_Texture;
 			}
 
@@ -155,7 +156,7 @@ namespace coopscoop
 
 			bool Mesh::SetShader(Shader& a_Shader)
 			{
-				m_Shader = a_Shader;
+				m_Shader = &a_Shader;
 				return true;
 			}
 
@@ -166,7 +167,7 @@ namespace coopscoop
 					m_Texture->Bind(a_CommandList);
 				}
 
-				m_Shader.Bind(a_CommandList);
+				m_Shader->Bind(a_CommandList);
 				for (auto& meshData : m_MeshData)
 				{
 					a_CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);

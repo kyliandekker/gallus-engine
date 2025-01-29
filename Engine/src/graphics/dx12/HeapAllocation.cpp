@@ -1,6 +1,7 @@
 #include "graphics/dx12/HeapAllocation.h"
 
 #include "core/Engine.h"
+#include "core/logger/Logger.h"
 
 namespace coopscoop
 {

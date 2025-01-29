@@ -1,5 +1,8 @@
 #include "graphics/dx12/Shader.h"
 
+#include <filesystem>
+namespace fs = std::filesystem;
+
 #include "core/logger/Logger.h"
 #include "core/Engine.h"
 
@@ -9,10 +12,15 @@ namespace coopscoop
 	{
 		namespace dx12
 		{
-			Shader::Shader(const std::wstring& a_VertexShaderPath, const std::wstring& a_PixelShaderPath)
+			bool Shader::Load(const std::string& a_ShaderName, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
 			{
-				auto vertexShaderBlob = CompileShader(a_VertexShaderPath, "main", "vs_5_1");
-				auto pixelShaderBlob = CompileShader(a_PixelShaderPath, "main", "ps_5_1");
+				std::wstring shaderName = std::wstring(a_ShaderName.begin(), a_ShaderName.end());
+				std::wstring vertexPath = shaderName + L"_vertexshader.hlsl";
+				std::wstring pixelPath = shaderName + L"_pixelshader.hlsl";
+				auto vertexShaderBlob = CompileShader(vertexPath, "main", "vs_5_1");
+				auto pixelShaderBlob = CompileShader(pixelPath, "main", "ps_5_1");
+
+				m_Name = shaderName;
 
 				// Create the vertex input layout
 				D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
@@ -50,7 +58,9 @@ namespace coopscoop
 				if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreatePipelineState(&pipelineStateStreamDesc, IID_PPV_ARGS(&m_PipelineState))))
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating pipeline state.");
+					return false;
 				}
+				return true;
 			}
 
 			void Shader::Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
@@ -78,7 +88,7 @@ namespace coopscoop
 					if (errorBlob)
 					{
 						std::string errorMessage(static_cast<const char*>(errorBlob->GetBufferPointer()), errorBlob->GetBufferSize());
-						LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Shader Compilation Error: %s", errorMessage.c_str());
+						LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Shader Compilation Error: \"%s\".", errorMessage.c_str());
 					}
 					else
 					{
@@ -87,6 +97,8 @@ namespace coopscoop
 					return nullptr;
 				}
 
+				std::string path = std::string(a_FilePath.begin(), a_FilePath.end());
+				LOGF(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_DX12, "Loaded shader: \"%s\".", path.c_str());
 				return shaderBlob;
 			}
 		}

@@ -102,7 +102,7 @@
     <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexWIC.cpp" />
     <ClCompile Include="external\dx12\directx\d3dx12_property_format_table.cpp" />
     <ClCompile Include="external\tiny_gltf\tiny_gltf.cc" />
-    <ClCompile Include="src\graphics\dx12\TextureAtlas.cpp" />
+    <ClCompile Include="src\graphics\dx12\ResourceAtlas.cpp" />
     <ClCompile Include="src\graphics\dx12\HeapAllocation.cpp" />
     <ClCompile Include="src\core\FileUtils.cpp" />
     <ClCompile Include="main.cpp" />
@@ -146,7 +146,7 @@
     <ClInclude Include="include\graphics\dx12\DX12Resource.h" />
     <ClInclude Include="include\graphics\dx12\Shader.h" />
     <ClInclude Include="include\graphics\dx12\Texture.h" />
-    <ClInclude Include="include\graphics\dx12\TextureAtlas.h" />
+    <ClInclude Include="include\graphics\dx12\ResourceAtlas.h" />
     <ClInclude Include="include\graphics\dx12\Transform.h" />
     <ClInclude Include="include\graphics\dx12\UploadBuffer.h" />
     <ClInclude Include="include\graphics\dx12\VertexBuffer.h" />

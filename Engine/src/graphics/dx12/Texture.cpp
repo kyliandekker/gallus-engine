@@ -3,6 +3,7 @@
 #include <stb_image.h>
 
 #include "core/Engine.h"
+#include "core/logger/Logger.h"
 
 namespace coopscoop
 {
@@ -42,7 +43,7 @@ namespace coopscoop
                 return CheckFormatSupport(D3D12_FORMAT_SUPPORT1_DEPTH_STENCIL);
             }
 
-            bool Texture::LoadTexture(const std::string& a_FilePath, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+            bool Texture::Load(const std::string& a_FilePath, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
             {
                 int width, height, channels;
                 stbi_uc* imageData = stbi_load(a_FilePath.c_str(), &width, &height, &channels, STBI_rgb_alpha);
@@ -51,7 +52,6 @@ namespace coopscoop
                     LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to load texture: \"%s\".", a_FilePath.c_str());
                     return false;
                 }
-                LOGF(LOGSEVERITY_INFO, LOG_CATEGORY_DX12, "Texture loaded: Width = %d, Height = %d, Channels = %d", width, height, channels);
 
                 std::wstring name = std::wstring(a_FilePath.begin(), a_FilePath.end());
 
@@ -91,7 +91,7 @@ namespace coopscoop
 
                 stbi_image_free(imageData);
 
-                LOG(LOGSEVERITY_INFO, LOG_CATEGORY_DX12, "SRV created successfully.");
+                LOGF(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_DX12, "Successfully loaded texture: \"%s\".", a_FilePath.c_str());
                 return true;
             }
 

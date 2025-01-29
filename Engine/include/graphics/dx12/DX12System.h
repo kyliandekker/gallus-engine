@@ -11,7 +11,7 @@
 #include "graphics/dx12/Mesh.h"
 #include "graphics/dx12/Texture.h"
 #include "graphics/dx12/Camera.h"
-#include "graphics/dx12/TextureAtlas.h"
+#include "graphics/dx12/ResourceAtlas.h"
 
 #include "graphics/dx12/HeapAllocation.h"
 
@@ -25,7 +25,6 @@ namespace coopscoop
 		namespace dx12
 		{
 			inline const uint8_t g_BufferCount = 3; /// Number of swap chain buffers.
-			inline bool g_UseWarp = false; /// Whether to use WARP (Windows Advanced Rasterization Platform).
 			inline bool g_VSync = false; /// Whether V-Sync is enabled.
 
 			/// <summary>
@@ -89,11 +88,11 @@ namespace coopscoop
 				/// <returns>True if destruction succeeds, otherwise false.</returns>
 				bool Destroy() override;
 
-				HeapAllocation GetDSV();
-				HeapAllocation GetRTV();
-				HeapAllocation GetSRV();
+				HeapAllocation& GetDSV();
+				HeapAllocation& GetRTV();
+				HeapAllocation& GetSRV();
 
-				TextureAtlas& GetTextureAtlas() { return m_TextureAtlas; };
+				ResourceAtlas& GetResourceAtlas() { return m_ResourceAtlas; };
 
 				Microsoft::WRL::ComPtr<ID3D12Device2> GetDevice() const;
 
@@ -123,7 +122,7 @@ namespace coopscoop
 
 				D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentRenderTargetView();
 
-				TextureAtlas m_TextureAtlas;
+				ResourceAtlas m_ResourceAtlas;
 
 				void ClearRTV(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, D3D12_CPU_DESCRIPTOR_HANDLE a_RTV, FLOAT* a_ClearColor);
 
@@ -176,9 +175,6 @@ namespace coopscoop
 
 				void ResizeDepthBuffer(const glm::ivec2& a_Size);
 
-				// The application instance handle that this application was created with.
-				HINSTANCE m_hInstance;
-
 				Microsoft::WRL::ComPtr<IDXGIAdapter4> m_Adapter;
 				Microsoft::WRL::ComPtr<ID3D12Device2> m_Device;
 
@@ -202,11 +198,6 @@ namespace coopscoop
 				D3D12_VIEWPORT m_Viewport;
 				D3D12_RECT m_ScissorRect;
 
-				HWND m_hWnd;
-
-				bool m_VSync;
-				bool m_Fullscreen;
-
 				Microsoft::WRL::ComPtr<IDXGISwapChain4> m_SwapChain;
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_BackBuffers[g_BufferCount];
 
@@ -224,15 +215,15 @@ namespace coopscoop
 				Camera m_Camera2;
 				Camera* m_CurrentCamera = nullptr;
 
-				Mesh m_ChickenMesh;
-				Mesh m_FaucetMesh;
+				Mesh* m_ChickenMesh = nullptr;
+				Mesh* m_FaucetMesh = nullptr;
 
 				Transform m_ChickenTransform1;
 				Transform m_ChickenTransform2;
 				Transform m_FaucetTransform;
 
-				Shader m_ShaderOneColor;
-				Shader m_ShaderAlbedo;
+				Shader* m_ShaderOneColor = nullptr;
+				Shader* m_ShaderAlbedo = nullptr;
 			};
 		}
 	}
