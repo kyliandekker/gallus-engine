@@ -109,8 +109,13 @@ namespace coopscoop
 			{
 				m_FpsCounter.Update();
 
-				auto viewMatrix = m_Camera.GetViewMatrix();
-				auto projectionMatrix = m_Camera.GetProjectionMatrix();
+				m_Camera1.GetTransform().SetPosition({ 1.0f, 0.0f, -4.0f });
+				m_Camera2.GetTransform().SetPosition({ 0.0f, 0.0f, 0.0f });
+
+				m_CurrentCamera = m_TempSwitch ? &m_Camera1 : &m_Camera2;
+
+				auto viewMatrix = m_CurrentCamera->GetViewMatrix();
+				auto projectionMatrix = m_CurrentCamera->GetProjectionMatrix();
 
 				// Render part.
 				auto commandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);

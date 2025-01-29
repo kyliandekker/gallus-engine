@@ -102,6 +102,8 @@ namespace coopscoop
 				std::shared_ptr<CommandQueue> GetCommandQueue(D3D12_COMMAND_LIST_TYPE a_Type = D3D12_COMMAND_LIST_TYPE_DIRECT) const;
 
 				void TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, Microsoft::WRL::ComPtr<ID3D12Resource> a_Resource, D3D12_RESOURCE_STATES a_BeforeState, D3D12_RESOURCE_STATES a_AfterState);
+
+				bool m_TempSwitch = false;
 			protected:
 				/// <summary>
 				/// Initializes the thread.
@@ -218,7 +220,9 @@ namespace coopscoop
 
 				FPSCounter m_FpsCounter;
 
-				Camera m_Camera;
+				Camera m_Camera1;
+				Camera m_Camera2;
+				Camera* m_CurrentCamera = nullptr;
 
 				Mesh m_ChickenMesh;
 				Mesh m_FaucetMesh;
