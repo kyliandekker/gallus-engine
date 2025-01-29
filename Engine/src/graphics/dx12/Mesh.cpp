@@ -159,12 +159,7 @@ namespace coopscoop
 				return true;
 			}
 
-			Transform& Mesh::GetTransform()
-			{
-				return m_Transform;
-			}
-
-            void Mesh::Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection)
+			void Mesh::Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, const Transform& a_Transform, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection)
 			{
 				if (m_Texture && m_Texture->IsValid())
 				{
@@ -179,7 +174,7 @@ namespace coopscoop
 					a_CommandList->IASetIndexBuffer(&meshData->m_IndexBuffer.GetIndexBufferView());
 
 					// Update the MVP matrix
-					DirectX::XMMATRIX mvpMatrix = m_Transform.GetWorldMatrix() * a_CameraView * a_CameraProjection;
+					DirectX::XMMATRIX mvpMatrix = a_Transform.GetWorldMatrix() * a_CameraView * a_CameraProjection;
 					a_CommandList->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &mvpMatrix, 0);
 
 					a_CommandList->DrawIndexedInstanced(meshData->m_Indices.size(), 1, 0, 0, 0);

@@ -223,6 +223,10 @@ namespace coopscoop
 				Mesh m_ChickenMesh;
 				Mesh m_FaucetMesh;
 
+				Transform m_ChickenTransform1;
+				Transform m_ChickenTransform2;
+				Transform m_FaucetTransform;
+
 				Shader m_ShaderOneColor;
 				Shader m_ShaderAlbedo;
 			};

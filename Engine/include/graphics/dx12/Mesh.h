@@ -55,13 +55,10 @@ namespace coopscoop
 
 				bool SetShader(Shader& a_Shader);
 
-				Transform& GetTransform();
-
-				void Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection);
+				void Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, const Transform& a_Transform, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection);
 			private:
 				D3D12_SHADER_RESOURCE_VIEW_DESC m_ShaderResourceView;
 				std::vector<MeshData*> m_MeshData;
-				Transform m_Transform;
 
 				Shader m_Shader;
 				Texture* m_Texture = nullptr;

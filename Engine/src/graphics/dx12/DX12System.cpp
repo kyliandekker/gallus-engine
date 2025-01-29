@@ -109,14 +109,6 @@ namespace coopscoop
 			{
 				m_FpsCounter.Update();
 
-				// Update the model matrix for the mesh
-				m_ChickenMesh.GetTransform().SetPosition({ 0.0f, 0.0f, 2.0f }); // Example position
-				m_ChickenMesh.GetTransform().GetRotation().y += 0.1f;
-
-				// Update the model matrix for the mesh
-				m_FaucetMesh.GetTransform().SetPosition({ -2.0f, 0.0f, 5.0f }); // Example position
-				m_FaucetMesh.GetTransform().GetRotation().y += 0.1f;
-
 				auto viewMatrix = m_Camera.GetViewMatrix();
 				auto projectionMatrix = m_Camera.GetProjectionMatrix();
 
@@ -147,8 +139,20 @@ namespace coopscoop
 
 				commandList->SetGraphicsRootSignature(m_RootSignature.Get());
 
-				m_ChickenMesh.Render(commandList, viewMatrix, projectionMatrix);
-				m_FaucetMesh.Render(commandList, viewMatrix, projectionMatrix);
+				m_ChickenTransform1.SetPosition({ 0.0f, 0.0f, 2.0f }); // Example position
+				m_ChickenTransform1.GetRotation().y += 0.1f;
+
+				m_ChickenMesh.Render(commandList, m_ChickenTransform1, viewMatrix, projectionMatrix);
+
+				m_FaucetTransform.SetPosition({ -2.0f, 0.0f, 5.0f }); // Example position
+				m_FaucetTransform.GetRotation().y += 0.1f;
+
+				m_FaucetMesh.Render(commandList, m_FaucetTransform, viewMatrix, projectionMatrix);
+
+				m_ChickenTransform2.SetPosition({ 1.0f, 1.0f, 5.0f }); // Example position
+				m_ChickenTransform2.GetRotation().y -= 0.1f;
+
+				m_ChickenMesh.Render(commandList, m_ChickenTransform2, viewMatrix, projectionMatrix);
 
 				// Present
 				{
