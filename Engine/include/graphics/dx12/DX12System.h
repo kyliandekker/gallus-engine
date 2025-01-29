@@ -11,6 +11,9 @@
 #include "graphics/dx12/Mesh.h"
 #include "graphics/dx12/Texture.h"
 #include "graphics/dx12/Camera.h"
+#include "graphics/dx12/TextureAtlas.h"
+
+#include "graphics/dx12/HeapAllocation.h"
 
 #undef min
 #undef max
@@ -21,7 +24,7 @@ namespace coopscoop
 	{
 		namespace dx12
 		{
-			inline const uint8_t BufferCount = 3; /// Number of swap chain buffers.
+			inline const uint8_t g_BufferCount = 3; /// Number of swap chain buffers.
 			inline bool g_UseWarp = false; /// Whether to use WARP (Windows Advanced Rasterization Platform).
 			inline bool g_VSync = false; /// Whether V-Sync is enabled.
 
@@ -86,21 +89,19 @@ namespace coopscoop
 				/// <returns>True if destruction succeeds, otherwise false.</returns>
 				bool Destroy() override;
 
+				HeapAllocation GetDSV();
+				HeapAllocation GetRTV();
+				HeapAllocation GetSRV();
+
+				TextureAtlas& GetTextureAtlas() { return m_TextureAtlas; };
+
 				Microsoft::WRL::ComPtr<ID3D12Device2> GetDevice() const;
 
 				Microsoft::WRL::ComPtr<ID3D12RootSignature> GetRootSignature() const;
 
 				std::shared_ptr<CommandQueue> GetCommandQueue(D3D12_COMMAND_LIST_TYPE a_Type = D3D12_COMMAND_LIST_TYPE_DIRECT) const;
 
-				void IncreaseFov();
-
-				void TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList, Microsoft::WRL::ComPtr<ID3D12Resource> resource, D3D12_RESOURCE_STATES beforeState, D3D12_RESOURCE_STATES afterState);
-
-				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_SRVHeap;
-
-				Microsoft::WRL::ComPtr<ID3D12Resource> m_RenderTargetTexture; /// The render target texture used for rendering.
-				CD3DX12_CPU_DESCRIPTOR_HANDLE m_RenderTargetSrvHandleCPU; /// The CPU handle for the render target SRV.
-				CD3DX12_GPU_DESCRIPTOR_HANDLE m_RenderTargetSrvHandleGPU; /// The GPU handle for the render target SRV.
+				void TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, Microsoft::WRL::ComPtr<ID3D12Resource> a_Resource, D3D12_RESOURCE_STATES a_BeforeState, D3D12_RESOURCE_STATES a_AfterState);
 			protected:
 				/// <summary>
 				/// Initializes the thread.
@@ -118,11 +119,13 @@ namespace coopscoop
 
 				UINT GetCurrentBackBufferIndex() const;
 
-				D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentRenderTargetView() const;
+				D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentRenderTargetView();
 
-				void ClearRTV(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList, D3D12_CPU_DESCRIPTOR_HANDLE rtv, FLOAT* clearColor);
+				TextureAtlas m_TextureAtlas;
 
-				void ClearDepth(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList, D3D12_CPU_DESCRIPTOR_HANDLE dsv, FLOAT depth = 1.0f);
+				void ClearRTV(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, D3D12_CPU_DESCRIPTOR_HANDLE a_RTV, FLOAT* a_ClearColor);
+
+				void ClearDepth(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, D3D12_CPU_DESCRIPTOR_HANDLE a_DSV, FLOAT a_Depth = 1.0f);
 
 				/// <summary>
 				/// Retrieves the DXGI adapter.
@@ -160,17 +163,6 @@ namespace coopscoop
 				bool CreateSwapChain();
 
 				/// <summary>
-				/// Creates a descriptor heap.
-				/// </summary>
-				/// <param name="a_NumDescriptors">Number of descriptors in the heap.</param>
-				/// <param name="a_Type">The type of descriptor heap (e.g., RTV, DSV, CBV_SRV_UAV).</param>
-				/// <param name="a_Flags">Flags for the descriptor heap (e.g., SHADER_VISIBLE).</param>
-				/// <returns>The descriptor heap.</returns>
-				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> CreateDescriptorHeap(UINT a_NumDescriptors, D3D12_DESCRIPTOR_HEAP_TYPE a_Type);
-
-				UINT GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE a_Type) const;
-
-				/// <summary>
 				/// Updates the render target views (RTVs) for the back buffers.
 				/// </summary>
 				/// <param name="a_Device">The DirectX 12 device.</param>
@@ -185,20 +177,22 @@ namespace coopscoop
 				// The application instance handle that this application was created with.
 				HINSTANCE m_hInstance;
 
-				Microsoft::WRL::ComPtr<IDXGIAdapter4> m_dxgiAdapter;
-				Microsoft::WRL::ComPtr<ID3D12Device2> m_d3d12Device;
+				Microsoft::WRL::ComPtr<IDXGIAdapter4> m_Adapter;
+				Microsoft::WRL::ComPtr<ID3D12Device2> m_Device;
 
 				std::shared_ptr<CommandQueue> m_DirectCommandQueue;
 				std::shared_ptr<CommandQueue> m_ComputeCommandQueue;
 				std::shared_ptr<CommandQueue> m_CopyCommandQueue;
 
-				uint64_t m_FenceValues[BufferCount] = {};
+				uint64_t m_FenceValues[g_BufferCount] = {};
 
 				// Depth buffer.
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_DepthBuffer;
 
-				// Descriptor heap for depth buffer.
-				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_DSVHeap;
+				HeapAllocation
+					m_DSV,
+					m_SRV,
+					m_RTV;
 
 				// Root signature
 				Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
@@ -211,9 +205,8 @@ namespace coopscoop
 				bool m_VSync;
 				bool m_Fullscreen;
 
-				Microsoft::WRL::ComPtr<IDXGISwapChain4> m_dxgiSwapChain;
-				Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_d3d12RTVDescriptorHeap;
-				Microsoft::WRL::ComPtr<ID3D12Resource> m_d3d12BackBuffers[BufferCount];
+				Microsoft::WRL::ComPtr<IDXGISwapChain4> m_SwapChain;
+				Microsoft::WRL::ComPtr<ID3D12Resource> m_BackBuffers[g_BufferCount];
 
 				UINT m_RTVDescriptorSize;
 				UINT m_CurrentBackBufferIndex;
@@ -227,9 +220,8 @@ namespace coopscoop
 
 				Camera m_Camera;
 
-				Mesh chickenMesh;
-				Mesh faucetMesh;
-				Texture chickenTexture;
+				Mesh m_ChickenMesh;
+				Mesh m_FaucetMesh;
 
 				Shader m_ShaderOneColor;
 				Shader m_ShaderAlbedo;

@@ -24,6 +24,8 @@ namespace coopscoop
 
 				Microsoft::WRL::ComPtr<ID3D12Resource>& GetResource();
 
+				const std::wstring& GetName() const { return m_Name; };
+
 				D3D12_RESOURCE_DESC GetResourceDesc() const;
 
 				bool CheckFormatSupport(D3D12_FORMAT_SUPPORT1 a_FormatSupport) const;

@@ -42,22 +42,29 @@ namespace coopscoop
 				Microsoft::WRL::ComPtr<ID3D12Resource> intermediateIndexBuffer;
 			};
 
+			class Texture;
+
 			class Mesh : DX12Resource
 			{
 			public:
 				Mesh();
 				bool LoadMesh(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
+				bool LoadTexture(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
+
+				bool Transition(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
+
 				bool SetShader(Shader& a_Shader);
 
 				Transform& GetTransform();
 
-				void Update(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
-				void Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, DirectX::XMMATRIX view, DirectX::XMMATRIX projection);
+				void Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection);
 			private:
 				D3D12_SHADER_RESOURCE_VIEW_DESC m_ShaderResourceView;
 				std::vector<MeshData*> m_MeshData;
-				Shader m_Shader;
 				Transform m_Transform;
+
+				Shader m_Shader;
+				Texture* m_Texture = nullptr;
 			};
 		}
 	}

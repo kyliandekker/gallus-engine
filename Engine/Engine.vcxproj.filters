@@ -144,13 +144,10 @@
     <ClCompile Include="src\graphics\dx12\Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\dx12\DesciptorAllocatorPage.cpp">
+    <ClCompile Include="src\graphics\dx12\HeapAllocation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\graphics\dx12\DescriptorAllocation.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\graphics\dx12\DescriptorAllocator.cpp">
+    <ClCompile Include="src\graphics\dx12\TextureAtlas.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -227,13 +224,10 @@
     <ClInclude Include="include\graphics\dx12\Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\graphics\dx12\DescriptorAllocatorPage.h">
+    <ClInclude Include="include\graphics\dx12\HeapAllocation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\graphics\dx12\DescriptorAllocation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\graphics\dx12\DescriptorAllocator.h">
+    <ClInclude Include="include\graphics\dx12\TextureAtlas.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -9,6 +9,7 @@
 #include "core/FileUtils.h"
 #include "core/DataStream.h"
 #include "core/logger/Logger.h"
+#include "graphics/dx12/Texture.h"
 
 namespace coopscoop
 {
@@ -141,6 +142,17 @@ namespace coopscoop
                 return true;
             }
 
+			bool Mesh::LoadTexture(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+			{
+				m_Texture = &core::ENGINE.GetDX12().GetTextureAtlas().LoadTexture(a_Path, a_CommandList);
+				return m_Texture;
+			}
+
+			bool Mesh::Transition(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+			{
+				return m_Texture->Transition(a_CommandList);
+			}
+
 			bool Mesh::SetShader(Shader& a_Shader)
 			{
 				m_Shader = a_Shader;
@@ -152,13 +164,14 @@ namespace coopscoop
 				return m_Transform;
 			}
 
-			void Mesh::Update(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
-            {
-				m_Shader.Bind(a_CommandList);
-            }
-
-            void Mesh::Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, DirectX::XMMATRIX view, DirectX::XMMATRIX projection)
+            void Mesh::Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection)
 			{
+				if (m_Texture && m_Texture->IsValid())
+				{
+					m_Texture->Bind(a_CommandList);
+				}
+
+				m_Shader.Bind(a_CommandList);
 				for (auto& meshData : m_MeshData)
 				{
 					a_CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -166,10 +179,15 @@ namespace coopscoop
 					a_CommandList->IASetIndexBuffer(&meshData->m_IndexBuffer.GetIndexBufferView());
 
 					// Update the MVP matrix
-					DirectX::XMMATRIX mvpMatrix = m_Transform.GetWorldMatrix() * view * projection;
+					DirectX::XMMATRIX mvpMatrix = m_Transform.GetWorldMatrix() * a_CameraView * a_CameraProjection;
 					a_CommandList->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &mvpMatrix, 0);
 
 					a_CommandList->DrawIndexedInstanced(meshData->m_Indices.size(), 1, 0, 0, 0);
+				}
+
+				if (m_Texture && m_Texture->IsValid())
+				{
+					m_Texture->Unbind(a_CommandList);
 				}
 			}
 		}

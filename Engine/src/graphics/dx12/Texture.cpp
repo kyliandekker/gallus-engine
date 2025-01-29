@@ -15,6 +15,11 @@ namespace coopscoop
                 m_Resource.Reset();
             }
 
+            bool Texture::IsValid() const
+            {
+                return m_Resource;
+            }
+
             bool Texture::CheckSRVSupport() const
             {
                 return CheckFormatSupport(D3D12_FORMAT_SUPPORT1_SHADER_SAMPLE);
@@ -37,17 +42,18 @@ namespace coopscoop
                 return CheckFormatSupport(D3D12_FORMAT_SUPPORT1_DEPTH_STENCIL);
             }
 
-            bool Texture::LoadTexture(const std::wstring& a_FilePath, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+            bool Texture::LoadTexture(const std::string& a_FilePath, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
             {
-                std::string s(a_FilePath.begin(), a_FilePath.end());
                 int width, height, channels;
-                stbi_uc* imageData = stbi_load(s.c_str(), &width, &height, &channels, STBI_rgb_alpha);
+                stbi_uc* imageData = stbi_load(a_FilePath.c_str(), &width, &height, &channels, STBI_rgb_alpha);
                 if (!imageData)
                 {
                     LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to load texture: \"%s\".", a_FilePath.c_str());
                     return false;
                 }
                 LOGF(LOGSEVERITY_INFO, LOG_CATEGORY_DX12, "Texture loaded: Width = %d, Height = %d, Channels = %d", width, height, channels);
+
+                std::wstring name = std::wstring(a_FilePath.begin(), a_FilePath.end());
 
                 D3D12_RESOURCE_DESC textureDesc = {};
                 textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -60,18 +66,7 @@ namespace coopscoop
                 textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
                 textureDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
-                CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_DEFAULT);
-                if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateCommittedResource(
-                    &heapProperties,
-                    D3D12_HEAP_FLAG_NONE,
-                    &textureDesc,
-                    D3D12_RESOURCE_STATE_COPY_DEST,
-                    nullptr,
-                    IID_PPV_ARGS(&m_Resource))))
-                {
-                    LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create texture resource.");
-                    return false;
-                }
+                CreateResource(textureDesc, name);
 
                 UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_Resource.Get(), 0, 1);
                 CD3DX12_HEAP_PROPERTIES uploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
@@ -116,56 +111,17 @@ namespace coopscoop
                 srvDesc.Texture2D.MipLevels = -1;
                 srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 
-                srvHandle = CD3DX12_CPU_DESCRIPTOR_HANDLE(core::ENGINE.GetDX12().m_SRVHeap->GetCPUDescriptorHandleForHeapStart());
-
-                // Offset by the index for the SRV
-                srvHandle.Offset(0, core::ENGINE.GetDX12().GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-
-                core::ENGINE.GetDX12().GetDevice()->CreateShaderResourceView(m_Resource.Get(), &srvDesc, srvHandle);
+                m_SRVIndex = core::ENGINE.GetDX12().GetSRV().Allocate();
+                core::ENGINE.GetDX12().GetDevice()->CreateShaderResourceView(m_Resource.Get(), &srvDesc, core::ENGINE.GetDX12().GetSRV().GetCPUHandle(m_SRVIndex));
 
                 return false;
             }
 
-            void Texture::CopyTextureSubresource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, uint32_t a_FirstSubresource,
-                uint32_t a_NumSubresources, D3D12_SUBRESOURCE_DATA* a_SubresourceData)
-            {
-                auto d3d12Device = core::ENGINE.GetDX12().GetDevice();
-
-                if (m_Resource)
-                {
-                    auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_Resource.Get(), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
-
-                    UINT64 requiredSize =
-                        GetRequiredIntermediateSize(m_Resource.Get(), a_FirstSubresource, a_NumSubresources);
-
-                    // Create a temporary (intermediate) resource for uploading the subresources
-                    Microsoft::WRL::ComPtr<ID3D12Resource> intermediateResource;
-                    CD3DX12_HEAP_PROPERTIES uploadHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-                    CD3DX12_RESOURCE_DESC buffer = CD3DX12_RESOURCE_DESC::Buffer(requiredSize);
-                    if (FAILED(d3d12Device->CreateCommittedResource(
-                        &uploadHeap, D3D12_HEAP_FLAG_NONE,
-                        &buffer, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-                        IID_PPV_ARGS(&intermediateResource))))
-                    {
-                        LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed uploading texture.");
-                        return;
-                    }
-
-                    if (FAILED(UpdateSubresources(a_CommandList.Get(), m_Resource.Get(), intermediateResource.Get(), 0,
-                        a_FirstSubresource, a_NumSubresources, a_SubresourceData)))
-                    {
-                        LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed updating sub resources for texture.");
-                        return;
-                    }
-                }
-            }
-
             void Texture::Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
             {
-                a_CommandList->SetDescriptorHeaps(1, core::ENGINE.GetDX12().m_SRVHeap.GetAddressOf());
+                a_CommandList->SetDescriptorHeaps(1, core::ENGINE.GetDX12().GetSRV().GetHeap().GetAddressOf());
 
-                CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(core::ENGINE.GetDX12().m_SRVHeap->GetGPUDescriptorHandleForHeapStart());
-                gpuHandle.Offset(0, core::ENGINE.GetDX12().GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+                CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle = core::ENGINE.GetDX12().GetSRV().GetGPUHandle(m_SRVIndex);
 
                 a_CommandList->SetGraphicsRootDescriptorTable(1, gpuHandle);
             }

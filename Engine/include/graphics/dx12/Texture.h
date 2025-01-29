@@ -21,31 +21,23 @@ namespace coopscoop
                 Texture() = default;
                 ~Texture();
 
+                bool IsValid() const;
+
                 bool CheckSRVSupport() const;
-
                 bool CheckRTVSupport() const;
-
                 bool CheckUAVSupport() const;
-
                 bool CheckDSVSupport() const;
 
-                bool LoadTexture(const std::wstring& a_FilePath, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
                 bool Transition(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
-                void CopyTextureSubresource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, uint32_t a_FirstSubresource, uint32_t a_NumSubresources, D3D12_SUBRESOURCE_DATA* a_SubresourceData);
                 void Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
                 void Unbind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
             private:
-                Microsoft::WRL::ComPtr<ID3D12Resource> m_ResourceUploadHeap;
+                bool LoadTexture(const std::string& a_FilePath, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
 
-                CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle;
-                CD3DX12_CPU_DESCRIPTOR_HANDLE depthHandle;
-                CD3DX12_CPU_DESCRIPTOR_HANDLE unorderedAccessHandle;
-                CD3DX12_CPU_DESCRIPTOR_HANDLE srvHandle;
-                std::vector<D3D12_SUBRESOURCE_DATA> subresources;
-                DirectX::TexMetadata  metadata;
-                DirectX::ScratchImage scratchImage;
-                const DirectX::Image* pImages;
-                Microsoft::WRL::ComPtr<ID3D12Resource> intermediateResource;
+                Microsoft::WRL::ComPtr<ID3D12Resource> m_ResourceUploadHeap;
+                size_t m_SRVIndex;
+
+                friend class TextureAtlas;
             };
         }
     }
