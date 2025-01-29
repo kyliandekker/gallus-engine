@@ -102,6 +102,7 @@
     <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexWIC.cpp" />
     <ClCompile Include="external\dx12\directx\d3dx12_property_format_table.cpp" />
     <ClCompile Include="external\tiny_gltf\tiny_gltf.cc" />
+    <ClCompile Include="src\graphics\dx12\Light.cpp" />
     <ClCompile Include="src\graphics\dx12\ResourceAtlas.cpp" />
     <ClCompile Include="src\graphics\dx12\HeapAllocation.cpp" />
     <ClCompile Include="src\core\FileUtils.cpp" />
@@ -142,6 +143,7 @@
     <ClInclude Include="include\graphics\dx12\DxMath.h" />
     <ClInclude Include="include\graphics\dx12\HeapAllocation.h" />
     <ClInclude Include="include\graphics\dx12\IndexBuffer.h" />
+    <ClInclude Include="include\graphics\dx12\Light.h" />
     <ClInclude Include="include\graphics\dx12\Mesh.h" />
     <ClInclude Include="include\graphics\dx12\DX12Resource.h" />
     <ClInclude Include="include\graphics\dx12\Shader.h" />
