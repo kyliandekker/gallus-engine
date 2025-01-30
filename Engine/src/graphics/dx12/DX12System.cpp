@@ -62,20 +62,6 @@ namespace coopscoop
 
 #pragma region DX12_SYSTEM
 
-			struct LightProperties
-			{
-				uint32_t NumPointLights;
-				uint32_t NumSpotLights;
-			};
-
-			enum RootParameters
-			{
-				CBV,                // ConstantBuffer<ModelViewProjection> ModelViewProjectionCB : register(b0);
-				TEX_SRV,            // Texture2D texture0 : register(t0);
-				LIGHT,            // ConstantBuffer<DirectionalLightCB> DirectionalLightCBCB : register(b1);
-				NumRootParameters
-			};
-
 			bool DX12System::Initialize(bool a_Wait, HWND a_hWnd, const glm::ivec2 a_Size)
 			{
 				m_Size = a_Size;
@@ -325,7 +311,8 @@ namespace coopscoop
 				// Texture SRV at register t0 (binds a texture)
 				rootParameters[RootParameters::TEX_SRV].InitAsDescriptorTable(1, &descriptorRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);
 
-				rootParameters[RootParameters::LIGHT].InitAsConstantBufferView(1);
+				rootParameters[RootParameters::MATERIAL].InitAsConstantBufferView(1);
+				rootParameters[RootParameters::LIGHT].InitAsConstantBufferView(2);
 
 				// Define static sampler at register s0 (replaces the removed descriptor table sampler)
 				CD3DX12_STATIC_SAMPLER_DESC staticSamplers[] = {
@@ -385,7 +372,7 @@ namespace coopscoop
 				m_ShaderAlbedo = &m_ResourceAtlas.LoadShader("./resources/shaders/albedo");
 
 				m_ChickenMesh->SetShader(*m_ShaderAlbedo);
-				m_FaucetMesh->SetShader(*m_ShaderAlbedo);
+				m_FaucetMesh->SetShader(*m_ShaderOneColor);
 
 				auto fenceValue = commandQueue->ExecuteCommandList(commandList);
 				commandQueue->WaitForFenceValue(fenceValue);

@@ -24,6 +24,13 @@ namespace coopscoop
 				DirectX::XMFLOAT2 UV;
 			};
 
+			struct Material
+			{
+				DirectX::XMFLOAT3 DiffuseColor;  // Base color of the material
+				float Metallic;                   // 0 = non-metallic, 1 = metallic
+				float Smoothness;                 // 0 = rough, 1 = smooth
+			};
+
 			struct MeshData
 			{
 				enum class IndexSize
@@ -64,6 +71,7 @@ namespace coopscoop
 
 				Shader* m_Shader;
 				Texture* m_Texture = nullptr;
+				Microsoft::WRL::ComPtr<ID3D12Resource> materialBuffer;
 
 				friend class ResourceAtlas;
 			};

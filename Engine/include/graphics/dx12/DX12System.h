@@ -63,6 +63,15 @@ namespace coopscoop
 				std::chrono::steady_clock::time_point m_T0 = m_Clock.now(); /// The clock from first frame.
 			};
 
+			enum RootParameters
+			{
+				CBV,                // ConstantBuffer<ModelViewProjection> ModelViewProjectionCB : register(b0);
+				TEX_SRV,            // Texture2D texture0 : register(t0);
+				MATERIAL,            // ConstantBuffer<DirectionalLightCB> DirectionalLightCBCB : register(b1);
+				LIGHT,            // ConstantBuffer<DirectionalLightCB> DirectionalLightCBCB : register(b1);
+				NumRootParameters
+			};
+
 			/// <summary>
 			/// Represents a DirectX 12 rendering window, managing device resources, rendering, and synchronization.
 			/// </summary>
