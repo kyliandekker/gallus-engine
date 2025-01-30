@@ -62,6 +62,20 @@ namespace coopscoop
 
 #pragma region DX12_SYSTEM
 
+			struct LightProperties
+			{
+				uint32_t NumPointLights;
+				uint32_t NumSpotLights;
+			};
+
+			enum RootParameters
+			{
+				CBV,                // ConstantBuffer<ModelViewProjection> ModelViewProjectionCB : register(b0);
+				TEX_SRV,            // Texture2D texture0 : register(t0);
+				LIGHT,            // ConstantBuffer<DirectionalLightCB> DirectionalLightCBCB : register(b1);
+				NumRootParameters
+			};
+
 			bool DX12System::Initialize(bool a_Wait, HWND a_hWnd, const glm::ivec2 a_Size)
 			{
 				m_Size = a_Size;
@@ -137,12 +151,14 @@ namespace coopscoop
 					ClearDepth(commandList, dsv);
 				}
 
+				commandList->SetGraphicsRootSignature(m_RootSignature.Get());
+
 				commandList->RSSetViewports(1, &m_Viewport);
 				commandList->RSSetScissorRects(1, &m_ScissorRect);
 
 				commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
 
-				commandList->SetGraphicsRootSignature(m_RootSignature.Get());
+				commandList->SetGraphicsRootConstantBufferView(RootParameters::LIGHT, m_DirectionalLightBuffer->GetGPUVirtualAddress());
 
 				m_FaucetTransform.SetPosition({ -2.0f, 0.0f, 5.0f }); // Example position
 				m_FaucetTransform.GetRotation().y += 0.1f;
@@ -301,13 +317,15 @@ namespace coopscoop
 				descriptorRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
 
 				// Define root parameters
-				CD3DX12_ROOT_PARAMETER1 rootParameters[2];
+				CD3DX12_ROOT_PARAMETER1 rootParameters[RootParameters::NumRootParameters];
 
 				// CBV at register b0 (Model-View-Projection Matrix)
-				rootParameters[0].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
+				rootParameters[RootParameters::CBV].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 
 				// Texture SRV at register t0 (binds a texture)
-				rootParameters[1].InitAsDescriptorTable(1, &descriptorRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);
+				rootParameters[RootParameters::TEX_SRV].InitAsDescriptorTable(1, &descriptorRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);
+
+				rootParameters[RootParameters::LIGHT].InitAsConstantBufferView(1);
 
 				// Define static sampler at register s0 (replaces the removed descriptor table sampler)
 				CD3DX12_STATIC_SAMPLER_DESC staticSamplers[] = {
@@ -384,6 +402,46 @@ namespace coopscoop
 				ResizeDepthBuffer(m_Size);
 
 				LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_DX12, "Initialized dx12 system.");
+
+
+
+
+
+
+
+
+
+
+				// Define a default light direction (pointing downward)
+				m_DirectionalLight = { DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f), 0.0f, DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), 0.5f };
+
+				size_t bufferSize = sizeof(DirectionalLight);
+
+				CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
+				CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+
+				hr = device->CreateCommittedResource(
+					&heapProps,
+					D3D12_HEAP_FLAG_NONE,
+					&bufferDesc,
+					D3D12_RESOURCE_STATE_GENERIC_READ,
+					nullptr,
+					IID_PPV_ARGS(&m_DirectionalLightBuffer));
+
+				if (FAILED(hr)) {
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create DirectionalLight buffer.");
+					return false;
+				}
+
+				// Copy light data to GPU buffer
+				void* mappedData;
+				CD3DX12_RANGE readRange(0, 0);
+				m_DirectionalLightBuffer->Map(0, &readRange, &mappedData);
+				memcpy(mappedData, &m_DirectionalLight, bufferSize);
+				m_DirectionalLightBuffer->Unmap(0, nullptr);
+
+
+
 
 				return ThreadedSystem::InitializeThread();
 			}

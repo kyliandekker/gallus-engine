@@ -90,6 +90,15 @@ namespace coopscoop
 
 						const float* positions = reinterpret_cast<const float*>(&posBuffer.data[posBufferView.byteOffset + posAccessor.byteOffset]);
 
+						const float* normals = nullptr;
+						if (primitive.attributes.find("NORMAL") != primitive.attributes.end())
+						{
+							const auto& normalAccessor = model.accessors[primitive.attributes.find("NORMAL")->second];
+							const auto& normalBufferView = model.bufferViews[normalAccessor.bufferView];
+							const auto& normalBuffer = model.buffers[normalBufferView.buffer];
+							normals = reinterpret_cast<const float*>(&normalBuffer.data[normalBufferView.byteOffset + normalAccessor.byteOffset]);
+						}
+
 						const float* colors = nullptr;
 						if (primitive.attributes.find("COLOR_0") != primitive.attributes.end())
 						{
@@ -111,9 +120,10 @@ namespace coopscoop
 						for (size_t i = 0; i < posAccessor.count; ++i)
 						{
 							DirectX::XMFLOAT3 position(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
+							DirectX::XMFLOAT3 normal = normals ? DirectX::XMFLOAT3(normals[i * 3], normals[i * 3 + 1], normals[i * 3 + 2]) : DirectX::XMFLOAT3(0.0f, 0.0f, 1.0f); // Default normal (Z axis)
 							DirectX::XMFLOAT3 color = colors ? DirectX::XMFLOAT3(colors[i * 3], colors[i * 3 + 1], colors[i * 3 + 2]) : DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
 							DirectX::XMFLOAT2 uv = uvs ? DirectX::XMFLOAT2(uvs[i * 2], uvs[i * 2 + 1]) : DirectX::XMFLOAT2(0.0f, 0.0f);
-							meshData->m_Vertices.push_back({ position, color, uv });
+							meshData->m_Vertices.push_back({ position, normal, color, uv });
 						}
 
 						const uint8_t* indices = &indexBuffer.data[indexBufferView.byteOffset + indexAccessor.byteOffset];

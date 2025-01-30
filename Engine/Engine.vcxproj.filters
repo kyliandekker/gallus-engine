@@ -197,9 +197,6 @@
     <ClInclude Include="include\core\DataStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\core\utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\core\FileUtils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -234,6 +231,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\graphics\dx12\Light.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\core\MemoryInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -38,72 +38,12 @@ namespace coopscoop
     {
         namespace dx12
         {
-            struct PointLight
-            {
-                PointLight()
-                    : Position(0.0f, 0.0f, 0.0f, 1.0f)
-                    , Color(1.0f, 1.0f, 1.0f, 1.0f)
-                    , ConstantAttenuation(1.0f)
-                    , LinearAttenuation(0.0f)
-                    , QuadraticAttenuation(0.0f)
-                {}
-
-                DirectX::XMFLOAT4    Position; // Light position in world space.
-                //----------------------------------- (16 byte boundary)
-                DirectX::XMFLOAT4    Color;
-                //----------------------------------- (16 byte boundary)
-                float       Ambient;
-                float       ConstantAttenuation;
-                float       LinearAttenuation;
-                float       QuadraticAttenuation;
-                //----------------------------------- (16 byte boundary)
-                // Total:                              16 * 3 = 48 bytes
-            };
-
-            struct SpotLight
-            {
-                SpotLight()
-                    : Position(0.0f, 0.0f, 0.0f, 1.0f)
-                    , Direction(0.0f, 0.0f, 1.0f, 0.0f)
-                    , Color(1.0f, 1.0f, 1.0f, 1.0f)
-                    , SpotAngle(DirectX::XM_PIDIV2)
-                    , ConstantAttenuation(1.0f)
-                    , LinearAttenuation(0.0f)
-                    , QuadraticAttenuation(0.0f)
-                {}
-
-                DirectX::XMFLOAT4    Position; // Light position in world space.
-                //----------------------------------- (16 byte boundary)
-                DirectX::XMFLOAT4    Direction; // Light direction in world space.
-                //----------------------------------- (16 byte boundary)
-                DirectX::XMFLOAT4    Color;
-                //----------------------------------- (16 byte boundary)
-                float       Ambient;
-                float       SpotAngle;
-                float       ConstantAttenuation;
-                float       LinearAttenuation;
-                //----------------------------------- (16 byte boundary)
-                float       QuadraticAttenuation;
-                //----------------------------------- (4 byte boundary)
-                DirectX::XMFLOAT3      Padding = { 0,0, 0 }; // 12 bytes (Fix alignment)
-                // Total:                              16 * 5 = 80 bytes
-            };
-
             struct DirectionalLight
             {
-                DirectionalLight() 
-                    : Direction(0.0f, 0.0f, 1.0f, 0.0f),
-                    Color(1.0f, 1.0f, 1.0f, 1.0f)
-                {}
-
-                DirectX::XMFLOAT4    Direction; // Light direction in world space.
-                //----------------------------------- (16 byte boundary)
-                DirectX::XMFLOAT4    Color;
-                //----------------------------------- (16 byte boundary)
-                float       Ambient;
-                //----------------------------------- (4 byte boundary)
-                DirectX::XMFLOAT3      Padding = { 0,0, 0 }; // 12 bytes (Fix alignment)
-                // Total:                              16 * 3 = 48 bytes 
+                DirectX::XMFLOAT3 Direction; // Light direction in world space (normalized)
+                float Padding;               // Align to 16 bytes
+                DirectX::XMFLOAT3 Color;      // Light color (RGB)
+                float AmbientIntensity;       // Ambient lighting factor
             };
         }
     }

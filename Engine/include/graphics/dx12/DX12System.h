@@ -14,6 +14,7 @@
 #include "graphics/dx12/ResourceAtlas.h"
 
 #include "graphics/dx12/HeapAllocation.h"
+#include "graphics/dx12/Light.h"
 
 #undef min
 #undef max
@@ -224,6 +225,9 @@ namespace coopscoop
 
 				Shader* m_ShaderOneColor = nullptr;
 				Shader* m_ShaderAlbedo = nullptr;
+
+				Microsoft::WRL::ComPtr<ID3D12Resource> m_DirectionalLightBuffer;
+				DirectionalLight m_DirectionalLight;
 			};
 		}
 	}

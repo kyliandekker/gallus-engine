@@ -19,7 +19,8 @@ namespace coopscoop
 			struct VertexPosColorUV
 			{
 				DirectX::XMFLOAT3 Position;
-				DirectX::XMFLOAT3 Color;
+				DirectX::XMFLOAT3 Normal;
+				DirectX::XMFLOAT3 Color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
 				DirectX::XMFLOAT2 UV;
 			};
 

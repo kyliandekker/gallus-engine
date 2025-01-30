@@ -133,8 +133,8 @@
     <ClInclude Include="include\core\Engine.h" />
     <ClInclude Include="include\core\FileUtils.h" />
     <ClInclude Include="include\core\logger\Logger.h" />
+    <ClInclude Include="include\core\MemoryInfo.h" />
     <ClInclude Include="include\core\System.h" />
-    <ClInclude Include="include\core\utils.h" />
     <ClInclude Include="include\graphics\dx12\Buffer.h" />
     <ClInclude Include="include\graphics\dx12\CommandQueue.h" />
     <ClInclude Include="include\graphics\dx12\DX12PCH.h" />

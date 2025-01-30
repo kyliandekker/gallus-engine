@@ -2,7 +2,7 @@
 
 #include <vcruntime_string.h>
 
-#include "core/utils.h"
+#include "core/MemoryInfo.h"
 
 namespace coopscoop
 {
@@ -55,7 +55,7 @@ namespace coopscoop
 				return false;
 			}
 
-			memcpy(a_Data, add(m_Data, m_Pos), a_Size);
+			memcpy(a_Data, memory::addAs(m_Data, m_Pos), a_Size);
 			Seek(a_Size, SEEK_CUR);
 			return true;
 		}
@@ -67,7 +67,7 @@ namespace coopscoop
 				return false;
 			}
 
-			memcpy(add(m_Data, m_Pos), a_Data, a_Size);
+			memcpy(memory::addAs(m_Data, m_Pos), a_Data, a_Size);
 			Seek(a_Size, SEEK_CUR);
 			return true;
 		}
