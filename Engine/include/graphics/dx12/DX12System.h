@@ -13,6 +13,7 @@
 
 #include "graphics/dx12/HeapAllocation.h"
 #include "graphics/dx12/Light.h"
+#include "graphics/dx12/MeshComponent.h"
 
 #undef min
 #undef max
@@ -69,10 +70,6 @@ namespace coopscoop
 				LIGHT,            // ConstantBuffer<DirectionalLightCB> DirectionalLightCBCB : register(b1);
 				NumRootParameters
 			};
-
-			class Material;
-			class Mesh;
-			class Shader;
 
 			/// <summary>
 			/// Represents a DirectX 12 rendering window, managing device resources, rendering, and synchronization.
@@ -253,7 +250,6 @@ namespace coopscoop
 
 				uint64_t m_FenceValues[g_BufferCount] = {};
 
-				// Depth buffer.
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_DepthBuffer;
 
 				HeapAllocation
@@ -261,7 +257,6 @@ namespace coopscoop
 					m_SRV,
 					m_RTV;
 
-				// Root signature
 				Microsoft::WRL::ComPtr<ID3D12RootSignature> m_RootSignature;
 
 				D3D12_VIEWPORT m_Viewport;
@@ -280,6 +275,8 @@ namespace coopscoop
 
 				FPSCounter m_FpsCounter;
 
+				// TODO: Delete these as they are all supposed to be temporary.
+
 				Camera m_Camera1;
 				Camera* m_CurrentCamera = nullptr;
 
@@ -287,15 +284,9 @@ namespace coopscoop
 				Transform m_ChickenTransform2;
 				Transform m_FaucetTransform;
 
-				Mesh* m_ChickenMesh = nullptr;
-				Mesh* m_ChickenMesh2 = nullptr;
-				Mesh* m_FaucetMesh = nullptr;
-
-				Shader* m_ShaderOneColor = nullptr;
-				Shader* m_ShaderAlbedo = nullptr;
-
-				Material* m_DefaultMaterial = nullptr;
-				Texture* m_DefaultTexture = nullptr;
+				MeshComponent m_ChickenMesh;
+				MeshComponent m_ChickenMesh2;
+				MeshComponent m_FaucetMesh;
 
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_DirectionalLightBuffer;
 				DirectionalLight m_DirectionalLight;

@@ -14,9 +14,9 @@ namespace coopscoop
 		namespace dx12
 		{
 			template<class T, typename Arg>
-			T& ResourceAtlas::GetResource(std::vector<T*>& a_Vector, const std::string& a_Path, Arg a_Arg)
+			T& ResourceAtlas::GetResource(std::vector<T*>& a_Vector, const std::string& a_Name, Arg a_Arg)
 			{
-				std::wstring name = std::wstring(a_Path.begin(), a_Path.end());
+				std::wstring name = std::wstring(a_Name.begin(), a_Name.end());
 				T* res = nullptr;
 				for (size_t i = 0; i < a_Vector.size(); i++)
 				{
@@ -38,7 +38,7 @@ namespace coopscoop
 						if (!a_Vector[i])
 						{
 							a_Vector[i] = new T();
-							a_Vector[i]->Load(a_Path, a_Arg);
+							a_Vector[i]->Load(a_Name, a_Arg);
 
 							res = a_Vector[i];
 							break;
@@ -52,24 +52,24 @@ namespace coopscoop
 				return *res;
 			}
 
-			Mesh& ResourceAtlas::LoadMesh(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+			Mesh& ResourceAtlas::LoadMesh(const std::string& a_Name, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
 			{
-				return GetResource(m_Meshes, a_Path, a_CommandList);
+				return GetResource(m_Meshes, a_Name, a_CommandList);
 			}
 
-			Texture& ResourceAtlas::LoadTexture(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+			Texture& ResourceAtlas::LoadTexture(const std::string& a_Name, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
 			{
-				return GetResource(m_Textures, a_Path, a_CommandList);
+				return GetResource(m_Textures, a_Name, a_CommandList);
 			}
 
-			Shader& ResourceAtlas::LoadShader(const std::string& a_Path)
+			Shader& ResourceAtlas::LoadShader(const std::string& a_Name)
 			{
-				return GetResource(m_Shaders, a_Path, nullptr);
+				return GetResource(m_Shaders, a_Name, nullptr);
 			}
 
-			Material& ResourceAtlas::LoadMaterial(const std::string& a_Path, const MaterialData& a_MaterialData)
+			Material& ResourceAtlas::LoadMaterial(const std::string& a_Name, const MaterialData& a_MaterialData)
 			{
-				return GetResource(m_Materials, a_Path, a_MaterialData);
+				return GetResource(m_Materials, a_Name, a_MaterialData);
 			}
 
 			Texture& ResourceAtlas::GetDefaultTexture()
@@ -80,6 +80,17 @@ namespace coopscoop
 			Material& ResourceAtlas::GetDefaultMaterial()
 			{
 				return *m_Materials[MISSING];
+			}
+
+			void ResourceAtlas::TransitionResources(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+			{
+				for (auto texture : m_Textures)
+				{
+					if (texture && texture->IsValid())
+					{
+						texture->Transition(a_CommandList);
+					}
+				}
 			}
 		}
 	}

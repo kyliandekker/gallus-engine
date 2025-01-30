@@ -25,7 +25,7 @@ namespace coopscoop
 				DirectX::XMFLOAT2 UV;
 			};
 
-			struct MeshData
+			struct MeshPartData
 			{
 				enum class IndexSize
 				{
@@ -44,30 +44,16 @@ namespace coopscoop
 				Microsoft::WRL::ComPtr<ID3D12Resource> intermediateIndexBuffer;
 			};
 
-			class Texture;
-			class Shader;
-			class Material;
-
-			class Mesh : DX12Resource
+			class Mesh : public DX12Resource
 			{
 			public:
 				Mesh();
-				void Transition(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
-
-				void SetShader(Shader& a_Shader);
-				void SetTexture(Texture& a_Texture);
-				void SetMaterial(Material& a_Material);
-
 				void Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, const Transform& a_Transform, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection);
 			private:
-				bool Load(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
+				bool Load(const std::string& a_Name, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
 
 				D3D12_SHADER_RESOURCE_VIEW_DESC m_ShaderResourceView;
-				std::vector<MeshData*> m_MeshData;
-
-				Shader* m_Shader = nullptr;
-				Texture* m_Texture = nullptr;
-				Material* m_Material = nullptr;
+				std::vector<MeshPartData*> m_MeshData;
 
 				friend class ResourceAtlas;
 			};

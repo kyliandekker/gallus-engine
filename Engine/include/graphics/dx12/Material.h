@@ -24,7 +24,7 @@ namespace coopscoop
 				void Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
 				void Unbind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
 			private:
-				bool Load(const std::string& a_FilePath, const MaterialData& a_MaterialData);
+				bool Load(const std::string& a_Name, const MaterialData& a_MaterialData);
 
 				MaterialData m_MaterialData;
 

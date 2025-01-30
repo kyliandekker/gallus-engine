@@ -29,10 +29,12 @@ namespace coopscoop
                 void Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
                 void Unbind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
             private:
-                bool Load(const std::string& a_FilePath, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
+                bool Load(const std::string& a_Name, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
 
                 Microsoft::WRL::ComPtr<ID3D12Resource> m_ResourceUploadHeap = nullptr;
                 size_t m_SRVIndex = 0;
+
+                D3D12_RESOURCE_STATES m_State;
 
                 friend class ResourceAtlas;
             };

@@ -38,6 +38,7 @@ namespace coopscoop
                 return CheckFormatSupport(D3D12_FORMAT_SUPPORT1_DEPTH_STENCIL);
             }
 
+            // TODO: This all needs to be loaded from a file eventually instead of from files on the disk.
             bool Texture::Load(const std::string& a_FilePath, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
             {
                 int width, height, channels;
@@ -92,11 +93,18 @@ namespace coopscoop
 
             bool Texture::Transition(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
             {
+                if (m_State == D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
+                {
+                    return false;
+                }
+
                 CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
                     m_Resource.Get(),
                     D3D12_RESOURCE_STATE_COPY_DEST,
                     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
                 a_CommandList->ResourceBarrier(1, &barrier);
+
+                m_State = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
                 D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
                 srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -109,7 +117,7 @@ namespace coopscoop
                 m_SRVIndex = core::ENGINE.GetDX12().GetSRV().Allocate();
                 core::ENGINE.GetDX12().GetDevice()->CreateShaderResourceView(m_Resource.Get(), &srvDesc, core::ENGINE.GetDX12().GetSRV().GetCPUHandle(m_SRVIndex));
 
-                return false;
+                return true;
             }
 
             void Texture::Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)

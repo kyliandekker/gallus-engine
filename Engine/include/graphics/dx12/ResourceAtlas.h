@@ -23,15 +23,17 @@ namespace coopscoop
 			{
 			public:
 				template<class T, typename Arg>
-				T& GetResource(std::vector<T*>& a_Vector, const std::string& a_Path, Arg a_Arg);
+				T& GetResource(std::vector<T*>& a_Vector, const std::string& a_Name, Arg a_Arg);
 
-				Mesh& LoadMesh(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
-				Texture& LoadTexture(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
-				Shader& LoadShader(const std::string& a_Path);
-				Material& LoadMaterial(const std::string& a_Path, const MaterialData& a_MaterialData);
+				Mesh& LoadMesh(const std::string& a_Name, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
+				Texture& LoadTexture(const std::string& a_Name, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
+				Shader& LoadShader(const std::string& a_Name);
+				Material& LoadMaterial(const std::string& a_Name, const MaterialData& a_MaterialData);
 
 				Texture& GetDefaultTexture();
 				Material& GetDefaultMaterial();
+
+				void TransitionResources(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
 			private:
 				std::vector<Texture*> m_Textures = std::vector<Texture*>(MAX_RESOURCES);
 				std::vector<Mesh*> m_Meshes = std::vector<Mesh*>(MAX_RESOURCES);

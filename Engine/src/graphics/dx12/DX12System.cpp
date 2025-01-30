@@ -10,11 +10,7 @@
 #include "core/DataStream.h"
 #include "core/FileUtils.h"
 #include "core/Engine.h"
-
 #include "graphics/dx12/Material.h"
-#include "graphics/dx12/Texture.h"
-#include "graphics/dx12/Shader.h"
-#include "graphics/dx12/Mesh.h"
 
 namespace coopscoop
 {
@@ -23,9 +19,6 @@ namespace coopscoop
 		namespace dx12
 		{
 #pragma region DX12_FPS
-
-			std::vector<VertexPosColorUV> m_Vertices;
-			std::vector<uint16_t> m_Indices;
 
 			double FPSCounter::GetFPS() const
 			{
@@ -133,8 +126,8 @@ namespace coopscoop
 				}
 
 				// Get the copy command queue.
-				std::shared_ptr<CommandQueue> commandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
-				Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList = commandQueue->GetCommandList();
+				std::shared_ptr<CommandQueue> cCommandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
+				Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> cCommandList = cCommandQueue->GetCommandList();
 
 				CreateRTV();
 				CreateDSV();
@@ -149,34 +142,36 @@ namespace coopscoop
 				}
 
 				// Default textures, meshes, shaders and materials.
-				m_DefaultTexture = &m_ResourceAtlas.LoadTexture("./resources/tex_missing.png", commandList); // Default texture.
-				m_ShaderOneColor = &m_ResourceAtlas.LoadShader("./resources/shaders/color"); // Default color shader.
-				m_ShaderAlbedo = &m_ResourceAtlas.LoadShader("./resources/shaders/albedo"); // Default albedo shader.
-				m_DefaultMaterial = &m_ResourceAtlas.LoadMaterial("default", { { 1.0f, 1.0f, 1.0f }, 0.0f, 0.0f });
+				Shader& shaderColor = m_ResourceAtlas.LoadShader("color"); // Default color shader.
+				Shader& shaderAlbedo = m_ResourceAtlas.LoadShader("albedo"); // Default albedo shader.
+				m_ResourceAtlas.LoadTexture("./resources/textures/tex_missing.png", cCommandList); // Default texture.
+				m_ResourceAtlas.LoadMaterial("default", { { 1.0f, 1.0f, 1.0f }, 0.0f, 0.0f }); // Default material.
 
 				Material& m_FaucetMaterial = m_ResourceAtlas.LoadMaterial("faucet", { { 0.16f, 0.16f, 0.16f }, 0.87f, 1.0f });
 
-				m_ChickenMesh = &m_ResourceAtlas.LoadMesh("./resources/chicken.gltf", commandList);
-				m_ChickenMesh->SetTexture(m_ResourceAtlas.LoadTexture("./resources/tex_chicken_normal.png", commandList));
-				m_ChickenMesh->SetShader(*m_ShaderAlbedo);
+				m_ChickenMesh.Initialize();
+				m_ChickenMesh2.Initialize();
+				m_FaucetMesh.Initialize();
 
-				m_ChickenMesh2 = &m_ResourceAtlas.LoadMesh("./resources/chicken.gltf", commandList);
-				m_ChickenMesh2->SetTexture(m_ResourceAtlas.LoadTexture("./resources/tex_chicken_sick.png", commandList));
-				m_ChickenMesh2->SetShader(*m_ShaderAlbedo);
+				m_ChickenMesh.SetMesh(m_ResourceAtlas.LoadMesh("chicken.gltf", cCommandList));
+				m_ChickenMesh.SetTexture(m_ResourceAtlas.LoadTexture("./resources/textures/tex_chicken_normal.png", cCommandList));
+				m_ChickenMesh.SetShader(shaderAlbedo);
 
-				m_FaucetMesh = &m_ResourceAtlas.LoadMesh("./resources/mod_faucet.gltf", commandList);
-				m_FaucetMesh->SetMaterial(m_FaucetMaterial);
-				m_FaucetMesh->SetShader(*m_ShaderOneColor);
+				m_ChickenMesh2.SetMesh(m_ResourceAtlas.LoadMesh("chicken.gltf", cCommandList));
+				m_ChickenMesh2.SetTexture(m_ResourceAtlas.LoadTexture("./resources/textures/tex_chicken_sick.png", cCommandList));
+				m_ChickenMesh2.SetShader(shaderAlbedo);
 
-				auto fenceValue = commandQueue->ExecuteCommandList(commandList);
-				commandQueue->WaitForFenceValue(fenceValue);
+				m_FaucetMesh.SetMesh(m_ResourceAtlas.LoadMesh("mod_faucet.gltf", cCommandList));
+				m_FaucetMesh.SetMaterial(m_FaucetMaterial);
+				m_FaucetMesh.SetShader(shaderColor);
+
+				auto fenceValue = cCommandQueue->ExecuteCommandList(cCommandList);
+				cCommandQueue->WaitForFenceValue(fenceValue);
 
 				auto dCommandQueue = GetCommandQueue();
 				auto dCommandList = dCommandQueue->GetCommandList();
 
-				m_ChickenMesh->Transition(dCommandList);
-				m_ChickenMesh2->Transition(dCommandList);
-				m_FaucetMesh->Transition(dCommandList);
+				m_ResourceAtlas.TransitionResources(dCommandList);
 				dCommandQueue->ExecuteCommandList(dCommandList);
 				dCommandQueue->WaitForFenceValue(fenceValue);
 
@@ -663,20 +658,20 @@ namespace coopscoop
 
 				commandList->SetGraphicsRootConstantBufferView(RootParameters::LIGHT, m_DirectionalLightBuffer->GetGPUVirtualAddress());
 
-				m_FaucetTransform.SetPosition({ -2.0f, 0.0f, 5.0f }); // Example position
+				m_FaucetTransform.SetPosition({ -2.0f, 0.0f, 5.0f });
 				m_FaucetTransform.GetRotation().y += 0.1f;
 
-				m_FaucetMesh->Render(commandList, m_FaucetTransform, viewMatrix, projectionMatrix);
+				m_FaucetMesh.Render(commandList, m_FaucetTransform, viewMatrix, projectionMatrix);
 
-				m_ChickenTransform1.SetPosition({ 0.0f, 0.0f, 2.0f }); // Example position
+				m_ChickenTransform1.SetPosition({ 0.0f, 0.0f, 2.0f });
 				m_ChickenTransform1.GetRotation().y += 0.1f;
 
-				m_ChickenMesh->Render(commandList, m_ChickenTransform1, viewMatrix, projectionMatrix);
+				m_ChickenMesh.Render(commandList, m_ChickenTransform1, viewMatrix, projectionMatrix);
 
-				m_ChickenTransform2.SetPosition({ 1.0f, 1.0f, 5.0f }); // Example position
+				m_ChickenTransform2.SetPosition({ 1.0f, 1.0f, 5.0f });
 				m_ChickenTransform2.GetRotation().y -= 0.1f;
 
-				m_ChickenMesh2->Render(commandList, m_ChickenTransform2, viewMatrix, projectionMatrix);
+				m_ChickenMesh2.Render(commandList, m_ChickenTransform2, viewMatrix, projectionMatrix);
 
 				// Present
 				{

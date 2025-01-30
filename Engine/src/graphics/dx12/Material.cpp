@@ -17,7 +17,7 @@ namespace coopscoop
 			{
 			}
 
-			bool Material::Load(const std::string& a_FilePath, const MaterialData& a_MaterialData)
+			bool Material::Load(const std::string& a_Name, const MaterialData& a_MaterialData)
 			{
 				m_MaterialData = a_MaterialData;
 
@@ -35,7 +35,8 @@ namespace coopscoop
 				bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 				bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-				if (!CreateResource(bufferDesc, L"", heapProps, D3D12_RESOURCE_STATE_GENERIC_READ))
+				std::wstring name = std::wstring(a_Name.begin(), a_Name.end());
+				if (!CreateResource(bufferDesc, name, heapProps, D3D12_RESOURCE_STATE_GENERIC_READ))
 				{
 					return false;
 				}

@@ -12,15 +12,16 @@ namespace coopscoop
 	{
 		namespace dx12
 		{
+			// TODO: This all needs to be loaded from a file eventually instead of from files on the disk.
 			bool Shader::Load(const std::string& a_ShaderName, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
 			{
-				std::wstring shaderName = std::wstring(a_ShaderName.begin(), a_ShaderName.end());
-				std::wstring vertexPath = shaderName + L"_vertexshader.hlsl";
-				std::wstring pixelPath = shaderName + L"_pixelshader.hlsl";
+				m_Name = std::wstring(a_ShaderName.begin(), a_ShaderName.end());
+				std::wstring path = L"./resources/shaders/";
+
+				std::wstring vertexPath = path + m_Name + L"_vertexshader.hlsl";
+				std::wstring pixelPath = path + m_Name + L"_pixelshader.hlsl";
 				auto vertexShaderBlob = CompileShader(vertexPath, "main", "vs_5_1");
 				auto pixelShaderBlob = CompileShader(pixelPath, "main", "ps_5_1");
-
-				m_Name = shaderName;
 
 				// Create the vertex input layout
 				D3D12_INPUT_ELEMENT_DESC inputLayout[] = {

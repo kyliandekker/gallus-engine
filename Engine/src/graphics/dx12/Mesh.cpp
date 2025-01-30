@@ -22,20 +22,25 @@ namespace coopscoop
 			Mesh::Mesh() : DX12Resource()
 			{ }
 
-            bool Mesh::Load(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
-            {
+			// TODO: This all needs to be loaded from a file eventually instead of from files on the disk.
+			bool Mesh::Load(const std::string& a_Name, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+			{
+				m_Name = std::wstring(a_Name.begin(), a_Name.end());
+
+				std::string path = std::format("./resources/models/{0}", a_Name.c_str());
+
 				// Upload vertex buffer data.
 				core::DataStream data;
-				if (!file::FileLoader::LoadFile(a_Path, data))
+				if (!file::FileLoader::LoadFile(path, data))
 				{
-					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading gltf file %s.", a_Path.c_str());
+					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading gltf file %s.", path.c_str());
 					return false;
 				}
 
 				tinygltf::Model model;
 				tinygltf::TinyGLTF loader;
 				std::string err, warn;
-				if (!loader.LoadASCIIFromString(&model, &err, &warn, data.dataAs<const char>(), data.size(), std::filesystem::path(a_Path).parent_path().string()))
+				if (!loader.LoadASCIIFromString(&model, &err, &warn, data.dataAs<const char>(), data.size(), std::filesystem::path(path).parent_path().string()))
 				{
 					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading bin file %s.", err.c_str());
 					return false;
@@ -44,10 +49,11 @@ namespace coopscoop
 				m_MeshData.reserve(model.meshes.size());
 				for (const auto& mesh : model.meshes)
 				{
-					MeshData* meshData = new MeshData();
+					MeshPartData* meshData = new MeshPartData();
 
-					std::wstring name = std::format(L"{0}_{1}", std::filesystem::path(a_Path).stem().wstring(), std::wstring(mesh.name.begin(), mesh.name.end()));
-					meshData->m_VertexBuffer = VertexBuffer(name);
+					std::wstring name = std::format(L"{0}_{1}", m_Name, std::wstring(mesh.name.begin(), mesh.name.end()));
+					meshData->m_VertexBuffer = VertexBuffer(L"V_" + name);
+					meshData->m_IndexBuffer = IndexBuffer(L"I_" + name);
 
 					size_t indexSize = 0;
 					for (const auto& primitive : mesh.primitives)
@@ -151,53 +157,12 @@ namespace coopscoop
 					meshData->m_IndexBuffer.CreateViews(meshData->m_Indices.size(), indexSize);
 				}
 
-				m_Material = &core::ENGINE.GetDX12().GetResourceAtlas().GetDefaultMaterial();
-				m_Texture = &core::ENGINE.GetDX12().GetResourceAtlas().GetDefaultTexture();
-
-				LOGF(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_DX12, "Loaded mesh: \"%s\".", a_Path.c_str());
-                return true;
-            }
-
-			void Mesh::Transition(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
-			{
-				if (m_Texture && m_Texture->IsValid())
-				{
-					m_Texture->Transition(a_CommandList);
-				}
-			}
-
-			void Mesh::SetShader(Shader& a_Shader)
-			{
-				m_Shader = &a_Shader;
-			}
-
-			void Mesh::SetTexture(Texture& a_Texture)
-			{
-				m_Texture = &a_Texture;
-			}
-
-			void Mesh::SetMaterial(Material& a_Material)
-			{
-				m_Material = &a_Material;
+				LOGF(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_DX12, "Loaded mesh: \"%s\".", path.c_str());
+				return true;
 			}
 
 			void Mesh::Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, const Transform& a_Transform, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection)
 			{
-				if (m_Texture && m_Texture->IsValid())
-				{
-					m_Texture->Bind(a_CommandList);
-				}
-
-				if (m_Material && m_Material->IsValid())
-				{
-					m_Material->Bind(a_CommandList);
-				}
-
-				if (m_Shader)
-				{
-					m_Shader->Bind(a_CommandList);
-				}
-
 				for (auto& meshData : m_MeshData)
 				{
 					a_CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -209,11 +174,6 @@ namespace coopscoop
 					a_CommandList->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &mvpMatrix, 0);
 
 					a_CommandList->DrawIndexedInstanced(meshData->m_Indices.size(), 1, 0, 0, 0);
-				}
-
-				if (m_Texture && m_Texture->IsValid())
-				{
-					m_Texture->Unbind(a_CommandList);
 				}
 			}
 		}
