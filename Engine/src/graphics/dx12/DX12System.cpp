@@ -75,135 +75,10 @@ namespace coopscoop
 				return ThreadedSystem::Initialize(a_Wait);
 			}
 
-			Microsoft::WRL::ComPtr<ID3D12Resource> DX12System::GetCurrentBackBuffer() const
-			{
-				return m_BackBuffers[m_CurrentBackBufferIndex];
-			}
-
-			UINT DX12System::GetCurrentBackBufferIndex() const
-			{
-				return m_CurrentBackBufferIndex;
-			}
-
-			D3D12_CPU_DESCRIPTOR_HANDLE DX12System::GetCurrentRenderTargetView()
-			{
-				return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_RTV.GetCPUDescriptorHandleForHeapStart(),
-					m_CurrentBackBufferIndex, m_RTVDescriptorSize);
-			}
-
-			void DX12System::TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, Microsoft::WRL::ComPtr<ID3D12Resource> a_Resource, D3D12_RESOURCE_STATES a_BeforeState, D3D12_RESOURCE_STATES a_AfterState)
-			{
-				CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-					a_Resource.Get(),
-					a_BeforeState, a_AfterState);
-
-				a_CommandList->ResourceBarrier(1, &barrier);
-			}
-
-			void DX12System::ClearRTV(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, D3D12_CPU_DESCRIPTOR_HANDLE a_RTV, FLOAT* a_ClearColor)
-			{
-				a_CommandList->ClearRenderTargetView(a_RTV, a_ClearColor, 0, nullptr);
-			}
-
-			void DX12System::ClearDepth(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, D3D12_CPU_DESCRIPTOR_HANDLE a_DSV, FLOAT a_Depth)
-			{
-				a_CommandList->ClearDepthStencilView(a_DSV, D3D12_CLEAR_FLAG_DEPTH, a_Depth, 0, 0, nullptr);
-			}
-
-			void DX12System::Loop()
-			{
-				m_FpsCounter.Update();
-
-				m_Camera1.GetTransform().SetPosition({ 1.0f, 0.0f, -4.0f });
-				m_Camera2.GetTransform().SetPosition({ 0.0f, 0.0f, 0.0f });
-
-				m_CurrentCamera = m_TempSwitch ? &m_Camera1 : &m_Camera2;
-
-				auto viewMatrix = m_CurrentCamera->GetViewMatrix();
-				auto projectionMatrix = m_CurrentCamera->GetProjectionMatrix();
-
-				// Render part.
-				auto commandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
-				auto commandList = commandQueue->GetCommandList();
-
-				UINT currentBackBufferIndex = GetCurrentBackBufferIndex();
-				auto backBuffer = GetCurrentBackBuffer();
-				auto rtv = GetCurrentRenderTargetView();
-				auto dsv = m_DSV.GetCPUDescriptorHandleForHeapStart();
-
-				// Clear the render targets.
-				{
-					TransitionResource(commandList, backBuffer,
-						D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
-
-					FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 1.0f };
-
-					ClearRTV(commandList, rtv, clearColor);
-					ClearDepth(commandList, dsv);
-				}
-
-				commandList->SetGraphicsRootSignature(m_RootSignature.Get());
-
-				commandList->RSSetViewports(1, &m_Viewport);
-				commandList->RSSetScissorRects(1, &m_ScissorRect);
-
-				commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
-
-				commandList->SetGraphicsRootConstantBufferView(RootParameters::LIGHT, m_DirectionalLightBuffer->GetGPUVirtualAddress());
-
-				m_FaucetTransform.SetPosition({ -2.0f, 0.0f, 5.0f }); // Example position
-				m_FaucetTransform.GetRotation().y += 0.1f;
-
-				m_FaucetMesh->Render(commandList, m_FaucetTransform, viewMatrix, projectionMatrix);
-
-				m_ChickenTransform1.SetPosition({ 0.0f, 0.0f, 2.0f }); // Example position
-				m_ChickenTransform1.GetRotation().y += 0.1f;
-
-				m_ChickenMesh->Render(commandList, m_ChickenTransform1, viewMatrix, projectionMatrix);
-
-				m_ChickenTransform2.SetPosition({ 1.0f, 1.0f, 5.0f }); // Example position
-				m_ChickenTransform2.GetRotation().y -= 0.1f;
-
-				m_ChickenMesh2->Render(commandList, m_ChickenTransform2, viewMatrix, projectionMatrix);
-
-				// Present
-				{
-					TransitionResource(commandList, backBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
-
-					m_FenceValues[currentBackBufferIndex] = commandQueue->ExecuteCommandList(commandList);
-
-					UINT syncInterval = g_VSync ? 1 : 0;
-					UINT presentFlags = m_IsTearingSupported && !g_VSync ? DXGI_PRESENT_ALLOW_TEARING : 0;
-					if (FAILED(m_SwapChain->Present(syncInterval, presentFlags)))
-					{
-						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed presenting.");
-						return;
-					}
-					m_CurrentBackBufferIndex = m_SwapChain->GetCurrentBackBufferIndex();
-
-					commandQueue->WaitForFenceValue(m_FenceValues[m_CurrentBackBufferIndex]);
-				}
-			}
-
 			bool DX12System::Destroy()
 			{
 				LOG(LOGSEVERITY_INFO, LOG_CATEGORY_DX12, "Destroying dx12 system.");
 				return ThreadedSystem::Destroy();
-			}
-
-			HeapAllocation& DX12System::GetDSV()
-			{
-				return m_DSV;
-			}
-
-			HeapAllocation& DX12System::GetRTV()
-			{
-				return m_RTV;
-			}
-
-			HeapAllocation& DX12System::GetSRV()
-			{
-				return m_SRV;
 			}
 
 			bool DX12System::InitializeThread()
@@ -233,7 +108,7 @@ namespace coopscoop
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating m_Device.");
 					return false;
 				}
-				
+
 				// Create the command queues.
 				m_DirectCommandQueue = std::make_shared<CommandQueue>(m_Device, D3D12_COMMAND_LIST_TYPE_DIRECT);
 				m_ComputeCommandQueue = std::make_shared<CommandQueue>(m_Device, D3D12_COMMAND_LIST_TYPE_COMPUTE);
@@ -352,120 +227,6 @@ namespace coopscoop
 				m_FpsCounter.Initialize();
 
 				return ThreadedSystem::InitializeThread();
-			}
-
-			void DX12System::Finalize()
-			{
-				Flush();
-
-				ThreadedSystem::Finalize();
-
-				LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_DX12, "Destroyed dx12 system.");
-			}
-
-			bool DX12System::CreateRootSignature()
-			{
-				// Define descriptor ranges
-				CD3DX12_DESCRIPTOR_RANGE1 descriptorRanges[1]{};
-
-				// SRV for the texture at register t0
-				descriptorRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
-
-				// Define root parameters
-				CD3DX12_ROOT_PARAMETER1 rootParameters[RootParameters::NumRootParameters]{};
-
-				// CBV at register b0 (Model-View-Projection Matrix)
-				rootParameters[RootParameters::CBV].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
-
-				// Texture SRV at register t0 (binds a texture)
-				rootParameters[RootParameters::TEX_SRV].InitAsDescriptorTable(1, &descriptorRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);
-
-				rootParameters[RootParameters::MATERIAL].InitAsConstantBufferView(1);
-				rootParameters[RootParameters::LIGHT].InitAsConstantBufferView(2);
-
-				// Define static sampler at register s0 (replaces the removed descriptor table sampler)
-				CD3DX12_STATIC_SAMPLER_DESC staticSamplers[] = {
-					CD3DX12_STATIC_SAMPLER_DESC(
-						0,  // Register s0
-						D3D12_FILTER_MIN_MAG_MIP_LINEAR,  // Bilinear filtering
-						D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-						D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-						D3D12_TEXTURE_ADDRESS_MODE_WRAP
-					)
-				};
-
-				// Define root signature flags
-				D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
-					D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
-					D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
-					D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
-					D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
-
-				// Create root signature descriptor
-				CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
-				rootSignatureDescription.Init_1_1(
-					_countof(rootParameters), rootParameters,
-					_countof(staticSamplers), staticSamplers, // Use static samplers
-					rootSignatureFlags
-				);
-
-				// Serialize the root signature
-				Microsoft::WRL::ComPtr<ID3DBlob> rootSignatureBlob;
-				Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
-				HRESULT hr = D3DX12SerializeVersionedRootSignature(
-					&rootSignatureDescription,
-					D3D_ROOT_SIGNATURE_VERSION_1_1,
-					&rootSignatureBlob,
-					&errorBlob
-				);
-
-				if (FAILED(hr)) {
-					std::string errorMessage(static_cast<const char*>(errorBlob->GetBufferPointer()), errorBlob->GetBufferSize());
-					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed serializing root signature: \"%s\".", errorMessage.c_str());
-					return false;
-				}
-
-				// Create the root signature
-				if (FAILED(m_Device->CreateRootSignature(0,
-					rootSignatureBlob->GetBufferPointer(),
-					rootSignatureBlob->GetBufferSize(),
-					IID_PPV_ARGS(&m_RootSignature))))
-				{
-					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating root signature.");
-					return false;
-				}
-
-				return true;
-			}
-
-			void DX12System::CreateRTV()
-			{
-				D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-				rtvHeapDesc.NumDescriptors = g_BufferCount;
-				rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-				rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-				m_RTV = HeapAllocation(rtvHeapDesc);
-
-				m_RTVDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-			}
-
-			void DX12System::CreateDSV()
-			{
-				// Create the descriptor heap for the depth-stencil view.
-				D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
-				dsvHeapDesc.NumDescriptors = 1;
-				dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-				dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-				m_DSV = HeapAllocation(dsvHeapDesc);
-			}
-
-			void DX12System::CreateSRV()
-			{
-				D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-				srvHeapDesc.NumDescriptors = 100;  // Adjust based on how many textures you need
-				srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-				srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // Important for binding!
-				m_SRV = HeapAllocation(srvHeapDesc);
 			}
 
 			bool DX12System::GetAdapter(bool a_UseWarp)
@@ -601,52 +362,6 @@ namespace coopscoop
 				return allowTearing == TRUE;
 			}
 
-			Microsoft::WRL::ComPtr<ID3D12Device2> DX12System::GetDevice() const
-			{
-				return m_Device;
-			}
-
-			Microsoft::WRL::ComPtr<ID3D12RootSignature> DX12System::GetRootSignature() const
-			{
-				return m_RootSignature;
-			}
-
-			std::shared_ptr<CommandQueue> DX12System::GetCommandQueue(D3D12_COMMAND_LIST_TYPE a_Type) const
-			{
-				std::shared_ptr<CommandQueue> commandQueue = nullptr;
-				switch (a_Type)
-				{
-					case D3D12_COMMAND_LIST_TYPE_DIRECT:
-					{
-						commandQueue = m_DirectCommandQueue;
-						break;
-					}
-					case D3D12_COMMAND_LIST_TYPE_COMPUTE:
-					{
-						commandQueue = m_ComputeCommandQueue;
-						break;
-					}
-					case D3D12_COMMAND_LIST_TYPE_COPY:
-					{
-						commandQueue = m_CopyCommandQueue;
-						break;
-					}
-					default:
-					{
-						break;
-					}
-				}
-
-				return commandQueue;
-			}
-
-			void DX12System::Flush()
-			{
-				m_DirectCommandQueue->Flush();
-				m_ComputeCommandQueue->Flush();
-				m_CopyCommandQueue->Flush();
-			}
-
 			bool DX12System::CreateSwapChain()
 			{
 				Microsoft::WRL::ComPtr<IDXGIFactory4> dxgiFactory4;
@@ -706,6 +421,127 @@ namespace coopscoop
 				m_CurrentBackBufferIndex = m_SwapChain->GetCurrentBackBufferIndex();
 
 				return m_SwapChain;
+			}
+
+			void DX12System::CreateRTV()
+			{
+				D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+				rtvHeapDesc.NumDescriptors = g_BufferCount;
+				rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+				rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+				m_RTV = HeapAllocation(rtvHeapDesc);
+
+				m_RTVDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+			}
+
+			void DX12System::CreateDSV()
+			{
+				// Create the descriptor heap for the depth-stencil view.
+				D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+				dsvHeapDesc.NumDescriptors = 1;
+				dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+				dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+				m_DSV = HeapAllocation(dsvHeapDesc);
+			}
+
+			void DX12System::CreateSRV()
+			{
+				D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
+				srvHeapDesc.NumDescriptors = 100;  // Adjust based on how many textures you need
+				srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+				srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // Important for binding!
+				m_SRV = HeapAllocation(srvHeapDesc);
+			}
+
+			bool DX12System::CreateRootSignature()
+			{
+				// Define descriptor ranges
+				CD3DX12_DESCRIPTOR_RANGE1 descriptorRanges[1]{};
+
+				// SRV for the texture at register t0
+				descriptorRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+
+				// Define root parameters
+				CD3DX12_ROOT_PARAMETER1 rootParameters[RootParameters::NumRootParameters]{};
+
+				// CBV at register b0 (Model-View-Projection Matrix)
+				rootParameters[RootParameters::CBV].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
+
+				// Texture SRV at register t0 (binds a texture)
+				rootParameters[RootParameters::TEX_SRV].InitAsDescriptorTable(1, &descriptorRanges[0], D3D12_SHADER_VISIBILITY_PIXEL);
+
+				rootParameters[RootParameters::MATERIAL].InitAsConstantBufferView(1);
+				rootParameters[RootParameters::LIGHT].InitAsConstantBufferView(2);
+
+				// Define static sampler at register s0 (replaces the removed descriptor table sampler)
+				CD3DX12_STATIC_SAMPLER_DESC staticSamplers[] = {
+					CD3DX12_STATIC_SAMPLER_DESC(
+						0,  // Register s0
+						D3D12_FILTER_MIN_MAG_MIP_LINEAR,  // Bilinear filtering
+						D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+						D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+						D3D12_TEXTURE_ADDRESS_MODE_WRAP
+					)
+				};
+
+				// Define root signature flags
+				D3D12_ROOT_SIGNATURE_FLAGS rootSignatureFlags =
+					D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT |
+					D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS |
+					D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS |
+					D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS;
+
+				// Create root signature descriptor
+				CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDescription;
+				rootSignatureDescription.Init_1_1(
+					_countof(rootParameters), rootParameters,
+					_countof(staticSamplers), staticSamplers, // Use static samplers
+					rootSignatureFlags
+				);
+
+				// Serialize the root signature
+				Microsoft::WRL::ComPtr<ID3DBlob> rootSignatureBlob;
+				Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
+				HRESULT hr = D3DX12SerializeVersionedRootSignature(
+					&rootSignatureDescription,
+					D3D_ROOT_SIGNATURE_VERSION_1_1,
+					&rootSignatureBlob,
+					&errorBlob
+				);
+
+				if (FAILED(hr)) {
+					std::string errorMessage(static_cast<const char*>(errorBlob->GetBufferPointer()), errorBlob->GetBufferSize());
+					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed serializing root signature: \"%s\".", errorMessage.c_str());
+					return false;
+				}
+
+				// Create the root signature
+				if (FAILED(m_Device->CreateRootSignature(0,
+					rootSignatureBlob->GetBufferPointer(),
+					rootSignatureBlob->GetBufferSize(),
+					IID_PPV_ARGS(&m_RootSignature))))
+				{
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating root signature.");
+					return false;
+				}
+
+				return true;
+			}
+
+			void DX12System::Finalize()
+			{
+				Flush();
+
+				ThreadedSystem::Finalize();
+
+				LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_DX12, "Destroyed dx12 system.");
+			}
+
+			void DX12System::Flush()
+			{
+				m_DirectCommandQueue->Flush();
+				m_ComputeCommandQueue->Flush();
+				m_CopyCommandQueue->Flush();
 			}
 
 			void DX12System::UpdateRenderTargetViews()
@@ -769,6 +605,135 @@ namespace coopscoop
 
 				m_Device->CreateDepthStencilView(m_DepthBuffer.Get(), &dsv,
 					m_DSV.GetCPUDescriptorHandleForHeapStart());
+			}
+
+			Microsoft::WRL::ComPtr<ID3D12Resource> DX12System::GetCurrentBackBuffer() const
+			{
+				return m_BackBuffers[m_CurrentBackBufferIndex];
+			}
+
+			UINT DX12System::GetCurrentBackBufferIndex() const
+			{
+				return m_CurrentBackBufferIndex;
+			}
+
+			D3D12_CPU_DESCRIPTOR_HANDLE DX12System::GetCurrentRenderTargetView()
+			{
+				return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_RTV.GetCPUDescriptorHandleForHeapStart(),
+					m_CurrentBackBufferIndex, m_RTVDescriptorSize);
+			}
+
+			void DX12System::Loop()
+			{
+				m_FpsCounter.Update();
+
+				m_Camera1.GetTransform().SetPosition({ 1.0f, 0.0f, -4.0f });
+
+				m_CurrentCamera = &m_Camera1;
+
+				auto viewMatrix = m_CurrentCamera->GetViewMatrix();
+				auto projectionMatrix = m_CurrentCamera->GetProjectionMatrix();
+
+				// Render part.
+				auto commandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
+				auto commandList = commandQueue->GetCommandList();
+
+				UINT currentBackBufferIndex = GetCurrentBackBufferIndex();
+				auto backBuffer = GetCurrentBackBuffer();
+				auto rtv = GetCurrentRenderTargetView();
+				auto dsv = m_DSV.GetCPUDescriptorHandleForHeapStart();
+
+				// Clear the render targets.
+				{
+					TransitionResource(commandList, backBuffer,
+						D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+					FLOAT clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+					commandList->ClearRenderTargetView(rtv, clearColor, 0, nullptr);
+					commandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, 1.0, 0, 0, nullptr);
+				}
+
+				commandList->SetGraphicsRootSignature(m_RootSignature.Get());
+
+				commandList->RSSetViewports(1, &m_Viewport);
+				commandList->RSSetScissorRects(1, &m_ScissorRect);
+
+				commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
+
+				commandList->SetGraphicsRootConstantBufferView(RootParameters::LIGHT, m_DirectionalLightBuffer->GetGPUVirtualAddress());
+
+				m_FaucetTransform.SetPosition({ -2.0f, 0.0f, 5.0f }); // Example position
+				m_FaucetTransform.GetRotation().y += 0.1f;
+
+				m_FaucetMesh->Render(commandList, m_FaucetTransform, viewMatrix, projectionMatrix);
+
+				m_ChickenTransform1.SetPosition({ 0.0f, 0.0f, 2.0f }); // Example position
+				m_ChickenTransform1.GetRotation().y += 0.1f;
+
+				m_ChickenMesh->Render(commandList, m_ChickenTransform1, viewMatrix, projectionMatrix);
+
+				m_ChickenTransform2.SetPosition({ 1.0f, 1.0f, 5.0f }); // Example position
+				m_ChickenTransform2.GetRotation().y -= 0.1f;
+
+				m_ChickenMesh2->Render(commandList, m_ChickenTransform2, viewMatrix, projectionMatrix);
+
+				// Present
+				{
+					TransitionResource(commandList, backBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+
+					m_FenceValues[currentBackBufferIndex] = commandQueue->ExecuteCommandList(commandList);
+
+					UINT syncInterval = g_VSync ? 1 : 0;
+					UINT presentFlags = m_IsTearingSupported && !g_VSync ? DXGI_PRESENT_ALLOW_TEARING : 0;
+					if (FAILED(m_SwapChain->Present(syncInterval, presentFlags)))
+					{
+						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed presenting.");
+						return;
+					}
+					m_CurrentBackBufferIndex = m_SwapChain->GetCurrentBackBufferIndex();
+
+					commandQueue->WaitForFenceValue(m_FenceValues[m_CurrentBackBufferIndex]);
+				}
+			}
+
+			std::shared_ptr<CommandQueue> DX12System::GetCommandQueue(D3D12_COMMAND_LIST_TYPE a_Type) const
+			{
+				std::shared_ptr<CommandQueue> commandQueue = nullptr;
+				switch (a_Type)
+				{
+					case D3D12_COMMAND_LIST_TYPE_DIRECT:
+					{
+						commandQueue = m_DirectCommandQueue;
+						break;
+					}
+					case D3D12_COMMAND_LIST_TYPE_COMPUTE:
+					{
+						commandQueue = m_ComputeCommandQueue;
+						break;
+					}
+					case D3D12_COMMAND_LIST_TYPE_COPY:
+					{
+						commandQueue = m_CopyCommandQueue;
+						break;
+					}
+					default:
+					{
+						break;
+					}
+				}
+
+				return commandQueue;
+			}
+
+			// TODO: Remove and put in a class for commandlist.
+			void DX12System::TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, Microsoft::WRL::ComPtr<ID3D12Resource> a_Resource, D3D12_RESOURCE_STATES a_BeforeState, D3D12_RESOURCE_STATES a_AfterState)
+			{
+				CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+					a_Resource.Get(),
+					a_BeforeState, a_AfterState);
+
+				a_CommandList->ResourceBarrier(1, &barrier);
 			}
 
 #pragma endregion DX12_SYSTEM

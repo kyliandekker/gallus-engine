@@ -90,61 +90,16 @@ namespace coopscoop
 				bool Initialize(bool a_Wait, HWND a_hWnd, const glm::ivec2 a_Size);
 
 				/// <summary>
-				/// Loop method for the thread.
-				/// </summary>
-				void Loop() override;
-
-				/// <summary>
 				/// Cleans up resources and destroys the dx12 window.
 				/// </summary>
 				/// <returns>True if destruction succeeds, otherwise false.</returns>
 				bool Destroy() override;
-
-				HeapAllocation& GetDSV();
-				HeapAllocation& GetRTV();
-				HeapAllocation& GetSRV();
-
-				ResourceAtlas& GetResourceAtlas() { return m_ResourceAtlas; };
-
-				Microsoft::WRL::ComPtr<ID3D12Device2> GetDevice() const;
-
-				Microsoft::WRL::ComPtr<ID3D12RootSignature> GetRootSignature() const;
-
-				std::shared_ptr<CommandQueue> GetCommandQueue(D3D12_COMMAND_LIST_TYPE a_Type = D3D12_COMMAND_LIST_TYPE_DIRECT) const;
-
-				void TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, Microsoft::WRL::ComPtr<ID3D12Resource> a_Resource, D3D12_RESOURCE_STATES a_BeforeState, D3D12_RESOURCE_STATES a_AfterState);
-
-				bool m_TempSwitch = false;
-			protected:
+			private:
 				/// <summary>
 				/// Initializes the thread.
 				/// </summary>
 				/// <returns>True if the initialization was successful, otherwise false.</returns>
 				bool InitializeThread() override;
-
-				/// <summary>
-				/// Destroys the system, releasing resources and performing necessary cleanup.
-				/// </summary>
-				/// <returns>True if the destruction was successful, otherwise false.</returns>
-				void Finalize() override;
-
-				bool CreateRootSignature();
-
-				void CreateRTV();
-				void CreateDSV();
-				void CreateSRV();
-
-				Microsoft::WRL::ComPtr<ID3D12Resource> GetCurrentBackBuffer() const;
-
-				UINT GetCurrentBackBufferIndex() const;
-
-				D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentRenderTargetView();
-
-				ResourceAtlas m_ResourceAtlas;
-
-				void ClearRTV(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, D3D12_CPU_DESCRIPTOR_HANDLE a_RTV, FLOAT* a_ClearColor);
-
-				void ClearDepth(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, D3D12_CPU_DESCRIPTOR_HANDLE a_DSV, FLOAT a_Depth = 1.0f);
 
 				/// <summary>
 				/// Retrieves the DXGI adapter.
@@ -167,6 +122,39 @@ namespace coopscoop
 				bool CheckTearingSupport();
 
 				/// <summary>
+				/// Creates the swap chain.
+				/// </summary>
+				/// <returns>True if the swap chain was successfully created, otherwise false.</returns>
+				bool CreateSwapChain();
+
+				/// <summary>
+				/// Creates the RTV.
+				/// </summary>
+				void CreateRTV();
+
+				/// <summary>
+				/// Creates the DSV.
+				/// </summary>
+				void CreateDSV();
+
+				/// <summary>
+				/// Creates the SRV.
+				/// </summary>
+				void CreateSRV();
+
+				/// <summary>
+				/// Creates the DirectX 12 root signature.
+				/// </summary>
+				/// <returns>True if the root signature was successfully created, otherwise false.</returns>
+				bool CreateRootSignature();
+
+				/// <summary>
+				/// Destroys the system, releasing resources and performing necessary cleanup.
+				/// </summary>
+				/// <returns>True if the destruction was successful, otherwise false.</returns>
+				void Finalize() override;
+
+				/// <summary>
 				/// Ensures all previously submitted GPU commands are completed before continuing execution.
 				/// </summary>
 				/// <remarks>
@@ -176,22 +164,85 @@ namespace coopscoop
 				void Flush();
 
 				/// <summary>
-				/// Creates the swap chain.
-				/// </summary>
-				/// <returns>True if the swap chain was successfully created, otherwise false.</returns>
-				bool CreateSwapChain();
-
-				/// <summary>
 				/// Updates the render target views (RTVs) for the back buffers.
 				/// </summary>
-				/// <param name="a_Device">The DirectX 12 device.</param>
-				/// <param name="a_SwapChain">The swap chain.</param>
-				/// <param name="a_DescriptorHeap">Descriptor heap for the RTVs.</param>
-				/// <param name="a_Type">Descriptor heap type.</param>
-				/// <param name="a_NumDescriptors">Number of descriptors in the heap.</param>
 				void UpdateRenderTargetViews();
 
+				/// <summary>
+				/// Resizes the depth buffer.
+				/// </summary>
+				/// <param name="a_Size">The new size of the depth buffer.</param>
 				void ResizeDepthBuffer(const glm::ivec2& a_Size);
+
+				/// <summary>
+				/// Retrieves the current back buffer.
+				/// </summary>
+				/// <returns>ComPtr to the current back buffer.</returns>
+				Microsoft::WRL::ComPtr<ID3D12Resource> GetCurrentBackBuffer() const;
+
+				/// <summary>
+				/// Retrieves the current back buffer index.
+				/// </summary>
+				/// <returns>Integer representing the back buffer index.</returns>
+				UINT GetCurrentBackBufferIndex() const;
+
+				/// <summary>
+				/// Retrieves the current render target view.
+				/// </summary>
+				/// <returns>Handle to the render target view.</returns>
+				D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentRenderTargetView();
+			public:
+				/// <summary>
+				/// Loop method for the thread.
+				/// </summary>
+				void Loop() override;
+
+				/// <summary>
+				/// Retrieves the DSV heap.
+				/// </summary>
+				/// <returns>Reference to the DSV heap allocation.</returns>
+				HeapAllocation& GetDSV() { return m_DSV; };
+
+				/// <summary>
+				/// Retrieves the RTV heap.
+				/// </summary>
+				/// <returns>Reference to the RTV heap allocation.</returns>
+				HeapAllocation& GetRTV() { return m_RTV; };
+
+				/// <summary>
+				/// Retrieves the SRV heap.
+				/// </summary>
+				/// <returns>Reference to the SRV heap allocation.</returns>
+				HeapAllocation& GetSRV() { return m_SRV; };
+
+				/// <summary>
+				/// Retrieves the resource atlas that contains all materials, textures, meshes and shaders.
+				/// </summary>
+				/// <returns>Reference to the resource atlas.</returns>
+				ResourceAtlas& GetResourceAtlas() { return m_ResourceAtlas; };
+
+				/// <summary>
+				/// Retrieves the DirectX 12 device.
+				/// </summary>
+				/// <returns>ComPtr to the ID3D12Device2.</returns>
+				Microsoft::WRL::ComPtr<ID3D12Device2> GetDevice() const { return m_Device; };
+
+				/// <summary>
+				/// Retrieves the DirectX 12 root signature.
+				/// </summary>
+				/// <returns>ComPtr to the ID3D12RootSignature.</returns>
+				Microsoft::WRL::ComPtr<ID3D12RootSignature> GetRootSignature() const { return m_RootSignature; };
+
+				/// <summary>
+				/// Retrieves a command queue of a certain type.
+				/// </summary>
+				/// <param name="a_Type">The type of command queue such as direct, copy, etc.</param>
+				/// <returns>Reference to the CommandQueue.</returns>
+				std::shared_ptr<CommandQueue> GetCommandQueue(D3D12_COMMAND_LIST_TYPE a_Type = D3D12_COMMAND_LIST_TYPE_DIRECT) const;
+
+				void TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, Microsoft::WRL::ComPtr<ID3D12Resource> a_Resource, D3D12_RESOURCE_STATES a_BeforeState, D3D12_RESOURCE_STATES a_AfterState);
+			protected:
+				ResourceAtlas m_ResourceAtlas;
 
 				Microsoft::WRL::ComPtr<IDXGIAdapter4> m_Adapter;
 				Microsoft::WRL::ComPtr<ID3D12Device2> m_Device;
@@ -230,7 +281,6 @@ namespace coopscoop
 				FPSCounter m_FpsCounter;
 
 				Camera m_Camera1;
-				Camera m_Camera2;
 				Camera* m_CurrentCamera = nullptr;
 
 				Transform m_ChickenTransform1;
