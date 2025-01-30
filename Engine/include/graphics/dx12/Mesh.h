@@ -1,12 +1,13 @@
 #pragma once
 
 #include "graphics/dx12/DX12PCH.h"
+#include "graphics/dx12/DX12Resource.h"
+
 #include <string>
 #include <vector>
 #include <cstdint>
 
 #include "graphics/dx12/Transform.h"
-#include "graphics/dx12/Shader.h"
 #include "graphics/dx12/VertexBuffer.h"
 #include "graphics/dx12/IndexBuffer.h"
 
@@ -22,13 +23,6 @@ namespace coopscoop
 				DirectX::XMFLOAT3 Normal;
 				DirectX::XMFLOAT3 Color = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);
 				DirectX::XMFLOAT2 UV;
-			};
-
-			struct Material
-			{
-				DirectX::XMFLOAT3 DiffuseColor;  // Base color of the material
-				float Metallic;                   // 0 = non-metallic, 1 = metallic
-				float Smoothness;                 // 0 = rough, 1 = smooth
 			};
 
 			struct MeshData
@@ -51,16 +45,18 @@ namespace coopscoop
 			};
 
 			class Texture;
+			class Shader;
+			class Material;
 
 			class Mesh : DX12Resource
 			{
 			public:
 				Mesh();
-				bool LoadTexture(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
+				void Transition(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
 
-				bool Transition(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
-
-				bool SetShader(Shader& a_Shader);
+				void SetShader(Shader& a_Shader);
+				void SetTexture(Texture& a_Texture);
+				void SetMaterial(Material& a_Material);
 
 				void Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, const Transform& a_Transform, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection);
 			private:
@@ -69,9 +65,9 @@ namespace coopscoop
 				D3D12_SHADER_RESOURCE_VIEW_DESC m_ShaderResourceView;
 				std::vector<MeshData*> m_MeshData;
 
-				Shader* m_Shader;
+				Shader* m_Shader = nullptr;
 				Texture* m_Texture = nullptr;
-				Microsoft::WRL::ComPtr<ID3D12Resource> materialBuffer;
+				Material* m_Material = nullptr;
 
 				friend class ResourceAtlas;
 			};

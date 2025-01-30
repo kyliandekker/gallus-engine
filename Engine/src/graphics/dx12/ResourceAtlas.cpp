@@ -4,6 +4,8 @@
 
 #include "graphics/dx12/Texture.h"
 #include "graphics/dx12/Mesh.h"
+#include "graphics/dx12/Shader.h"
+#include "graphics/dx12/Material.h"
 
 namespace coopscoop
 {
@@ -11,8 +13,8 @@ namespace coopscoop
 	{
 		namespace dx12
 		{
-			template<class T>
-			T& ResourceAtlas::GetResource(std::vector<T*>& a_Vector, const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+			template<class T, typename Arg>
+			T& ResourceAtlas::GetResource(std::vector<T*>& a_Vector, const std::string& a_Path, Arg a_Arg)
 			{
 				std::wstring name = std::wstring(a_Path.begin(), a_Path.end());
 				T* res = nullptr;
@@ -36,7 +38,7 @@ namespace coopscoop
 						if (!a_Vector[i])
 						{
 							a_Vector[i] = new T();
-							a_Vector[i]->Load(a_Path, a_CommandList);
+							a_Vector[i]->Load(a_Path, a_Arg);
 
 							res = a_Vector[i];
 							break;
@@ -63,6 +65,21 @@ namespace coopscoop
 			Shader& ResourceAtlas::LoadShader(const std::string& a_Path)
 			{
 				return GetResource(m_Shaders, a_Path, nullptr);
+			}
+
+			Material& ResourceAtlas::LoadMaterial(const std::string& a_Path, const MaterialData& a_MaterialData)
+			{
+				return GetResource(m_Materials, a_Path, a_MaterialData);
+			}
+
+			Texture& ResourceAtlas::GetDefaultTexture()
+			{
+				return *m_Textures[MISSING];
+			}
+
+			Material& ResourceAtlas::GetDefaultMaterial()
+			{
+				return *m_Materials[MISSING];
 			}
 		}
 	}

@@ -20,29 +20,28 @@ namespace coopscoop
 			}
 
 			DX12Resource::~DX12Resource()
-			{
+			{ }
 
-			}
-
-			void DX12Resource::CreateResource(const D3D12_RESOURCE_DESC& a_ResourceDesc, const std::wstring& a_Name)
+			bool DX12Resource::CreateResource(const D3D12_RESOURCE_DESC& a_ResourceDesc, const std::wstring& a_Name, const CD3DX12_HEAP_PROPERTIES& a_Heap, const D3D12_RESOURCE_STATES a_ResourceState)
 			{
 				m_Name = a_Name;
-				CD3DX12_HEAP_PROPERTIES defaultHeap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 				if (core::ENGINE.GetDX12().GetDevice()->CreateCommittedResource(
-					&defaultHeap,
+					&a_Heap,
 					D3D12_HEAP_FLAG_NONE,
 					&a_ResourceDesc,
-					D3D12_RESOURCE_STATE_COMMON,
+					a_ResourceState,
 					nullptr,
 					IID_PPV_ARGS(&m_Resource)
 				))
 				{
 					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating committed resource: \"%s\".", a_Name.c_str());
-					return;
+					return false;
 				}
 				m_Resource->SetName(a_Name.c_str());
 
 				CheckFeatureSupport();
+
+				return true;
 			}
 
 			bool DX12Resource::IsValid() const

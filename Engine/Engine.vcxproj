@@ -58,6 +58,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>dxgi.lib;d3d12.lib;d3dcompiler.lib;dxguid.lib;Shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /E /I /Y "$(SolutionDir)shaders" "$(OutDir)resources\shaders"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -77,6 +80,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>dxgi.lib;d3d12.lib;dxguid.lib;d2d1.lib;dwrite.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /E /I /Y "$(SolutionDir)shaders" "$(OutDir)resources\shaders"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="external\dx12\DirectXTex\DirectXTex\BC.cpp" />
@@ -102,6 +108,7 @@
     <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexWIC.cpp" />
     <ClCompile Include="external\dx12\directx\d3dx12_property_format_table.cpp" />
     <ClCompile Include="external\tiny_gltf\tiny_gltf.cc" />
+    <ClCompile Include="src\graphics\dx12\Material.cpp" />
     <ClCompile Include="src\graphics\dx12\Light.cpp" />
     <ClCompile Include="src\graphics\dx12\ResourceAtlas.cpp" />
     <ClCompile Include="src\graphics\dx12\HeapAllocation.cpp" />
@@ -144,6 +151,7 @@
     <ClInclude Include="include\graphics\dx12\HeapAllocation.h" />
     <ClInclude Include="include\graphics\dx12\IndexBuffer.h" />
     <ClInclude Include="include\graphics\dx12\Light.h" />
+    <ClInclude Include="include\graphics\dx12\Material.h" />
     <ClInclude Include="include\graphics\dx12\Mesh.h" />
     <ClInclude Include="include\graphics\dx12\DX12Resource.h" />
     <ClInclude Include="include\graphics\dx12\Shader.h" />

@@ -19,21 +19,20 @@ namespace coopscoop
                 Texture() = default;
                 ~Texture();
 
-                bool IsValid() const;
-
                 bool CheckSRVSupport() const;
                 bool CheckRTVSupport() const;
                 bool CheckUAVSupport() const;
                 bool CheckDSVSupport() const;
 
                 bool Transition(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
+                
                 void Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
                 void Unbind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
             private:
                 bool Load(const std::string& a_FilePath, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
 
-                Microsoft::WRL::ComPtr<ID3D12Resource> m_ResourceUploadHeap;
-                size_t m_SRVIndex;
+                Microsoft::WRL::ComPtr<ID3D12Resource> m_ResourceUploadHeap = nullptr;
+                size_t m_SRVIndex = 0;
 
                 friend class ResourceAtlas;
             };

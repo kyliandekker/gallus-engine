@@ -16,11 +16,6 @@ namespace coopscoop
                 m_Resource.Reset();
             }
 
-            bool Texture::IsValid() const
-            {
-                return m_Resource;
-            }
-
             bool Texture::CheckSRVSupport() const
             {
                 return CheckFormatSupport(D3D12_FORMAT_SUPPORT1_SHADER_SAMPLE);

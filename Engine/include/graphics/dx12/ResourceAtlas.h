@@ -16,20 +16,27 @@ namespace coopscoop
 			class Texture;
 			class Mesh;
 			class Shader;
+			class Material;
+			struct MaterialData;
 
 			class ResourceAtlas
 			{
 			public:
-				template<class T>
-				T& GetResource(std::vector<T*>& a_Vector, const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
+				template<class T, typename Arg>
+				T& GetResource(std::vector<T*>& a_Vector, const std::string& a_Path, Arg a_Arg);
 
 				Mesh& LoadMesh(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
 				Texture& LoadTexture(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
 				Shader& LoadShader(const std::string& a_Path);
+				Material& LoadMaterial(const std::string& a_Path, const MaterialData& a_MaterialData);
+
+				Texture& GetDefaultTexture();
+				Material& GetDefaultMaterial();
 			private:
 				std::vector<Texture*> m_Textures = std::vector<Texture*>(MAX_RESOURCES);
 				std::vector<Mesh*> m_Meshes = std::vector<Mesh*>(MAX_RESOURCES);
 				std::vector<Shader*> m_Shaders = std::vector<Shader*>(MAX_RESOURCES);
+				std::vector<Material*> m_Materials = std::vector<Material*>(MAX_RESOURCES);
 			};
 		}
 	}

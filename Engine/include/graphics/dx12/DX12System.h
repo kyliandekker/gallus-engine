@@ -8,8 +8,6 @@
 #include <glm/mat4x4.hpp>
 
 #include "graphics/dx12/CommandQueue.h"
-#include "graphics/dx12/Mesh.h"
-#include "graphics/dx12/Texture.h"
 #include "graphics/dx12/Camera.h"
 #include "graphics/dx12/ResourceAtlas.h"
 
@@ -72,6 +70,10 @@ namespace coopscoop
 				NumRootParameters
 			};
 
+			class Material;
+			class Mesh;
+			class Shader;
+
 			/// <summary>
 			/// Represents a DirectX 12 rendering window, managing device resources, rendering, and synchronization.
 			/// </summary>
@@ -125,6 +127,12 @@ namespace coopscoop
 				/// </summary>
 				/// <returns>True if the destruction was successful, otherwise false.</returns>
 				void Finalize() override;
+
+				bool CreateRootSignature();
+
+				void CreateRTV();
+				void CreateDSV();
+				void CreateSRV();
 
 				Microsoft::WRL::ComPtr<ID3D12Resource> GetCurrentBackBuffer() const;
 
@@ -225,15 +233,19 @@ namespace coopscoop
 				Camera m_Camera2;
 				Camera* m_CurrentCamera = nullptr;
 
-				Mesh* m_ChickenMesh = nullptr;
-				Mesh* m_FaucetMesh = nullptr;
-
 				Transform m_ChickenTransform1;
 				Transform m_ChickenTransform2;
 				Transform m_FaucetTransform;
 
+				Mesh* m_ChickenMesh = nullptr;
+				Mesh* m_ChickenMesh2 = nullptr;
+				Mesh* m_FaucetMesh = nullptr;
+
 				Shader* m_ShaderOneColor = nullptr;
 				Shader* m_ShaderAlbedo = nullptr;
+
+				Material* m_DefaultMaterial = nullptr;
+				Texture* m_DefaultTexture = nullptr;
 
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_DirectionalLightBuffer;
 				DirectionalLight m_DirectionalLight;

@@ -18,7 +18,7 @@ namespace coopscoop
 				DX12Resource(const std::wstring& a_Name);
 				virtual ~DX12Resource();
 
-				void CreateResource(const D3D12_RESOURCE_DESC& a_ResourceDesc, const std::wstring& a_Name);
+				bool CreateResource(const D3D12_RESOURCE_DESC& a_ResourceDesc, const std::wstring& a_Name, const CD3DX12_HEAP_PROPERTIES& a_Heap = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), const D3D12_RESOURCE_STATES a_ResourceState = D3D12_RESOURCE_STATE_COMMON);
 
 				bool IsValid() const;
 
@@ -35,8 +35,8 @@ namespace coopscoop
 				void CheckFeatureSupport();
 				void UpdateBufferResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, ID3D12Resource** a_pDestinationResource, ID3D12Resource** a_pIntermediateResource, size_t a_NumElements, size_t a_ElementSize, const void* a_BufferData, D3D12_RESOURCE_FLAGS a_Flags = D3D12_RESOURCE_FLAG_NONE);
 			protected:
-				D3D12_FEATURE_DATA_FORMAT_SUPPORT m_FormatSupport;
-				Microsoft::WRL::ComPtr<ID3D12Resource> m_Resource;
+				D3D12_FEATURE_DATA_FORMAT_SUPPORT m_FormatSupport{};
+				Microsoft::WRL::ComPtr<ID3D12Resource> m_Resource = nullptr;
 				std::wstring m_Name;
 			};
 		}

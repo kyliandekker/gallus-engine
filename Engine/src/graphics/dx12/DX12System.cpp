@@ -11,6 +11,11 @@
 #include "core/FileUtils.h"
 #include "core/Engine.h"
 
+#include "graphics/dx12/Material.h"
+#include "graphics/dx12/Texture.h"
+#include "graphics/dx12/Shader.h"
+#include "graphics/dx12/Mesh.h"
+
 namespace coopscoop
 {
 	namespace graphics
@@ -159,7 +164,7 @@ namespace coopscoop
 				m_ChickenTransform2.SetPosition({ 1.0f, 1.0f, 5.0f }); // Example position
 				m_ChickenTransform2.GetRotation().y -= 0.1f;
 
-				m_ChickenMesh->Render(commandList, m_ChickenTransform2, viewMatrix, projectionMatrix);
+				m_ChickenMesh2->Render(commandList, m_ChickenTransform2, viewMatrix, projectionMatrix);
 
 				// Present
 				{
@@ -215,26 +220,26 @@ namespace coopscoop
 				}
 				debugInterface->EnableDebugLayer();
 #endif
+				// Get the adapter.
 				if (!GetAdapter(false))
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed retrieving adapter.");
 					return false;
 				}
 
+				// Create the device.
 				if (!CreateDevice())
 				{
-					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating device.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating m_Device.");
 					return false;
 				}
+				
+				// Create the command queues.
+				m_DirectCommandQueue = std::make_shared<CommandQueue>(m_Device, D3D12_COMMAND_LIST_TYPE_DIRECT);
+				m_ComputeCommandQueue = std::make_shared<CommandQueue>(m_Device, D3D12_COMMAND_LIST_TYPE_COMPUTE);
+				m_CopyCommandQueue = std::make_shared<CommandQueue>(m_Device, D3D12_COMMAND_LIST_TYPE_COPY);
 
-				if (m_Device)
-				{
-					m_DirectCommandQueue = std::make_shared<CommandQueue>(m_Device, D3D12_COMMAND_LIST_TYPE_DIRECT);
-					m_ComputeCommandQueue = std::make_shared<CommandQueue>(m_Device, D3D12_COMMAND_LIST_TYPE_COMPUTE);
-					m_CopyCommandQueue = std::make_shared<CommandQueue>(m_Device, D3D12_COMMAND_LIST_TYPE_COPY);
-
-					m_IsTearingSupported = CheckTearingSupport();
-				}
+				m_IsTearingSupported = CheckTearingSupport();
 
 				m_ScissorRect = CD3DX12_RECT(0, 0, LONG_MAX, LONG_MAX);
 				m_Viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(m_Size.x), static_cast<float>(m_Size.y));
@@ -245,65 +250,129 @@ namespace coopscoop
 					return false;
 				}
 
+				// Create the swap chain.
 				if (!CreateSwapChain())
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating swap chain.");
 					return false;
 				}
 
-				D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-				rtvHeapDesc.NumDescriptors = g_BufferCount;
-				rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-				rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-				m_RTV = HeapAllocation(rtvHeapDesc);
-
-				m_RTVDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-
-				UpdateRenderTargetViews();
-
-				m_FpsCounter.Initialize();
-
-				Microsoft::WRL::ComPtr<ID3D12Device2> device = GetDevice();
+				// Get the copy command queue.
 				std::shared_ptr<CommandQueue> commandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
 				Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList = commandQueue->GetCommandList();
 
-				// Create the descriptor heap for the depth-stencil view.
-				D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
-				dsvHeapDesc.NumDescriptors = 1;
-				dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-				dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-				m_DSV = HeapAllocation(dsvHeapDesc);
+				CreateRTV();
+				CreateDSV();
+				CreateSRV();
 
-				D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-				srvHeapDesc.NumDescriptors = 100;  // Adjust based on how many textures you need
-				srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-				srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // Important for binding!
-				m_SRV = HeapAllocation(srvHeapDesc);
+				UpdateRenderTargetViews();
 
-				m_ResourceAtlas.LoadTexture("./resources/tex_missing.png", commandList);
-
-				m_ChickenMesh = &m_ResourceAtlas.LoadMesh("./resources/chicken.gltf", commandList);
-				m_ChickenMesh->LoadTexture("./resources/tex_chicken_normal.png", commandList);
-
-				m_FaucetMesh = &m_ResourceAtlas.LoadMesh("./resources/mod_faucet.gltf", commandList);
-				m_FaucetMesh->LoadTexture("./resources/tex_missing.png", commandList);
-
-				// Create a root signature.
-				D3D12_FEATURE_DATA_ROOT_SIGNATURE featureData = {};
-				featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_1;
-				if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_ROOT_SIGNATURE, &featureData, sizeof(featureData))))
+				if (!CreateRootSignature())
 				{
-					featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating root signature.");
+					return false;
 				}
 
+				// Default textures, meshes, shaders and materials.
+				m_DefaultTexture = &m_ResourceAtlas.LoadTexture("./resources/tex_missing.png", commandList); // Default texture.
+				m_ShaderOneColor = &m_ResourceAtlas.LoadShader("./resources/shaders/color"); // Default color shader.
+				m_ShaderAlbedo = &m_ResourceAtlas.LoadShader("./resources/shaders/albedo"); // Default albedo shader.
+				m_DefaultMaterial = &m_ResourceAtlas.LoadMaterial("default", { { 1.0f, 1.0f, 1.0f }, 0.0f, 0.0f });
+
+				Material& m_FaucetMaterial = m_ResourceAtlas.LoadMaterial("faucet", { { 0.16f, 0.16f, 0.16f }, 0.87f, 1.0f });
+
+				m_ChickenMesh = &m_ResourceAtlas.LoadMesh("./resources/chicken.gltf", commandList);
+				m_ChickenMesh->SetTexture(m_ResourceAtlas.LoadTexture("./resources/tex_chicken_normal.png", commandList));
+				m_ChickenMesh->SetShader(*m_ShaderAlbedo);
+
+				m_ChickenMesh2 = &m_ResourceAtlas.LoadMesh("./resources/chicken.gltf", commandList);
+				m_ChickenMesh2->SetTexture(m_ResourceAtlas.LoadTexture("./resources/tex_chicken_sick.png", commandList));
+				m_ChickenMesh2->SetShader(*m_ShaderAlbedo);
+
+				m_FaucetMesh = &m_ResourceAtlas.LoadMesh("./resources/mod_faucet.gltf", commandList);
+				m_FaucetMesh->SetMaterial(m_FaucetMaterial);
+				m_FaucetMesh->SetShader(*m_ShaderOneColor);
+
+				auto fenceValue = commandQueue->ExecuteCommandList(commandList);
+				commandQueue->WaitForFenceValue(fenceValue);
+
+				auto dCommandQueue = GetCommandQueue();
+				auto dCommandList = dCommandQueue->GetCommandList();
+
+				m_ChickenMesh->Transition(dCommandList);
+				m_ChickenMesh2->Transition(dCommandList);
+				m_FaucetMesh->Transition(dCommandList);
+				dCommandQueue->ExecuteCommandList(dCommandList);
+				dCommandQueue->WaitForFenceValue(fenceValue);
+
+				// Resize/Create the depth buffer.
+				ResizeDepthBuffer(m_Size);
+
+				LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_DX12, "Initialized dx12 system.");
+
+
+
+
+
+
+
+
+
+
+				// Define a default light direction (pointing downward)
+				m_DirectionalLight = { DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f), 0.0f, DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), 0.5f };
+
+				size_t bufferSize = sizeof(DirectionalLight);
+
+				CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
+				CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+
+				if (FAILED(m_Device->CreateCommittedResource(
+					&heapProps,
+					D3D12_HEAP_FLAG_NONE,
+					&bufferDesc,
+					D3D12_RESOURCE_STATE_GENERIC_READ,
+					nullptr,
+					IID_PPV_ARGS(&m_DirectionalLightBuffer))))
+				{
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create DirectionalLight buffer.");
+					return false;
+				}
+
+				// Copy light data to GPU buffer
+				void* mappedData;
+				CD3DX12_RANGE readRange(0, 0);
+				m_DirectionalLightBuffer->Map(0, &readRange, &mappedData);
+				memcpy(mappedData, &m_DirectionalLight, bufferSize);
+				m_DirectionalLightBuffer->Unmap(0, nullptr);
+
+
+
+
+				m_FpsCounter.Initialize();
+
+				return ThreadedSystem::InitializeThread();
+			}
+
+			void DX12System::Finalize()
+			{
+				Flush();
+
+				ThreadedSystem::Finalize();
+
+				LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_DX12, "Destroyed dx12 system.");
+			}
+
+			bool DX12System::CreateRootSignature()
+			{
 				// Define descriptor ranges
-				CD3DX12_DESCRIPTOR_RANGE1 descriptorRanges[1];
+				CD3DX12_DESCRIPTOR_RANGE1 descriptorRanges[1]{};
 
 				// SRV for the texture at register t0
 				descriptorRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
 
 				// Define root parameters
-				CD3DX12_ROOT_PARAMETER1 rootParameters[RootParameters::NumRootParameters];
+				CD3DX12_ROOT_PARAMETER1 rootParameters[RootParameters::NumRootParameters]{};
 
 				// CBV at register b0 (Model-View-Projection Matrix)
 				rootParameters[RootParameters::CBV].InitAsConstants(sizeof(DirectX::XMMATRIX) / 4, 0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
@@ -357,89 +426,46 @@ namespace coopscoop
 				}
 
 				// Create the root signature
-				hr = device->CreateRootSignature(0,
+				if (FAILED(m_Device->CreateRootSignature(0,
 					rootSignatureBlob->GetBufferPointer(),
 					rootSignatureBlob->GetBufferSize(),
-					IID_PPV_ARGS(&m_RootSignature));
-
-				if (FAILED(hr)) {
+					IID_PPV_ARGS(&m_RootSignature))))
+				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating root signature.");
 					return false;
 				}
 
-				// SHADERS
-				m_ShaderOneColor = &m_ResourceAtlas.LoadShader("./resources/shaders/color");
-				m_ShaderAlbedo = &m_ResourceAtlas.LoadShader("./resources/shaders/albedo");
-
-				m_ChickenMesh->SetShader(*m_ShaderAlbedo);
-				m_FaucetMesh->SetShader(*m_ShaderOneColor);
-
-				auto fenceValue = commandQueue->ExecuteCommandList(commandList);
-				commandQueue->WaitForFenceValue(fenceValue);
-
-				auto dCommandQueue = GetCommandQueue();
-				auto dCommandList = dCommandQueue->GetCommandList();
-
-				m_ChickenMesh->Transition(dCommandList);
-				m_FaucetMesh->Transition(dCommandList);
-				dCommandQueue->ExecuteCommandList(dCommandList);
-				dCommandQueue->WaitForFenceValue(fenceValue);
-
-				// Resize/Create the depth buffer.
-				ResizeDepthBuffer(m_Size);
-
-				LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_DX12, "Initialized dx12 system.");
-
-
-
-
-
-
-
-
-
-
-				// Define a default light direction (pointing downward)
-				m_DirectionalLight = { DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f), 0.0f, DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), 0.5f };
-
-				size_t bufferSize = sizeof(DirectionalLight);
-
-				CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
-				CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-
-				hr = device->CreateCommittedResource(
-					&heapProps,
-					D3D12_HEAP_FLAG_NONE,
-					&bufferDesc,
-					D3D12_RESOURCE_STATE_GENERIC_READ,
-					nullptr,
-					IID_PPV_ARGS(&m_DirectionalLightBuffer));
-
-				if (FAILED(hr)) {
-					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create DirectionalLight buffer.");
-					return false;
-				}
-
-				// Copy light data to GPU buffer
-				void* mappedData;
-				CD3DX12_RANGE readRange(0, 0);
-				m_DirectionalLightBuffer->Map(0, &readRange, &mappedData);
-				memcpy(mappedData, &m_DirectionalLight, bufferSize);
-				m_DirectionalLightBuffer->Unmap(0, nullptr);
-
-
-
-
-				return ThreadedSystem::InitializeThread();
+				return true;
 			}
 
-			void DX12System::Finalize()
+			void DX12System::CreateRTV()
 			{
-				Flush();
+				D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+				rtvHeapDesc.NumDescriptors = g_BufferCount;
+				rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+				rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+				m_RTV = HeapAllocation(rtvHeapDesc);
 
-				ThreadedSystem::Finalize();
+				m_RTVDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+			}
 
-				LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_DX12, "Destroyed dx12 system.");
+			void DX12System::CreateDSV()
+			{
+				// Create the descriptor heap for the depth-stencil view.
+				D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+				dsvHeapDesc.NumDescriptors = 1;
+				dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+				dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+				m_DSV = HeapAllocation(dsvHeapDesc);
+			}
+
+			void DX12System::CreateSRV()
+			{
+				D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
+				srvHeapDesc.NumDescriptors = 100;  // Adjust based on how many textures you need
+				srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+				srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // Important for binding!
+				m_SRV = HeapAllocation(srvHeapDesc);
 			}
 
 			bool DX12System::GetAdapter(bool a_UseWarp)
@@ -479,7 +505,7 @@ namespace coopscoop
 						DXGI_ADAPTER_DESC1 dxgiAdapterDesc1;
 						dxgiAdapter1->GetDesc1(&dxgiAdapterDesc1);
 
-						// Check to see if the adapter can create a D3D12 device without actually 
+						// Check to see if the adapter can create a D3D12 m_Device without actually 
 						// creating it. The adapter with the largest dedicated video memory
 						// is favored.
 						if ((dxgiAdapterDesc1.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) == 0 &&
@@ -504,7 +530,7 @@ namespace coopscoop
 			{
 				if (FAILED(D3D12CreateDevice(m_Adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_Device))))
 				{
-					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating device.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating m_Device.");
 					return false;
 				}
 				//    NAME_D3D12_OBJECT(d3d12Device2);
@@ -684,8 +710,6 @@ namespace coopscoop
 
 			void DX12System::UpdateRenderTargetViews()
 			{
-				auto device = GetDevice();
-
 				CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_RTV.GetCPUDescriptorHandleForHeapStart());
 
 				for (int i = 0; i < g_BufferCount; ++i)
@@ -697,7 +721,7 @@ namespace coopscoop
 						return;
 					}
 
-					device->CreateRenderTargetView(backBuffer.Get(), nullptr, rtvHandle);
+					m_Device->CreateRenderTargetView(backBuffer.Get(), nullptr, rtvHandle);
 
 					m_BackBuffers[i] = backBuffer;
 
@@ -712,7 +736,7 @@ namespace coopscoop
 
 				m_Size = a_Size;
 
-				auto device = GetDevice();
+				auto m_Device = GetDevice();
 
 				// Resize screen dependent resources.
 				// Create a depth buffer.
@@ -723,7 +747,7 @@ namespace coopscoop
 				CD3DX12_HEAP_PROPERTIES heapType = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 				CD3DX12_RESOURCE_DESC tex = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_D32_FLOAT, m_Size.x, m_Size.y,
 					1, 0, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
-				if (FAILED(device->CreateCommittedResource(
+				if (FAILED(m_Device->CreateCommittedResource(
 					&heapType,
 					D3D12_HEAP_FLAG_NONE,
 					&tex,
@@ -743,7 +767,7 @@ namespace coopscoop
 				dsv.Texture2D.MipSlice = 0;
 				dsv.Flags = D3D12_DSV_FLAG_NONE;
 
-				device->CreateDepthStencilView(m_DepthBuffer.Get(), &dsv,
+				m_Device->CreateDepthStencilView(m_DepthBuffer.Get(), &dsv,
 					m_DSV.GetCPUDescriptorHandleForHeapStart());
 			}
 

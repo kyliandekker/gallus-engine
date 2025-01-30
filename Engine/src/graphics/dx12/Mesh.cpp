@@ -10,6 +10,8 @@
 #include "core/DataStream.h"
 #include "core/logger/Logger.h"
 #include "graphics/dx12/Texture.h"
+#include "graphics/dx12/Shader.h"
+#include "graphics/dx12/Material.h"
 
 namespace coopscoop
 {
@@ -149,62 +151,34 @@ namespace coopscoop
 					meshData->m_IndexBuffer.CreateViews(meshData->m_Indices.size(), indexSize);
 				}
 
-				D3D12_HEAP_PROPERTIES heapProps = {};
-				heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-
-				D3D12_RESOURCE_DESC bufferDesc = {};
-				bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-				bufferDesc.Width = sizeof(Material);  // Size of the Material struct
-				bufferDesc.Height = 1;
-				bufferDesc.DepthOrArraySize = 1;
-				bufferDesc.MipLevels = 1;
-				bufferDesc.Format = DXGI_FORMAT_UNKNOWN;
-				bufferDesc.SampleDesc.Count = 1;
-				bufferDesc.SampleDesc.Quality = 0;
-				bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-				bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-				core::ENGINE.GetDX12().GetDevice()->CreateCommittedResource(
-					&heapProps,
-					D3D12_HEAP_FLAG_NONE,
-					&bufferDesc,
-					D3D12_RESOURCE_STATE_GENERIC_READ,
-					nullptr,
-					IID_PPV_ARGS(&materialBuffer)
-				);
-
-				// Material data
-				Material material;
-				material.DiffuseColor = DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f);  // Example red color
-				material.Metallic = 0.5f;  // Metallic value
-				material.Smoothness = 0.8f;  // Smoothness value
-
-				// Map the constant buffer to update it with material data
-				D3D12_RANGE readRange = { 0, 0 };  // We don't need to read, so set to zero
-				void* mappedData;
-				materialBuffer->Map(0, &readRange, &mappedData);
-				memcpy(mappedData, &material, sizeof(material));  // Copy data into the buffer
-				materialBuffer->Unmap(0, nullptr);
+				m_Material = &core::ENGINE.GetDX12().GetResourceAtlas().GetDefaultMaterial();
+				m_Texture = &core::ENGINE.GetDX12().GetResourceAtlas().GetDefaultTexture();
 
 				LOGF(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_DX12, "Loaded mesh: \"%s\".", a_Path.c_str());
                 return true;
             }
 
-			bool Mesh::LoadTexture(const std::string& a_Path, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+			void Mesh::Transition(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
 			{
-				m_Texture = &core::ENGINE.GetDX12().GetResourceAtlas().LoadTexture(a_Path, a_CommandList);
-				return m_Texture;
+				if (m_Texture && m_Texture->IsValid())
+				{
+					m_Texture->Transition(a_CommandList);
+				}
 			}
 
-			bool Mesh::Transition(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
-			{
-				return m_Texture->Transition(a_CommandList);
-			}
-
-			bool Mesh::SetShader(Shader& a_Shader)
+			void Mesh::SetShader(Shader& a_Shader)
 			{
 				m_Shader = &a_Shader;
-				return true;
+			}
+
+			void Mesh::SetTexture(Texture& a_Texture)
+			{
+				m_Texture = &a_Texture;
+			}
+
+			void Mesh::SetMaterial(Material& a_Material)
+			{
+				m_Material = &a_Material;
 			}
 
 			void Mesh::Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, const Transform& a_Transform, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection)
@@ -214,9 +188,16 @@ namespace coopscoop
 					m_Texture->Bind(a_CommandList);
 				}
 
-				a_CommandList->SetGraphicsRootConstantBufferView(RootParameters::MATERIAL, materialBuffer->GetGPUVirtualAddress());
+				if (m_Material && m_Material->IsValid())
+				{
+					m_Material->Bind(a_CommandList);
+				}
 
-				m_Shader->Bind(a_CommandList);
+				if (m_Shader)
+				{
+					m_Shader->Bind(a_CommandList);
+				}
+
 				for (auto& meshData : m_MeshData)
 				{
 					a_CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
