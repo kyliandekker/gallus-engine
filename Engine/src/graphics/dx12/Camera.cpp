@@ -25,7 +25,7 @@ namespace coopscoop
                 return m_Transform;
             }
 
-            DirectX::XMMATRIX Camera::GetViewMatrix()
+            DirectX::XMMATRIX Camera::GetViewMatrix() const
             {
                 return DirectX::XMMatrixLookAtLH(
                     DirectX::XMLoadFloat3(&m_Transform.GetPosition()),
@@ -34,7 +34,7 @@ namespace coopscoop
                 );
             }
 
-            DirectX::XMMATRIX Camera::GetProjectionMatrix()
+            const DirectX::XMMATRIX& Camera::GetProjectionMatrix() const
             {
                 return m_ProjectionMatrix;
             }

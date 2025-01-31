@@ -27,7 +27,7 @@ namespace coopscoop
 				void SetTexture(Texture& a_Texture);
 				void SetMaterial(Material& a_Material);
 
-				void Render(std::shared_ptr<CommandList> a_CommandList, const Transform& a_Transform, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection);
+				void Render(std::shared_ptr<CommandList> a_CommandList, const Transform& a_Transform, const DirectX::XMMATRIX& a_CameraView, const DirectX::XMMATRIX& a_CameraProjection);
 			private:
 				Mesh* m_Mesh;
 				Shader* m_Shader = nullptr;

@@ -628,8 +628,8 @@ namespace coopscoop
 
 				m_CurrentCamera = &m_Camera1;
 
-				auto viewMatrix = m_CurrentCamera->GetViewMatrix();
-				auto projectionMatrix = m_CurrentCamera->GetProjectionMatrix();
+				const DirectX::XMMATRIX viewMatrix = m_CurrentCamera->GetViewMatrix();
+				const DirectX::XMMATRIX& projectionMatrix = m_CurrentCamera->GetProjectionMatrix();
 
 				// Render part.
 				std::shared_ptr<CommandQueue> commandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);

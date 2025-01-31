@@ -12,19 +12,19 @@ namespace coopscoop
                 m_Scale{ 1.0f, 1.0f, 1.0f }
             {}
 
-            void Transform::SetPosition(const DirectX::XMFLOAT3& position)
+            void Transform::SetPosition(const DirectX::XMFLOAT3& a_Position)
             {
-                m_Position = position;
+                m_Position = a_Position;
             }
 
-            void Transform::SetRotation(const DirectX::XMFLOAT3& rotation)
+            void Transform::SetRotation(const DirectX::XMFLOAT3& a_Rotation)
             {
-                m_Rotation = rotation;
+                m_Rotation = a_Rotation;
             }
 
-            void Transform::SetScale(const DirectX::XMFLOAT3& scale)
+            void Transform::SetScale(const DirectX::XMFLOAT3& a_Scale)
             {
-                m_Scale = scale;
+                m_Scale = a_Scale;
             }
 
             DirectX::XMFLOAT3& Transform::GetPosition()
@@ -42,36 +42,34 @@ namespace coopscoop
                 return m_Scale;
             }
 
-            DirectX::XMFLOAT3 Transform::GetPosition() const
+            const DirectX::XMFLOAT3& Transform::GetPosition() const
             {
                 return m_Position;
             }
 
-            DirectX::XMFLOAT3 Transform::GetRotation() const
+            const DirectX::XMFLOAT3& Transform::GetRotation() const
             {
                 return m_Rotation;
             }
 
-            DirectX::XMFLOAT3 Transform::GetScale() const
+            const DirectX::XMFLOAT3& Transform::GetScale() const
             {
                 return m_Scale;
             }
 
-            DirectX::XMMATRIX Transform::GetWorldMatrix() const
+            const DirectX::XMMATRIX Transform::GetWorldMatrix() const
             {
-                using namespace DirectX;
-
                 // Convert rotation from degrees to radians
-                XMVECTOR rotationQuaternion = XMQuaternionRotationRollPitchYaw(
-                    XMConvertToRadians(m_Rotation.x),
-                    XMConvertToRadians(m_Rotation.y),
-                    XMConvertToRadians(m_Rotation.z)
+                DirectX::XMVECTOR rotationQuaternion = DirectX::XMQuaternionRotationRollPitchYaw(
+                    DirectX::XMConvertToRadians(m_Rotation.x),
+                    DirectX::XMConvertToRadians(m_Rotation.y),
+                    DirectX::XMConvertToRadians(m_Rotation.z)
                 );
 
                 // Compute transformations
-                XMMATRIX translationMatrix = XMMatrixTranslationFromVector(XMLoadFloat3(&m_Position));
-                XMMATRIX rotationMatrix = XMMatrixRotationQuaternion(rotationQuaternion);
-                XMMATRIX scaleMatrix = XMMatrixScalingFromVector(XMLoadFloat3(&m_Scale));
+                DirectX::XMMATRIX translationMatrix = DirectX::XMMatrixTranslationFromVector(XMLoadFloat3(&m_Position));
+                DirectX::XMMATRIX rotationMatrix = DirectX::XMMatrixRotationQuaternion(rotationQuaternion);
+                DirectX::XMMATRIX scaleMatrix = DirectX::XMMatrixScalingFromVector(XMLoadFloat3(&m_Scale));
 
                 // Combine transformations: S * R * T
                 return scaleMatrix * rotationMatrix * translationMatrix;

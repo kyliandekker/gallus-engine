@@ -51,7 +51,7 @@ namespace coopscoop
 			{
 			public:
 				Mesh();
-				void Render(std::shared_ptr<CommandList> a_CommandList, const Transform& a_Transform, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection);
+				void Render(std::shared_ptr<CommandList> a_CommandList, const Transform& a_Transform, const DirectX::XMMATRIX& a_CameraView, const DirectX::XMMATRIX& a_CameraProjection);
 			private:
 				bool Load(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList);
 

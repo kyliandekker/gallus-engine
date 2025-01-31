@@ -18,8 +18,8 @@ namespace coopscoop
                 void SetProjection(float fov, float aspectRatio, float nearPlane, float farPlane);
 
                 Transform& GetTransform();
-                DirectX::XMMATRIX GetViewMatrix();
-                DirectX::XMMATRIX GetProjectionMatrix();
+                DirectX::XMMATRIX GetViewMatrix() const;
+                const DirectX::XMMATRIX& GetProjectionMatrix() const;
 
             private:
                 Transform m_Transform;

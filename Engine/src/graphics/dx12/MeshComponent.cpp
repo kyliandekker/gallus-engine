@@ -41,7 +41,7 @@ namespace coopscoop
 				m_Material = &a_Material;
 			}
 
-			void MeshComponent::Render(std::shared_ptr<CommandList> a_CommandList, const Transform& a_Transform, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection)
+			void MeshComponent::Render(std::shared_ptr<CommandList> a_CommandList, const Transform& a_Transform, const DirectX::XMMATRIX& a_CameraView, const DirectX::XMMATRIX& a_CameraProjection)
 			{
 				if (m_Texture && m_Texture->IsValid())
 				{
