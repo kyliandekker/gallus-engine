@@ -5,6 +5,7 @@
 #include "graphics/dx12/Texture.h"
 #include "graphics/dx12/Shader.h"
 #include "graphics/dx12/Material.h"
+#include "graphics/dx12/CommandList.h"
 
 namespace coopscoop
 {
@@ -40,7 +41,7 @@ namespace coopscoop
 				m_Material = &a_Material;
 			}
 
-			void MeshComponent::Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, const Transform& a_Transform, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection)
+			void MeshComponent::Render(std::shared_ptr<CommandList> a_CommandList, const Transform& a_Transform, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection)
 			{
 				if (m_Texture && m_Texture->IsValid())
 				{

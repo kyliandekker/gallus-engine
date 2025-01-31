@@ -12,6 +12,7 @@
 #include "graphics/dx12/Texture.h"
 #include "graphics/dx12/Shader.h"
 #include "graphics/dx12/Material.h"
+#include "graphics/dx12/CommandList.h"
 
 namespace coopscoop
 {
@@ -23,7 +24,7 @@ namespace coopscoop
 			{ }
 
 			// TODO: This all needs to be loaded from a file eventually instead of from files on the disk.
-			bool Mesh::Load(const std::string& a_Name, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+			bool Mesh::Load(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList)
 			{
 				m_Name = std::wstring(a_Name.begin(), a_Name.end());
 
@@ -141,7 +142,7 @@ namespace coopscoop
 					m_MeshData.push_back(meshData);
 
 					// Upload vertex buffer data.
-					UpdateBufferResource(a_CommandList,
+					a_CommandList->UpdateBufferResource(
 						&meshData->m_VertexBuffer.GetResource(), &meshData->intermediateVertexBuffer,
 						meshData->m_Vertices.size(), sizeof(VertexPosColorUV), meshData->m_Vertices.data());
 
@@ -149,7 +150,7 @@ namespace coopscoop
 					meshData->m_VertexBuffer.CreateViews(meshData->m_Vertices.size(), sizeof(VertexPosColorUV));
 
 					// Upload index buffer data.
-					UpdateBufferResource(a_CommandList,
+					a_CommandList->UpdateBufferResource(
 						&meshData->m_IndexBuffer.GetResource(), &meshData->intermediateIndexBuffer,
 						meshData->m_Indices.size(), indexSize, meshData->m_Indices.data());
 
@@ -161,19 +162,19 @@ namespace coopscoop
 				return true;
 			}
 
-			void Mesh::Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, const Transform& a_Transform, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection)
+			void Mesh::Render(std::shared_ptr<CommandList> a_CommandList, const Transform& a_Transform, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection)
 			{
 				for (auto& meshData : m_MeshData)
 				{
-					a_CommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-					a_CommandList->IASetVertexBuffers(0, 1, &meshData->m_VertexBuffer.GetVertexBufferView());
-					a_CommandList->IASetIndexBuffer(&meshData->m_IndexBuffer.GetIndexBufferView());
+					a_CommandList->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+					a_CommandList->GetCommandList()->IASetVertexBuffers(0, 1, &meshData->m_VertexBuffer.GetVertexBufferView());
+					a_CommandList->GetCommandList()->IASetIndexBuffer(&meshData->m_IndexBuffer.GetIndexBufferView());
 
 					// Update the MVP matrix
 					DirectX::XMMATRIX mvpMatrix = a_Transform.GetWorldMatrix() * a_CameraView * a_CameraProjection;
-					a_CommandList->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &mvpMatrix, 0);
+					a_CommandList->GetCommandList()->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &mvpMatrix, 0);
 
-					a_CommandList->DrawIndexedInstanced(meshData->m_Indices.size(), 1, 0, 0, 0);
+					a_CommandList->GetCommandList()->DrawIndexedInstanced(meshData->m_Indices.size(), 1, 0, 0, 0);
 				}
 			}
 		}

@@ -103,9 +103,9 @@ namespace coopscoop
 				}
 
 				// Create the command queues.
-				m_DirectCommandQueue = std::make_shared<CommandQueue>(m_Device, D3D12_COMMAND_LIST_TYPE_DIRECT);
-				m_ComputeCommandQueue = std::make_shared<CommandQueue>(m_Device, D3D12_COMMAND_LIST_TYPE_COMPUTE);
-				m_CopyCommandQueue = std::make_shared<CommandQueue>(m_Device, D3D12_COMMAND_LIST_TYPE_COPY);
+				m_DirectCommandQueue = std::make_shared<CommandQueue>(D3D12_COMMAND_LIST_TYPE_DIRECT);
+				m_ComputeCommandQueue = std::make_shared<CommandQueue>(D3D12_COMMAND_LIST_TYPE_COMPUTE);
+				m_CopyCommandQueue = std::make_shared<CommandQueue>(D3D12_COMMAND_LIST_TYPE_COPY);
 
 				m_IsTearingSupported = CheckTearingSupport();
 
@@ -127,7 +127,7 @@ namespace coopscoop
 
 				// Get the copy command queue.
 				std::shared_ptr<CommandQueue> cCommandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
-				Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> cCommandList = cCommandQueue->GetCommandList();
+				std::shared_ptr<CommandList> cCommandList = cCommandQueue->GetCommandList();
 
 				CreateRTV();
 				CreateDSV();
@@ -168,8 +168,8 @@ namespace coopscoop
 				auto fenceValue = cCommandQueue->ExecuteCommandList(cCommandList);
 				cCommandQueue->WaitForFenceValue(fenceValue);
 
-				auto dCommandQueue = GetCommandQueue();
-				auto dCommandList = dCommandQueue->GetCommandList();
+				std::shared_ptr<CommandQueue> dCommandQueue = GetCommandQueue();
+				std::shared_ptr<CommandList> dCommandList = dCommandQueue->GetCommandList();
 
 				m_ResourceAtlas.TransitionResources(dCommandList);
 				dCommandQueue->ExecuteCommandList(dCommandList);
@@ -622,7 +622,7 @@ namespace coopscoop
 			{
 				m_FpsCounter.Update();
 
-				m_Camera1.GetTransform().SetPosition({ 1.0f, 0.0f, -4.0f });
+				m_Camera1.GetTransform().SetPosition({ 0.0f, 0.0f, 0.0f });
 
 				m_CurrentCamera = &m_Camera1;
 
@@ -630,8 +630,8 @@ namespace coopscoop
 				auto projectionMatrix = m_CurrentCamera->GetProjectionMatrix();
 
 				// Render part.
-				auto commandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
-				auto commandList = commandQueue->GetCommandList();
+				std::shared_ptr<CommandQueue> commandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
+				std::shared_ptr<CommandList> commandList = commandQueue->GetCommandList();
 
 				UINT currentBackBufferIndex = GetCurrentBackBufferIndex();
 				auto backBuffer = GetCurrentBackBuffer();
@@ -640,23 +640,23 @@ namespace coopscoop
 
 				// Clear the render targets.
 				{
-					TransitionResource(commandList, backBuffer,
+					commandList->TransitionResource(backBuffer,
 						D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 					FLOAT clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-					commandList->ClearRenderTargetView(rtv, clearColor, 0, nullptr);
-					commandList->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, 1.0, 0, 0, nullptr);
+					commandList->GetCommandList()->ClearRenderTargetView(rtv, clearColor, 0, nullptr);
+					commandList->GetCommandList()->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, 1.0, 0, 0, nullptr);
 				}
 
-				commandList->SetGraphicsRootSignature(m_RootSignature.Get());
+				commandList->GetCommandList()->SetGraphicsRootSignature(m_RootSignature.Get());
 
-				commandList->RSSetViewports(1, &m_Viewport);
-				commandList->RSSetScissorRects(1, &m_ScissorRect);
+				commandList->GetCommandList()->RSSetViewports(1, &m_Viewport);
+				commandList->GetCommandList()->RSSetScissorRects(1, &m_ScissorRect);
 
-				commandList->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
+				commandList->GetCommandList()->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
 
-				commandList->SetGraphicsRootConstantBufferView(RootParameters::LIGHT, m_DirectionalLightBuffer->GetGPUVirtualAddress());
+				commandList->GetCommandList()->SetGraphicsRootConstantBufferView(RootParameters::LIGHT, m_DirectionalLightBuffer->GetGPUVirtualAddress());
 
 				m_FaucetTransform.SetPosition({ -2.0f, 0.0f, 5.0f });
 				m_FaucetTransform.GetRotation().y += 0.1f;
@@ -675,7 +675,7 @@ namespace coopscoop
 
 				// Present
 				{
-					TransitionResource(commandList, backBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
+					commandList->TransitionResource(backBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
 
 					m_FenceValues[currentBackBufferIndex] = commandQueue->ExecuteCommandList(commandList);
 
@@ -719,16 +719,6 @@ namespace coopscoop
 				}
 
 				return commandQueue;
-			}
-
-			// TODO: Remove and put in a class for commandlist.
-			void DX12System::TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, Microsoft::WRL::ComPtr<ID3D12Resource> a_Resource, D3D12_RESOURCE_STATES a_BeforeState, D3D12_RESOURCE_STATES a_AfterState)
-			{
-				CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
-					a_Resource.Get(),
-					a_BeforeState, a_AfterState);
-
-				a_CommandList->ResourceBarrier(1, &barrier);
 			}
 
 #pragma endregion DX12_SYSTEM

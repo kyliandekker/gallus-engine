@@ -33,7 +33,6 @@ namespace coopscoop
 
 				void SetResource(Microsoft::WRL::ComPtr<ID3D12Resource> a_Resource);
 				void CheckFeatureSupport();
-				void UpdateBufferResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, ID3D12Resource** a_pDestinationResource, ID3D12Resource** a_pIntermediateResource, size_t a_NumElements, size_t a_ElementSize, const void* a_BufferData, D3D12_RESOURCE_FLAGS a_Flags = D3D12_RESOURCE_FLAG_NONE);
 			protected:
 				D3D12_FEATURE_DATA_FORMAT_SUPPORT m_FormatSupport{};
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_Resource = nullptr;

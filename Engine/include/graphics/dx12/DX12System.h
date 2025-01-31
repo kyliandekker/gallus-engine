@@ -236,8 +236,6 @@ namespace coopscoop
 				/// <param name="a_Type">The type of command queue such as direct, copy, etc.</param>
 				/// <returns>Reference to the CommandQueue.</returns>
 				std::shared_ptr<CommandQueue> GetCommandQueue(D3D12_COMMAND_LIST_TYPE a_Type = D3D12_COMMAND_LIST_TYPE_DIRECT) const;
-
-				void TransitionResource(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, Microsoft::WRL::ComPtr<ID3D12Resource> a_Resource, D3D12_RESOURCE_STATES a_BeforeState, D3D12_RESOURCE_STATES a_AfterState);
 			protected:
 				ResourceAtlas m_ResourceAtlas;
 

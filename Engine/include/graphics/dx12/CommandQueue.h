@@ -1,8 +1,12 @@
-#include <Windows.h>
-#include <wrl.h>
-#include <d3d12.h>
+#pragma once
+
+#include "graphics/dx12/DX12PCH.h"
+
 #include <cstdint>  // For uint64_t
 #include <queue>    // For std::queue
+#include <memory>
+
+#include "graphics/dx12/CommandList.h"
 
 namespace coopscoop
 {
@@ -27,20 +31,20 @@ namespace coopscoop
 				/// </summary>
 				/// <param name="device">The ID3D12Device2 instance.</param>
 				/// <param name="type">The type of command list (e.g., DIRECT, BUNDLE).</param>
-				CommandQueue(Microsoft::WRL::ComPtr<ID3D12Device2> device, D3D12_COMMAND_LIST_TYPE type);
+				CommandQueue(D3D12_COMMAND_LIST_TYPE a_CommandListType);
 
 				/// <summary>
 				/// Retrieves an available command list from the command queue.
 				/// </summary>
-				/// <returns>A ComPtr to an ID3D12GraphicsCommandList2.</returns>
-				Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> GetCommandList();
+				/// <returns>A shared pointer to the command list.</returns>
+				std::shared_ptr<CommandList> GetCommandList();
 
 				/// <summary>
 				/// Executes a command list and signals the fence for synchronization.
 				/// </summary>
 				/// <param name="commandList">The command list to execute.</param>
 				/// <returns>The fence value associated with the executed command list.</returns>
-				uint64_t ExecuteCommandList(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList);
+				uint64_t ExecuteCommandList(std::shared_ptr<CommandList> commandList);
 
 				/// <summary>
 				/// Signals the command queue's fence.
@@ -79,13 +83,6 @@ namespace coopscoop
 				Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CreateCommandAllocator();
 
 				/// <summary>
-				/// Creates a new command list using the specified command allocator.
-				/// </summary>
-				/// <param name="allocator">The command allocator to use.</param>
-				/// <returns>A ComPtr to an ID3D12GraphicsCommandList2.</returns>
-				Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> CreateCommandList(Microsoft::WRL::ComPtr<ID3D12CommandAllocator> allocator);
-
-				/// <summary>
 				/// Tracks command allocators currently in use.
 				/// </summary>
 				struct CommandAllocatorEntry
@@ -95,10 +92,9 @@ namespace coopscoop
 				};
 
 				using CommandAllocatorQueue = std::queue<CommandAllocatorEntry>; /// Queue of command allocators.
-				using CommandListQueue = std::queue<Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2>>; /// Queue of command lists.
+				using CommandListQueue = std::queue<std::shared_ptr<CommandList>>; /// Queue of command lists.
 
 				D3D12_COMMAND_LIST_TYPE                     m_CommandListType; /// Type of command list (e.g., DIRECT, BUNDLE).
-				Microsoft::WRL::ComPtr<ID3D12Device2>       m_d3d12Device = nullptr; /// Associated ID3D12Device2.
 				Microsoft::WRL::ComPtr<ID3D12CommandQueue>  m_d3d12CommandQueue = nullptr; /// The ID3D12CommandQueue.
 				Microsoft::WRL::ComPtr<ID3D12Fence>         m_d3d12Fence = nullptr; /// Fence for synchronization.
 				HANDLE                                      m_FenceEvent = nullptr; /// Event handle for fence synchronization.

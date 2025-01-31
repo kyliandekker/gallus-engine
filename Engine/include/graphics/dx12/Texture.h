@@ -5,6 +5,7 @@
 #include <dx12/DirectXTex/DirectXTex/DirectXTex.h>
 #include <wrl.h>
 #include <string>
+#include <memory>
 
 #include "graphics/dx12/DX12Resource.h"
 
@@ -14,7 +15,10 @@ namespace coopscoop
     {
         namespace dx12
         {
-            class Texture : public DX12Resource {
+            class CommandList;
+
+            class Texture : public DX12Resource
+            {
             public:
                 Texture() = default;
                 ~Texture();
@@ -24,12 +28,12 @@ namespace coopscoop
                 bool CheckUAVSupport() const;
                 bool CheckDSVSupport() const;
 
-                bool Transition(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
+                bool Transition(std::shared_ptr<CommandList> a_CommandList);
                 
-                void Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
-                void Unbind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
+                void Bind(std::shared_ptr<CommandList> a_CommandList);
+                void Unbind(std::shared_ptr<CommandList> a_CommandList);
             private:
-                bool Load(const std::string& a_Name, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
+                bool Load(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList);
 
                 Microsoft::WRL::ComPtr<ID3D12Resource> m_ResourceUploadHeap = nullptr;
                 size_t m_SRVIndex = 0;

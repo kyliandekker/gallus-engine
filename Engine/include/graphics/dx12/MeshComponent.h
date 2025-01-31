@@ -14,6 +14,8 @@ namespace coopscoop
 			class Mesh;
 			class Transform;
 
+			class CommandList;
+
 			class MeshComponent
 			{
 			public:
@@ -25,7 +27,7 @@ namespace coopscoop
 				void SetTexture(Texture& a_Texture);
 				void SetMaterial(Material& a_Material);
 
-				void Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, const Transform& a_Transform, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection);
+				void Render(std::shared_ptr<CommandList> a_CommandList, const Transform& a_Transform, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection);
 			private:
 				Mesh* m_Mesh;
 				Shader* m_Shader = nullptr;

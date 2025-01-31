@@ -5,6 +5,7 @@ namespace fs = std::filesystem;
 
 #include "core/logger/Logger.h"
 #include "core/Engine.h"
+#include "graphics/dx12/CommandList.h"
 
 namespace coopscoop
 {
@@ -13,7 +14,7 @@ namespace coopscoop
 		namespace dx12
 		{
 			// TODO: This all needs to be loaded from a file eventually instead of from files on the disk.
-			bool Shader::Load(const std::string& a_ShaderName, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+			bool Shader::Load(const std::string& a_ShaderName, void*)
 			{
 				m_Name = std::wstring(a_ShaderName.begin(), a_ShaderName.end());
 				std::wstring path = L"./resources/shaders/";
@@ -65,10 +66,10 @@ namespace coopscoop
 				return true;
 			}
 
-			void Shader::Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+			void Shader::Bind(std::shared_ptr<CommandList> a_CommandList)
 			{
-				a_CommandList->SetPipelineState(m_PipelineState.Get());
-				a_CommandList->SetGraphicsRootSignature(core::ENGINE.GetDX12().GetRootSignature().Get()); // Set the existing root signature
+				a_CommandList->GetCommandList()->SetPipelineState(m_PipelineState.Get());
+				a_CommandList->GetCommandList()->SetGraphicsRootSignature(core::ENGINE.GetDX12().GetRootSignature().Get()); // Set the existing root signature
 			}
 
 			Microsoft::WRL::ComPtr<ID3DBlob> Shader::CompileShader(const std::wstring& a_FilePath, const std::string& a_EntryPoint, const std::string& a_Target)

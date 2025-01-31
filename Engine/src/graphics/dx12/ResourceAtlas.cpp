@@ -6,6 +6,7 @@
 #include "graphics/dx12/Mesh.h"
 #include "graphics/dx12/Shader.h"
 #include "graphics/dx12/Material.h"
+#include "graphics/dx12/CommandList.h"
 
 namespace coopscoop
 {
@@ -52,12 +53,12 @@ namespace coopscoop
 				return *res;
 			}
 
-			Mesh& ResourceAtlas::LoadMesh(const std::string& a_Name, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+			Mesh& ResourceAtlas::LoadMesh(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList)
 			{
 				return GetResource(m_Meshes, a_Name, a_CommandList);
 			}
 
-			Texture& ResourceAtlas::LoadTexture(const std::string& a_Name, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+			Texture& ResourceAtlas::LoadTexture(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList)
 			{
 				return GetResource(m_Textures, a_Name, a_CommandList);
 			}
@@ -82,7 +83,7 @@ namespace coopscoop
 				return *m_Materials[MISSING];
 			}
 
-			void ResourceAtlas::TransitionResources(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+			void ResourceAtlas::TransitionResources(std::shared_ptr<CommandList> a_CommandList)
 			{
 				for (auto texture : m_Textures)
 				{

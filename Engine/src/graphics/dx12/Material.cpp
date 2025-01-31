@@ -1,6 +1,7 @@
 #include "graphics/dx12/Material.h"
 
 #include "graphics/dx12/DX12System.h"
+#include "graphics/dx12/CommandList.h"
 
 namespace coopscoop
 {
@@ -8,12 +9,12 @@ namespace coopscoop
 	{
 		namespace dx12
 		{
-			void Material::Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+			void Material::Bind(std::shared_ptr<CommandList> a_CommandList)
 			{
-				a_CommandList->SetGraphicsRootConstantBufferView(RootParameters::MATERIAL, m_Resource->GetGPUVirtualAddress());
+				a_CommandList->GetCommandList()->SetGraphicsRootConstantBufferView(RootParameters::MATERIAL, m_Resource->GetGPUVirtualAddress());
 			}
 
-			void Material::Unbind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+			void Material::Unbind(std::shared_ptr<CommandList> a_CommandList)
 			{
 			}
 

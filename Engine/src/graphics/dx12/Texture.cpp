@@ -4,6 +4,7 @@
 
 #include "core/Engine.h"
 #include "core/logger/Logger.h"
+#include "graphics/dx12/CommandList.h"
 
 namespace coopscoop
 {
@@ -39,7 +40,7 @@ namespace coopscoop
             }
 
             // TODO: This all needs to be loaded from a file eventually instead of from files on the disk.
-            bool Texture::Load(const std::string& a_FilePath, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+            bool Texture::Load(const std::string& a_FilePath, std::shared_ptr<CommandList> a_CommandList)
             {
                 int width, height, channels;
                 stbi_uc* imageData = stbi_load(a_FilePath.c_str(), &width, &height, &channels, STBI_rgb_alpha);
@@ -83,7 +84,7 @@ namespace coopscoop
                 textureData.pData = imageData;
                 textureData.RowPitch = width * channels;
                 textureData.SlicePitch = textureData.RowPitch * height;
-                UpdateSubresources(a_CommandList.Get(), m_Resource.Get(), m_ResourceUploadHeap.Get(), 0, 0, 1, &textureData);
+                UpdateSubresources(a_CommandList->GetCommandList().Get(), m_Resource.Get(), m_ResourceUploadHeap.Get(), 0, 0, 1, &textureData);
 
                 stbi_image_free(imageData);
 
@@ -91,7 +92,7 @@ namespace coopscoop
                 return true;
             }
 
-            bool Texture::Transition(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+            bool Texture::Transition(std::shared_ptr<CommandList> a_CommandList)
             {
                 if (m_State == D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
                 {
@@ -102,7 +103,7 @@ namespace coopscoop
                     m_Resource.Get(),
                     D3D12_RESOURCE_STATE_COPY_DEST,
                     D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-                a_CommandList->ResourceBarrier(1, &barrier);
+                a_CommandList->GetCommandList()->ResourceBarrier(1, &barrier);
 
                 m_State = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
@@ -120,16 +121,16 @@ namespace coopscoop
                 return true;
             }
 
-            void Texture::Bind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+            void Texture::Bind(std::shared_ptr<CommandList> a_CommandList)
             {
-                a_CommandList->SetDescriptorHeaps(1, core::ENGINE.GetDX12().GetSRV().GetHeap().GetAddressOf());
+                a_CommandList->GetCommandList()->SetDescriptorHeaps(1, core::ENGINE.GetDX12().GetSRV().GetHeap().GetAddressOf());
 
                 CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle = core::ENGINE.GetDX12().GetSRV().GetGPUHandle(m_SRVIndex);
 
-                a_CommandList->SetGraphicsRootDescriptorTable(1, gpuHandle);
+                a_CommandList->GetCommandList()->SetGraphicsRootDescriptorTable(1, gpuHandle);
             }
 
-            void Texture::Unbind(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList)
+            void Texture::Unbind(std::shared_ptr<CommandList> a_CommandList)
             {
             }
         }

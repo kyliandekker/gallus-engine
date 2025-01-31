@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <cstdint>
+#include <memory>
 
 #include "graphics/dx12/Transform.h"
 #include "graphics/dx12/VertexBuffer.h"
@@ -44,13 +45,15 @@ namespace coopscoop
 				Microsoft::WRL::ComPtr<ID3D12Resource> intermediateIndexBuffer;
 			};
 
+			class CommandList;
+
 			class Mesh : public DX12Resource
 			{
 			public:
 				Mesh();
-				void Render(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList, const Transform& a_Transform, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection);
+				void Render(std::shared_ptr<CommandList> a_CommandList, const Transform& a_Transform, DirectX::XMMATRIX a_CameraView, DirectX::XMMATRIX a_CameraProjection);
 			private:
-				bool Load(const std::string& a_Name, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> a_CommandList);
+				bool Load(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList);
 
 				D3D12_SHADER_RESOURCE_VIEW_DESC m_ShaderResourceView;
 				std::vector<MeshPartData*> m_MeshData;

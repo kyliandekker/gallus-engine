@@ -3,6 +3,7 @@
 #include <d3d12.h>
 
 #include "core/logger/Logger.h"
+#include "core/Engine.h"
 
 namespace coopscoop
 {
@@ -11,23 +12,22 @@ namespace coopscoop
 		namespace dx12
 		{
 #pragma region DX12_COMMAND_QUEUE
-			CommandQueue::CommandQueue(Microsoft::WRL::ComPtr<ID3D12Device2> device, D3D12_COMMAND_LIST_TYPE type) :
-				m_FenceValue(0),
-				m_CommandListType(type),
-				m_d3d12Device(device)
+			CommandQueue::CommandQueue(D3D12_COMMAND_LIST_TYPE a_CommandListType) :
+				m_CommandListType(a_CommandListType),
+				m_FenceValue(0)
 			{
 				D3D12_COMMAND_QUEUE_DESC desc = {};
-				desc.Type = type;
+				desc.Type = a_CommandListType;
 				desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
 				desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 				desc.NodeMask = 0;
 
-				if (FAILED(m_d3d12Device->CreateCommandQueue(&desc, IID_PPV_ARGS(&m_d3d12CommandQueue))))
+				if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateCommandQueue(&desc, IID_PPV_ARGS(&m_d3d12CommandQueue))))
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating command queue.");
 					return;
 				}
-				if (FAILED(m_d3d12Device->CreateFence(m_FenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_d3d12Fence))))
+				if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateFence(m_FenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_d3d12Fence))))
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating fence.");
 					return;
@@ -41,10 +41,10 @@ namespace coopscoop
 				}
 			}
 
-			Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> CommandQueue::GetCommandList()
+			std::shared_ptr<CommandList> CommandQueue::GetCommandList()
 			{
 				Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
-				Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList;
+				std::shared_ptr<CommandList> commandList = std::make_shared<CommandList>();
 
 				if (!m_CommandAllocatorQueue.empty() && IsFenceComplete(m_CommandAllocatorQueue.front().fenceValue))
 				{
@@ -54,7 +54,7 @@ namespace coopscoop
 					if (FAILED(commandAllocator->Reset()))
 					{
 						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed resetting command allocator.");
-						return nullptr;
+						return commandList;
 					}
 				}
 				else
@@ -67,42 +67,42 @@ namespace coopscoop
 					commandList = m_CommandListQueue.front();
 					m_CommandListQueue.pop();
 
-					if (FAILED((commandList->Reset(commandAllocator.Get(), nullptr))))
+					if (FAILED((commandList->GetCommandList()->Reset(commandAllocator.Get(), nullptr))))
 					{
 						LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed resetting command list.");
-						return nullptr;
+						return commandList;
 					}
 				}
 				else
 				{
-					commandList = CreateCommandList(commandAllocator);
+					commandList->CreateCommandList(commandAllocator, m_CommandListType);
 				}
 
 				// Associate the command allocator with the command list so that it can be
 				// retrieved when the command list is executed.
-				if (FAILED(commandList->SetPrivateDataInterface(__uuidof(ID3D12CommandAllocator), commandAllocator.Get())))
+				if (FAILED(commandList->GetCommandList()->SetPrivateDataInterface(__uuidof(ID3D12CommandAllocator), commandAllocator.Get())))
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed associating command allocator with command list.");
-					return nullptr;
+					return commandList;
 				}
 
 				return commandList;
 			}
 
-			uint64_t CommandQueue::ExecuteCommandList(Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList)
+			uint64_t CommandQueue::ExecuteCommandList(std::shared_ptr<CommandList> commandList)
 			{
-				commandList->Close();
+				commandList->GetCommandList()->Close();
 
 				ID3D12CommandAllocator* commandAllocator;
 				UINT dataSize = sizeof(commandAllocator);
-				if (FAILED(commandList->GetPrivateData(__uuidof(ID3D12CommandAllocator), &dataSize, &commandAllocator)))
+				if (FAILED(commandList->GetCommandList()->GetPrivateData(__uuidof(ID3D12CommandAllocator), &dataSize, &commandAllocator)))
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed setting private data for command list.");
 					return -1;
 				}
 
 				ID3D12CommandList* const ppCommandLists[] = {
-					commandList.Get()
+					commandList->GetCommandList().Get()
 				};
 
 				m_d3d12CommandQueue->ExecuteCommandLists(1, ppCommandLists);
@@ -153,25 +153,13 @@ namespace coopscoop
 			Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CommandQueue::CreateCommandAllocator()
 			{
 				Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
-				if (FAILED(m_d3d12Device->CreateCommandAllocator(m_CommandListType, IID_PPV_ARGS(&commandAllocator))))
+				if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateCommandAllocator(m_CommandListType, IID_PPV_ARGS(&commandAllocator))))
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating command allocator.");
 					return nullptr;
 				}
 
 				return commandAllocator;
-			}
-
-			Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> CommandQueue::CreateCommandList(Microsoft::WRL::ComPtr<ID3D12CommandAllocator> allocator)
-			{
-				Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2> commandList;
-				if (FAILED(m_d3d12Device->CreateCommandList(0, m_CommandListType, allocator.Get(), nullptr, IID_PPV_ARGS(&commandList))))
-				{
-					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating command list.");
-					return nullptr;
-				}
-
-				return commandList;
 			}
 		}
 	}
