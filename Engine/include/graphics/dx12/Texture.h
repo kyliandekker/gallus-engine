@@ -34,6 +34,7 @@ namespace coopscoop
                 void Unbind(std::shared_ptr<CommandList> a_CommandList);
             private:
                 bool Load(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList);
+                bool Load(const std::string& a_Name, const D3D12_RESOURCE_DESC& a_Description);
 
                 Microsoft::WRL::ComPtr<ID3D12Resource> m_ResourceUploadHeap = nullptr;
                 size_t m_SRVIndex = 0;

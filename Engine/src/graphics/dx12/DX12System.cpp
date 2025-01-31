@@ -133,6 +133,11 @@ namespace coopscoop
 				CreateDSV();
 				CreateSRV();
 
+#ifdef __EDITOR__
+				CreateRenderTexture();
+				m_ImGuiWindow.Initialize();
+#endif // __EDITOR__
+
 				UpdateRenderTargetViews();
 
 				if (!CreateRootSignature())
@@ -140,10 +145,6 @@ namespace coopscoop
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating root signature.");
 					return false;
 				}
-
-#ifdef __EDITOR__
-				m_ImGuiWindow.Initialize();
-#endif // __EDITOR__
 
 				// Default textures, meshes, shaders and materials.
 				Shader& shaderColor = m_ResourceAtlas.LoadShader("color"); // Default color shader.
@@ -451,6 +452,24 @@ namespace coopscoop
 				srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // Important for binding!
 				m_SRV = HeapAllocation(srvHeapDesc);
 			}
+
+#ifdef __EDITOR__
+			void DX12System::CreateRenderTexture()
+			{
+				D3D12_RESOURCE_DESC texDesc = {};
+				texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+				texDesc.Width = m_Size.x;
+				texDesc.Height = m_Size.y;
+				texDesc.DepthOrArraySize = 1;
+				texDesc.MipLevels = 1;
+				texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				texDesc.SampleDesc.Count = 1;
+				texDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+				texDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+
+				m_RenderTexture = &m_ResourceAtlas.LoadTextureByDescription("RenderTexture", texDesc);
+			}
+#endif // __EDITOR__
 
 			bool DX12System::CreateRootSignature()
 			{

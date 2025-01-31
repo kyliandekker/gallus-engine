@@ -12,6 +12,11 @@ namespace coopscoop
 		{
 			constexpr uint32_t MAX_RESOURCES = 65;
 			constexpr uint32_t MISSING = 0;
+#ifdef __EDITOR__
+			constexpr uint32_t MISSING_TEX = 1;
+#elif
+			constexpr uint32_t MISSING_TEX = 0;
+#endif // __EDITOR__
 
 			class Texture;
 			class Mesh;
@@ -25,10 +30,11 @@ namespace coopscoop
 			{
 			public:
 				template<class T, typename Arg>
-				T& GetResource(std::vector<T*>& a_Vector, const std::string& a_Name, const Arg& a_Arg);
+				T* GetResource(std::vector<T*>& a_Vector, const std::string& a_Name, const Arg& a_Arg);
 
 				Mesh& LoadMesh(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList);
 				Texture& LoadTexture(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList);
+				Texture& LoadTextureByDescription(const std::string& a_Name, D3D12_RESOURCE_DESC& a_Description);
 				Shader& LoadShader(const std::string& a_Name);
 				Material& LoadMaterial(const std::string& a_Name, const MaterialData& a_MaterialData);
 

@@ -92,6 +92,11 @@ namespace coopscoop
                 return true;
             }
 
+            bool Texture::Load(const std::string& a_Name, const D3D12_RESOURCE_DESC& a_Description)
+            {
+                return CreateResource(a_Description, std::wstring(a_Name.begin(), a_Name.end()));
+            }
+
             bool Texture::Transition(std::shared_ptr<CommandList> a_CommandList)
             {
                 if (m_State == D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)

@@ -140,6 +140,13 @@ namespace coopscoop
 				/// </summary>
 				void CreateSRV();
 
+#ifdef __EDITOR__
+				/// <summary>
+				/// Creates the Render Texture.
+				/// </summary>
+				void CreateRenderTexture();
+#endif // __EDITOR__
+
 				/// <summary>
 				/// Creates the DirectX 12 root signature.
 				/// </summary>
