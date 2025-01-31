@@ -276,6 +276,7 @@ namespace coopscoop
 
 #ifdef __EDITOR__
 				editor::imgui::ImGuiWindow m_ImGuiWindow;
+				class Texture* m_RenderTexture = nullptr;
 #endif // __EDITOR__
 
 				// TODO: Delete these as they are all supposed to be temporary.

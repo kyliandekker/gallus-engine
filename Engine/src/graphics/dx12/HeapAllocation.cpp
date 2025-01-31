@@ -9,7 +9,7 @@ namespace coopscoop
 	{
 		namespace dx12
 		{
-			HeapAllocation::HeapAllocation(const D3D12_DESCRIPTOR_HEAP_DESC& a_Desc)
+			HeapAllocation::HeapAllocation(const D3D12_DESCRIPTOR_HEAP_DESC& a_Desc) : m_Type(a_Desc.Type)
 			{
 				HRESULT hr = core::ENGINE.GetDX12().GetDevice()->CreateDescriptorHeap(&a_Desc, IID_PPV_ARGS(&m_Heap));
 				if (FAILED(hr))
@@ -54,7 +54,7 @@ namespace coopscoop
 			CD3DX12_GPU_DESCRIPTOR_HANDLE HeapAllocation::GetGPUHandle(size_t a_Index)
 			{
 				CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(m_Heap->GetGPUDescriptorHandleForHeapStart());
-				gpuHandle.Offset(a_Index, core::ENGINE.GetDX12().GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+				gpuHandle.Offset(a_Index, core::ENGINE.GetDX12().GetDevice()->GetDescriptorHandleIncrementSize(m_Type));
 
 				return gpuHandle;
 			}
@@ -62,7 +62,7 @@ namespace coopscoop
 			CD3DX12_CPU_DESCRIPTOR_HANDLE HeapAllocation::GetCPUHandle(size_t a_Index)
 			{
 				CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle(m_Heap->GetCPUDescriptorHandleForHeapStart());
-				cpuHandle.Offset(a_Index, core::ENGINE.GetDX12().GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+				cpuHandle.Offset(a_Index, core::ENGINE.GetDX12().GetDevice()->GetDescriptorHandleIncrementSize(m_Type));
 
 				return cpuHandle;
 			}
