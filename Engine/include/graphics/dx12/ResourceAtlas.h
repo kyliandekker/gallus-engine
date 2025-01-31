@@ -14,7 +14,7 @@ namespace coopscoop
 			constexpr uint32_t MISSING = 0;
 #ifdef __EDITOR__
 			constexpr uint32_t MISSING_TEX = 1;
-#elif
+#else
 			constexpr uint32_t MISSING_TEX = 0;
 #endif // __EDITOR__
 
