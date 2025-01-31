@@ -677,8 +677,15 @@ namespace coopscoop
 
 				UINT currentBackBufferIndex = GetCurrentBackBufferIndex();
 				auto backBuffer = GetCurrentBackBuffer();
-				auto rtv = GetCurrentRenderTargetView();
+				auto rtv = GetCurrentRenderTargetView(true);
 				auto dsv = m_DSV.GetCPUDescriptorHandleForHeapStart();
+
+#ifdef __EDITOR__
+				commandList->TransitionResource(m_RenderTexture->GetResource(),
+					D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+					D3D12_RESOURCE_STATE_RENDER_TARGET);
+				rtv = GetCurrentRenderTargetView(true);
+#endif
 
 				// Clear the render targets.
 				{
@@ -715,6 +722,12 @@ namespace coopscoop
 
 				m_ChickenMesh2.Render(commandList, m_ChickenTransform2, viewMatrix, projectionMatrix);
 
+#ifdef __EDITOR__
+				// Transition back to SRV for ImGui usage
+				commandList->TransitionResource(m_RenderTexture->GetResource(),
+					D3D12_RESOURCE_STATE_RENDER_TARGET,
+					D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+#endif
 				// Present
 				{
 					commandList->TransitionResource(backBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
