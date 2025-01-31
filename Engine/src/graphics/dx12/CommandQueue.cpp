@@ -22,12 +22,12 @@ namespace coopscoop
 				desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 				desc.NodeMask = 0;
 
-				if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateCommandQueue(&desc, IID_PPV_ARGS(&m_d3d12CommandQueue))))
+				if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateCommandQueue(&desc, IID_PPV_ARGS(&m_CommandQueue))))
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating command queue.");
 					return;
 				}
-				if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateFence(m_FenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_d3d12Fence))))
+				if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateFence(m_FenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence))))
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating fence.");
 					return;
@@ -46,9 +46,9 @@ namespace coopscoop
 				Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
 				std::shared_ptr<CommandList> commandList = std::make_shared<CommandList>();
 
-				if (!m_CommandAllocatorQueue.empty() && IsFenceComplete(m_CommandAllocatorQueue.front().fenceValue))
+				if (!m_CommandAllocatorQueue.empty() && IsFenceComplete(m_CommandAllocatorQueue.front().m_FenceValue))
 				{
-					commandAllocator = m_CommandAllocatorQueue.front().commandAllocator;
+					commandAllocator = m_CommandAllocatorQueue.front().m_CommandAllocator;
 					m_CommandAllocatorQueue.pop();
 
 					if (FAILED(commandAllocator->Reset()))
@@ -89,27 +89,27 @@ namespace coopscoop
 				return commandList;
 			}
 
-			uint64_t CommandQueue::ExecuteCommandList(std::shared_ptr<CommandList> commandList)
+			uint64_t CommandQueue::ExecuteCommandList(std::shared_ptr<CommandList> a_CommandList)
 			{
-				commandList->GetCommandList()->Close();
+				a_CommandList->GetCommandList()->Close();
 
 				ID3D12CommandAllocator* commandAllocator;
 				UINT dataSize = sizeof(commandAllocator);
-				if (FAILED(commandList->GetCommandList()->GetPrivateData(__uuidof(ID3D12CommandAllocator), &dataSize, &commandAllocator)))
+				if (FAILED(a_CommandList->GetCommandList()->GetPrivateData(__uuidof(ID3D12CommandAllocator), &dataSize, &commandAllocator)))
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed setting private data for command list.");
 					return -1;
 				}
 
 				ID3D12CommandList* const ppCommandLists[] = {
-					commandList->GetCommandList().Get()
+					a_CommandList->GetCommandList().Get()
 				};
 
-				m_d3d12CommandQueue->ExecuteCommandLists(1, ppCommandLists);
+				m_CommandQueue->ExecuteCommandLists(1, ppCommandLists);
 				uint64_t fenceValue = Signal();
 
 				m_CommandAllocatorQueue.emplace(CommandAllocatorEntry{ fenceValue, commandAllocator });
-				m_CommandListQueue.push(commandList);
+				m_CommandListQueue.push(a_CommandList);
 
 				// The ownership of the command allocator has been transferred to the ComPtr
 				// in the command allocator queue. It is safe to release the reference 
@@ -122,20 +122,20 @@ namespace coopscoop
 			uint64_t CommandQueue::Signal()
 			{
 				uint64_t fenceValue = ++m_FenceValue;
-				m_d3d12CommandQueue->Signal(m_d3d12Fence.Get(), fenceValue);
+				m_CommandQueue->Signal(m_Fence.Get(), fenceValue);
 				return fenceValue;
 			}
 
-			bool CommandQueue::IsFenceComplete(uint64_t fenceValue)
+			bool CommandQueue::IsFenceComplete(uint64_t a_FenceValue)
 			{
-				return m_d3d12Fence->GetCompletedValue() >= fenceValue;
+				return m_Fence->GetCompletedValue() >= a_FenceValue;
 			}
 
-			void CommandQueue::WaitForFenceValue(uint64_t fenceValue)
+			void CommandQueue::WaitForFenceValue(uint64_t a_FenceValue)
 			{
-				if (!IsFenceComplete(fenceValue))
+				if (!IsFenceComplete(a_FenceValue))
 				{
-					m_d3d12Fence->SetEventOnCompletion(fenceValue, m_FenceEvent);
+					m_Fence->SetEventOnCompletion(a_FenceValue, m_FenceEvent);
 					::WaitForSingleObject(m_FenceEvent, DWORD_MAX);
 				}
 			}
@@ -145,9 +145,9 @@ namespace coopscoop
 				WaitForFenceValue(Signal());
 			}
 
-			Microsoft::WRL::ComPtr<ID3D12CommandQueue> CommandQueue::GetD3D12CommandQueue() const
+			Microsoft::WRL::ComPtr<ID3D12CommandQueue> CommandQueue::GetCommandQueue() const
 			{
-				return m_d3d12CommandQueue;
+				return m_CommandQueue;
 			}
 
 			Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CommandQueue::CreateCommandAllocator()

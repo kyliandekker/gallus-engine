@@ -54,7 +54,7 @@ namespace coopscoop
 				return m_Resource;
 			}
 
-			D3D12_RESOURCE_DESC DX12Resource::GetResourceDesc() const
+			const D3D12_RESOURCE_DESC& DX12Resource::GetResourceDesc() const
 			{
 				D3D12_RESOURCE_DESC resDesc = {};
 				if (m_Resource)

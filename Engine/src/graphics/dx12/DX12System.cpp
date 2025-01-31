@@ -60,7 +60,7 @@ namespace coopscoop
 
 #pragma region DX12_SYSTEM
 
-			bool DX12System::Initialize(bool a_Wait, HWND a_hWnd, const glm::ivec2 a_Size)
+			bool DX12System::Initialize(bool a_Wait, HWND a_hWnd, const glm::ivec2& a_Size)
 			{
 				m_Size = a_Size;
 
@@ -384,7 +384,7 @@ namespace coopscoop
 				swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
 				// It is recommended to always allow tearing if tearing support is available.
 				swapChainDesc.Flags = m_IsTearingSupported ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
-				ID3D12CommandQueue* pCommandQueue = GetCommandQueue()->GetD3D12CommandQueue().Get();
+				ID3D12CommandQueue* pCommandQueue = GetCommandQueue()->GetCommandQueue().Get();
 
 				Microsoft::WRL::ComPtr<IDXGISwapChain1> swapChain1;
 				if (FAILED(dxgiFactory4->CreateSwapChainForHwnd(

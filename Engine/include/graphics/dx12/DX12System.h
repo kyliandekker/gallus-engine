@@ -84,7 +84,7 @@ namespace coopscoop
 				/// <param name="a_hWnd">Handle to the window.</param>
 				/// <param name="a_Size">Size of the window.</param>
 				/// <returns>True if the initialization was successful, otherwise false.</returns>
-				bool Initialize(bool a_Wait, HWND a_hWnd, const glm::ivec2 a_Size);
+				bool Initialize(bool a_Wait, HWND a_hWnd, const glm::ivec2& a_Size);
 
 				/// <summary>
 				/// Cleans up resources and destroys the dx12 window.

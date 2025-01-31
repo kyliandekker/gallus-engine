@@ -26,7 +26,7 @@ namespace coopscoop
 
 				const std::wstring& GetName() const { return m_Name; };
 
-				D3D12_RESOURCE_DESC GetResourceDesc() const;
+				const D3D12_RESOURCE_DESC& GetResourceDesc() const;
 
 				bool CheckFormatSupport(D3D12_FORMAT_SUPPORT1 a_FormatSupport) const;
 				bool CheckFormatSupport(D3D12_FORMAT_SUPPORT2 a_FormatSupport) const;

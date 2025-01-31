@@ -38,7 +38,7 @@ namespace coopscoop
                 Microsoft::WRL::ComPtr<ID3D12Resource> m_ResourceUploadHeap = nullptr;
                 size_t m_SRVIndex = 0;
 
-                D3D12_RESOURCE_STATES m_State;
+                D3D12_RESOURCE_STATES m_State = D3D12_RESOURCE_STATE_COMMON;
 
                 friend class ResourceAtlas;
             };

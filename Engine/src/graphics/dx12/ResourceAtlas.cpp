@@ -15,7 +15,7 @@ namespace coopscoop
 		namespace dx12
 		{
 			template<class T, typename Arg>
-			T& ResourceAtlas::GetResource(std::vector<T*>& a_Vector, const std::string& a_Name, Arg a_Arg)
+			T& ResourceAtlas::GetResource(std::vector<T*>& a_Vector, const std::string& a_Name, const Arg& a_Arg)
 			{
 				std::wstring name = std::wstring(a_Name.begin(), a_Name.end());
 				T* res = nullptr;

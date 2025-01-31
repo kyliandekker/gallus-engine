@@ -15,7 +15,7 @@ namespace coopscoop
             public:
                 Camera();
 
-                void SetProjection(float fov, float aspectRatio, float nearPlane, float farPlane);
+                void SetProjection(float a_FoV, float a_AspectRatio, float a_NearPlane, float a_FarPlane);
 
                 Transform& GetTransform();
                 DirectX::XMMATRIX GetViewMatrix() const;

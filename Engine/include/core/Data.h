@@ -107,14 +107,14 @@ namespace coopscoop
 			/// </summary>
 			/// <param name="a_Index">The index of the byte to access.</param>
 			/// <returns>The byte at the specified index.</returns>
-			unsigned char operator [] (int a_Index) const { return reinterpret_cast<unsigned char*>(m_Data)[a_Index]; }
+			unsigned char operator [] (size_t a_Index) const { return reinterpret_cast<unsigned char*>(m_Data)[a_Index]; }
 
 			/// <summary>
 			/// Accesses the byte at the specified index (modifiable).
 			/// </summary>
 			/// <param name="a_Index">The index of the byte to access.</param>
 			/// <returns>A reference to the byte at the specified index.</returns>
-			unsigned char& operator [] (int a_Index) { return reinterpret_cast<unsigned char*>(m_Data)[a_Index]; }
+			unsigned char& operator [] (size_t a_Index) { return reinterpret_cast<unsigned char*>(m_Data)[a_Index]; }
 		protected:
 			void* m_Data = nullptr; /// Pointer to the raw data.
 			size_t m_Size = 0;      /// Size of the data in bytes.

@@ -25,7 +25,7 @@ namespace coopscoop
 			{
 			public:
 				template<class T, typename Arg>
-				T& GetResource(std::vector<T*>& a_Vector, const std::string& a_Name, Arg a_Arg);
+				T& GetResource(std::vector<T*>& a_Vector, const std::string& a_Name, const Arg& a_Arg);
 
 				Mesh& LoadMesh(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList);
 				Texture& LoadTexture(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList);

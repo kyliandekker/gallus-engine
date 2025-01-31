@@ -13,10 +13,10 @@ namespace coopscoop
                 SetProjection(45.0f, 16.0f / 9.0f, 0.1f, 100.0f);
             }
 
-            void Camera::SetProjection(float fov, float aspectRatio, float nearPlane, float farPlane)
+            void Camera::SetProjection(float a_FoV, float a_AspectRatio, float a_NearPlane, float a_FarPlane)
             {
                 m_ProjectionMatrix = DirectX::XMMatrixPerspectiveFovLH(
-                    DirectX::XMConvertToRadians(fov), aspectRatio, nearPlane, farPlane
+                    DirectX::XMConvertToRadians(a_FoV), a_AspectRatio, a_NearPlane, a_FarPlane
                 );
             }
 
