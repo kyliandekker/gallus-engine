@@ -622,6 +622,8 @@ namespace coopscoop
 			{
 				m_FpsCounter.Update();
 
+				TESTF("FPS: %f", m_FpsCounter.GetFPS());
+
 				m_Camera1.GetTransform().SetPosition({ 0.0f, 0.0f, 0.0f });
 
 				m_CurrentCamera = &m_Camera1;

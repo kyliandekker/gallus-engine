@@ -205,3 +205,8 @@ do{\
 do{\
 	core::logger::LOGGER.Log(LOGSEVERITY_TEST, "Test", a_Message, __FILE__, __LINE__);\
 } while (0)
+
+#define TESTF(a_Message, ...)\
+do{\
+	core::logger::LOGGER.LogF(LOGSEVERITY_TEST, "Test", a_Message, __FILE__, __LINE__, __VA_ARGS__);\
+} while (0)
