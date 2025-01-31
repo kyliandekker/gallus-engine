@@ -15,6 +15,7 @@ namespace coopscoop
 #define LOG_CATEGORY_WINDOW "WINDOW"
 #define LOG_CATEGORY_LOGGER "LOGGER"
 #define LOG_CATEGORY_DX12 "DX12"
+#define LOGGER_CATEGORY_EDITOR "EDITOR"
 
 	// This one is out of the other namespaces so they can be easily used in other classes.
 	typedef enum LogSeverity {

@@ -14,6 +14,7 @@
 #include "graphics/dx12/HeapAllocation.h"
 #include "graphics/dx12/Light.h"
 #include "graphics/dx12/MeshComponent.h"
+#include "editor/imgui/ImGuiWindow.h"
 
 #undef min
 #undef max
@@ -272,6 +273,10 @@ namespace coopscoop
 				glm::ivec2 m_Size;
 
 				FPSCounter m_FpsCounter;
+
+#ifdef __EDITOR__
+				editor::imgui::ImGuiWindow m_ImGuiWindow;
+#endif // __EDITOR__
 
 				// TODO: Delete these as they are all supposed to be temporary.
 

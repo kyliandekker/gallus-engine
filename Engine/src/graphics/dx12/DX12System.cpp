@@ -141,6 +141,10 @@ namespace coopscoop
 					return false;
 				}
 
+#ifdef __EDITOR__
+				m_ImGuiWindow.Initialize();
+#endif // __EDITOR__
+
 				// Default textures, meshes, shaders and materials.
 				Shader& shaderColor = m_ResourceAtlas.LoadShader("color"); // Default color shader.
 				Shader& shaderAlbedo = m_ResourceAtlas.LoadShader("albedo"); // Default albedo shader.
@@ -622,7 +626,7 @@ namespace coopscoop
 			{
 				m_FpsCounter.Update();
 
-				TESTF("FPS: %f", m_FpsCounter.GetFPS());
+				//TESTF("FPS: %f", m_FpsCounter.GetFPS());
 
 				m_Camera1.GetTransform().SetPosition({ 0.0f, 0.0f, 0.0f });
 

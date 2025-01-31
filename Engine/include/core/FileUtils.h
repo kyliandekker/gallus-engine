@@ -13,6 +13,7 @@ namespace coopscoop
 		class FileLoader
 		{
 		public:
+			static const std::string GetAppDataPath();
 			static bool LoadFile(const std::string& a_Path, core::DataStream& a_Data);
 		};
 	}

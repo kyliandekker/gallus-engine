@@ -5,6 +5,10 @@
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Engine Debug|x64">
+      <Configuration>Engine Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
@@ -19,6 +23,12 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Engine Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
@@ -39,6 +49,9 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Engine Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -48,6 +61,25 @@
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_OPTIMIZE;_DEBUG;_CONSOLE;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)external;</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>dxgi.lib;d3d12.lib;d3dcompiler.lib;dxguid.lib;Shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>xcopy /E /I /Y "$(SolutionDir)shaders" "$(OutDir)resources\shaders"</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Engine Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_OPTIMIZE;_DEBUG;_CONSOLE;_WINDOWS;__EDITOR__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)external;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -107,7 +139,20 @@
     <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexUtil.cpp" />
     <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexWIC.cpp" />
     <ClCompile Include="external\dx12\directx\d3dx12_property_format_table.cpp" />
+    <ClCompile Include="external\imgui\backends\imgui_impl_dx12.cpp" />
+    <ClCompile Include="external\imgui\backends\imgui_impl_win32.cpp" />
+    <ClCompile Include="external\imgui\imgui.cpp" />
+    <ClCompile Include="external\imgui\imgui_demo.cpp" />
+    <ClCompile Include="external\imgui\imgui_draw.cpp" />
+    <ClCompile Include="external\imgui\imgui_helpers.cpp" />
+    <ClCompile Include="external\imgui\imgui_stdlib.cpp" />
+    <ClCompile Include="external\imgui\imgui_tables.cpp" />
+    <ClCompile Include="external\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="external\imgui\implot.cpp" />
+    <ClCompile Include="external\imgui\implot_items.cpp" />
     <ClCompile Include="external\tiny_gltf\tiny_gltf.cc" />
+    <ClCompile Include="src\editor\imgui\ImGuiDefines.cpp" />
+    <ClCompile Include="src\editor\imgui\ImGuiWindow.cpp" />
     <ClCompile Include="src\graphics\dx12\CommandList.cpp" />
     <ClCompile Include="src\graphics\dx12\Material.cpp" />
     <ClCompile Include="src\graphics\dx12\Light.cpp" />
@@ -144,6 +189,10 @@
     <ClInclude Include="include\core\logger\Logger.h" />
     <ClInclude Include="include\core\MemoryInfo.h" />
     <ClInclude Include="include\core\System.h" />
+    <ClInclude Include="include\editor\imgui\font_arial.h" />
+    <ClInclude Include="include\editor\imgui\font_icon.h" />
+    <ClInclude Include="include\editor\imgui\ImGuiDefines.h" />
+    <ClInclude Include="include\editor\imgui\ImGuiWindow.h" />
     <ClInclude Include="include\graphics\dx12\Buffer.h" />
     <ClInclude Include="include\graphics\dx12\CommandList.h" />
     <ClInclude Include="include\graphics\dx12\CommandQueue.h" />
