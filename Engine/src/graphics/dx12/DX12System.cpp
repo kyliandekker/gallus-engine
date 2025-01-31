@@ -677,33 +677,29 @@ namespace coopscoop
 
 				UINT currentBackBufferIndex = GetCurrentBackBufferIndex();
 				auto backBuffer = GetCurrentBackBuffer();
-				auto rtv = GetCurrentRenderTargetView(true);
+				auto rtv = GetCurrentRenderTargetView(true); // This "true" only does something on __EDITOR__.
 				auto dsv = m_DSV.GetCPUDescriptorHandleForHeapStart();
 
+				commandList->TransitionResource(backBuffer,
+					D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+
+				// On editor, we want to render onto a render texture, so transition the texture to a render target.
 #ifdef __EDITOR__
 				commandList->TransitionResource(m_RenderTexture->GetResource(),
 					D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 					D3D12_RESOURCE_STATE_RENDER_TARGET);
-				rtv = GetCurrentRenderTargetView(true);
 #endif
 
-				// Clear the render targets.
-				{
-					commandList->TransitionResource(backBuffer,
-						D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
+				commandList->GetCommandList()->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, 1.0, 0, 0, nullptr);
+				FLOAT clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-					FLOAT clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-
-					commandList->GetCommandList()->ClearRenderTargetView(rtv, clearColor, 0, nullptr);
-					commandList->GetCommandList()->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, 1.0, 0, 0, nullptr);
-				}
+				commandList->GetCommandList()->ClearRenderTargetView(rtv, clearColor, 0, nullptr);
+				commandList->GetCommandList()->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
 
 				commandList->GetCommandList()->SetGraphicsRootSignature(m_RootSignature.Get());
 
 				commandList->GetCommandList()->RSSetViewports(1, &m_Viewport);
 				commandList->GetCommandList()->RSSetScissorRects(1, &m_ScissorRect);
-
-				commandList->GetCommandList()->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
 
 				commandList->GetCommandList()->SetGraphicsRootConstantBufferView(RootParameters::LIGHT, m_DirectionalLightBuffer->GetGPUVirtualAddress());
 
@@ -727,7 +723,15 @@ namespace coopscoop
 				commandList->TransitionResource(m_RenderTexture->GetResource(),
 					D3D12_RESOURCE_STATE_RENDER_TARGET,
 					D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+
+				rtv = GetCurrentRenderTargetView(false); // Now get the normal rtv.
+
+				commandList->GetCommandList()->ClearRenderTargetView(rtv, clearColor, 0, nullptr);
+				commandList->GetCommandList()->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
+
+				m_ImGuiWindow.Render(commandList);
 #endif
+
 				// Present
 				{
 					commandList->TransitionResource(backBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);

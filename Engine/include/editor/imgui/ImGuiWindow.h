@@ -5,10 +5,18 @@
 #include "core/System.h"
 
 #include <wtypes.h>
+#include <memory>
 #include <imgui/imgui.h>
 
 namespace coopscoop
 {
+	namespace graphics
+	{
+		namespace dx12
+		{
+			class CommandList;
+		}
+	}
 	namespace editor
 	{
 		namespace imgui
@@ -25,6 +33,8 @@ namespace coopscoop
 				/// Destroys all imgui resources.
 				/// </summary>
 				bool Destroy() override;
+
+				void Render(std::shared_ptr<graphics::dx12::CommandList> a_CommandList);
 			private:
 				/// <summary>
 				/// Handles Windows messages for the editor's window.

@@ -12,6 +12,7 @@
 #include "editor/imgui/ImGuiDefines.h"
 #include "editor/imgui/font_arial.h"
 #include "editor/imgui/font_icon.h"
+#include "graphics/dx12/CommandList.h"
 
 #define SETTINGS_FOLDER "/coopscoop/"
 
@@ -56,6 +57,22 @@ namespace coopscoop
 
                 return true;
             }
+
+			void ImGuiWindow::Render(std::shared_ptr<graphics::dx12::CommandList> a_CommandList)
+			{
+				ImGui_ImplDX12_NewFrame();
+				ImGui_ImplWin32_NewFrame();
+				ImGui::NewFrame();
+
+				ImGui::Begin("Scene View");
+				ImGui::Text("HEEY");
+				ImGui::End();
+
+				ImGui::EndFrame();
+				ImGui::Render();
+
+				ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), a_CommandList->GetCommandList().Get());
+			}
 
             LRESULT ImGuiWindow::WndProcHandler(HWND a_hWnd, UINT a_Msg, WPARAM a_wParam, LPARAM a_lParam)
             {
