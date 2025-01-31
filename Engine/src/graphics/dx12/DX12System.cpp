@@ -2,15 +2,12 @@
 
 #include "graphics/dx12/DX12System.h"
 
-#include <d3dcompiler.h>
-#include <memory>
-#include <tiny_gltf/tiny_gltf.h>
-
 #include "core/logger/Logger.h"
 #include "core/DataStream.h"
 #include "core/FileUtils.h"
 #include "core/Engine.h"
-#include "graphics/dx12/Material.h"
+#include "graphics/dx12/Material.h" // TODO: remove this one when we load assets from scenes.
+#include "graphics/dx12/Texture.h"
 
 namespace coopscoop
 {
@@ -425,8 +422,12 @@ namespace coopscoop
 
 			void DX12System::CreateRTV()
 			{
+				size_t numBuffers = g_BufferCount;
+#ifdef __EDITOR__
+				numBuffers += 1;
+#endif //__EDITOR__
 				D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-				rtvHeapDesc.NumDescriptors = g_BufferCount;
+				rtvHeapDesc.NumDescriptors = numBuffers;
 				rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 				rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 				m_RTV = HeapAllocation(rtvHeapDesc);
@@ -566,6 +567,15 @@ namespace coopscoop
 			{
 				CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_RTV.GetCPUDescriptorHandleForHeapStart());
 
+#ifdef __EDITOR__
+				// Create RTV for custom render target texture
+				if (m_RenderTexture->IsValid())
+				{
+					m_Device->CreateRenderTargetView(m_RenderTexture->GetResource().Get(), nullptr, rtvHandle);
+				}
+				rtvHandle.Offset(m_RTVDescriptorSize);
+#endif // __EDITOR__
+
 				for (int i = 0; i < g_BufferCount; ++i)
 				{
 					Microsoft::WRL::ComPtr<ID3D12Resource> backBuffer;
@@ -635,10 +645,17 @@ namespace coopscoop
 				return m_CurrentBackBufferIndex;
 			}
 
-			D3D12_CPU_DESCRIPTOR_HANDLE DX12System::GetCurrentRenderTargetView()
+			D3D12_CPU_DESCRIPTOR_HANDLE DX12System::GetCurrentRenderTargetView(bool a_UseRenderTexture)
 			{
-				return CD3DX12_CPU_DESCRIPTOR_HANDLE(m_RTV.GetCPUDescriptorHandleForHeapStart(),
-					m_CurrentBackBufferIndex, m_RTVDescriptorSize);
+				size_t backBufferStart = 0;
+#ifdef __EDITOR__
+				if (a_UseRenderTexture && m_RenderTexture->IsValid())
+				{
+					return m_RTV.GetCPUHandle(0);
+				}
+				backBufferStart += 1;
+#endif // __EDITOR__
+				return m_RTV.GetCPUHandle(backBufferStart + m_CurrentBackBufferIndex);
 			}
 
 			void DX12System::Loop()

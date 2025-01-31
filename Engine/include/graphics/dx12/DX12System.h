@@ -6,6 +6,7 @@
 #include <chrono>
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
+#include <memory>
 
 #include "graphics/dx12/CommandQueue.h"
 #include "graphics/dx12/Camera.h"
@@ -195,7 +196,7 @@ namespace coopscoop
 				/// Retrieves the current render target view.
 				/// </summary>
 				/// <returns>Handle to the render target view.</returns>
-				D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentRenderTargetView();
+				D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentRenderTargetView(bool a_UseRenderTexture = false);
 			public:
 				/// <summary>
 				/// Loop method for the thread.
