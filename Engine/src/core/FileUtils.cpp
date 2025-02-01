@@ -4,6 +4,7 @@
 #include <filesystem>
 
 #include "core/DataStream.h"
+#include "core/logger/Logger.h"
 
 namespace fs = std::filesystem;
 
@@ -11,23 +12,27 @@ namespace coopscoop
 {
     namespace file
     {
-		const std::string FileLoader::GetAppDataPath()
+		const fs::path FileLoader::GetAppDataPath()
 		{
 			PWSTR path_tmp;
 			fs::path path;
 			SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &path_tmp);
 			path = path_tmp;
 
-			std::string appDataPath = std::string(path.generic_string());
-			fs::create_directories(appDataPath);
+			fs::create_directories(path);
 
-			return appDataPath;
+			return path;
 		}
 
-		bool FileLoader::LoadFile(const std::string& a_Path, core::DataStream& a_Data)
+		bool FileLoader::LoadFile(const fs::path& a_Path, core::DataStream& a_Data)
         {
+			if (!fs::exists(a_Path))
+			{
+				return false;
+			}
+
 			FILE* file = nullptr;
-			fopen_s(&file, a_Path.c_str(), "rb");
+			fopen_s(&file, a_Path.generic_string().c_str(), "rb");
 			if (!file)
 			{
 				return false;
@@ -44,5 +49,31 @@ namespace coopscoop
 
 			return true;
         }
+
+		bool FileLoader::SaveFile(const fs::path& a_Path, const core::DataStream& a_Data)
+		{
+			FILE* file = nullptr;
+			fopen_s(&file, a_Path.generic_string().c_str(), "wb");
+			if (!file)
+			{
+				return false;
+			}
+
+			fwrite(a_Data.data(), a_Data.size(), 1, file);
+
+			fclose(file);
+
+			return true;
+		}
+
+		bool FileLoader::CreateFolder(const fs::path& a_Path)
+		{
+			return fs::create_directories(a_Path);
+		}
+
+		fs::path FileLoader::GetPath(const std::string& a_Path)
+		{
+			return fs::path(a_Path);
+		}
     }
 }

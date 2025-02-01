@@ -6,6 +6,7 @@ namespace fs = std::filesystem;
 #include "core/logger/Logger.h"
 #include "core/Engine.h"
 #include "graphics/dx12/CommandList.h"
+#include "core/FileUtils.h"
 
 namespace coopscoop
 {
@@ -17,12 +18,13 @@ namespace coopscoop
 			bool Shader::Load(const std::string& a_ShaderName, void*)
 			{
 				m_Name = std::wstring(a_ShaderName.begin(), a_ShaderName.end());
-				std::wstring path = L"./resources/shaders/";
+				fs::path path = file::FileLoader::GetPath("./resources/shaders/");
 
-				std::wstring vertexPath = path + m_Name + L"_vertexshader.hlsl";
-				std::wstring pixelPath = path + m_Name + L"_pixelshader.hlsl";
-				auto vertexShaderBlob = CompileShader(vertexPath, "main", "vs_5_1");
-				auto pixelShaderBlob = CompileShader(pixelPath, "main", "ps_5_1");
+				fs::path vertexPath = file::FileLoader::GetPath(path.generic_string() + a_ShaderName + "_vertexshader.hlsl");
+				fs::path pixelPath = file::FileLoader::GetPath(path.generic_string() + a_ShaderName + "_pixelshader.hlsl");
+
+				auto vertexShaderBlob = CompileShader(vertexPath.generic_wstring(), "main", "vs_5_1");
+				auto pixelShaderBlob = CompileShader(pixelPath.generic_wstring(), "main", "ps_5_1");
 
 				// Create the vertex input layout
 				D3D12_INPUT_ELEMENT_DESC inputLayout[] = {

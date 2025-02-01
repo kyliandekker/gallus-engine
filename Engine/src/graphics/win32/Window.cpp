@@ -26,6 +26,7 @@ namespace coopscoop
 
 			LRESULT Window::WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
+				m_OnMsg(hwnd, msg, wParam, lParam);
 				switch (msg)
 				{
 					case WM_DESTROY:
@@ -33,6 +34,10 @@ namespace coopscoop
 						PostQuitMessage(0);
 						core::ENGINE.Shutdown();
 						return 0;
+					}
+					case WM_EXITSIZEMOVE:
+					{
+						m_OnResize(GetPosition(), GetRealSize());
 					}
 				}
 				return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -129,7 +134,16 @@ namespace coopscoop
 				RECT rect;
 				GetClientRect(m_hWnd, &rect);
 
-				return glm::ivec2(rect.right - rect.left, rect.bottom - rect.top);
+				glm::ivec2 size = glm::ivec2(rect.right - rect.left, rect.bottom - rect.top);
+				return size;
+			}
+
+			glm::ivec2 Window::GetPosition() const
+			{
+				RECT rect;
+				GetClientRect(m_hWnd, &rect);
+
+				return glm::ivec2(rect.left, rect.top);
 			}
 
 			void Window::SetSize(const glm::ivec2& a_Size)

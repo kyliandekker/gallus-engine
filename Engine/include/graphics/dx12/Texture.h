@@ -2,7 +2,6 @@
 
 #include "graphics/dx12/DX12PCH.h"
 
-#include <dx12/DirectXTex/DirectXTex/DirectXTex.h>
 #include <wrl.h>
 #include <string>
 #include <memory>

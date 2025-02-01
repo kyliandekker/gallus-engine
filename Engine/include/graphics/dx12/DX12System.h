@@ -7,6 +7,7 @@
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 #include <memory>
+#include <mutex>
 
 #include "graphics/dx12/CommandQueue.h"
 #include "graphics/dx12/Camera.h"
@@ -181,6 +182,12 @@ namespace coopscoop
 				void ResizeDepthBuffer(const glm::ivec2& a_Size);
 
 				/// <summary>
+				/// Resizes the window.
+				/// </summary>
+				/// <param name="a_Size">The new size of the depth buffer.</param>
+				void Resize(const glm::ivec2& a_Pos, const glm::ivec2& a_Size);
+
+				/// <summary>
 				/// Retrieves the current back buffer.
 				/// </summary>
 				/// <returns>ComPtr to the current back buffer.</returns>
@@ -286,6 +293,8 @@ namespace coopscoop
 				editor::imgui::ImGuiWindow m_ImGuiWindow;
 				class Texture* m_RenderTexture = nullptr;
 #endif // __EDITOR__
+
+				std::mutex m_RenderMutex;
 
 				// TODO: Delete these as they are all supposed to be temporary.
 

@@ -5,7 +5,7 @@
 #include <cstdarg>
 #include <format>
 
-namespace renegade
+namespace coopscoop
 {
 	namespace editor
 	{

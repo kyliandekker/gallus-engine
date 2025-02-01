@@ -8,6 +8,8 @@
 #include <string>
 #include <mutex>
 
+#include "core/Event.h"
+
 namespace coopscoop
 {
 #define LOG_CATEGORY_ENGINE "ENGINE"
@@ -15,7 +17,7 @@ namespace coopscoop
 #define LOG_CATEGORY_WINDOW "WINDOW"
 #define LOG_CATEGORY_LOGGER "LOGGER"
 #define LOG_CATEGORY_DX12 "DX12"
-#define LOGGER_CATEGORY_EDITOR "EDITOR"
+#define LOG_CATEGORY_EDITOR "EDITOR"
 
 	// This one is out of the other namespaces so they can be easily used in other classes.
 	typedef enum LogSeverity {
@@ -164,7 +166,7 @@ namespace coopscoop
 				void LogF(LogSeverity a_Severity, const char* a_Category, const char* a_Message, const char* a_File, int a_Line, ...);
 				void PrintMessage(LogSeverity a_Severity, const char* a_Category, const char* a_Message, const char* a_File, int a_Line);
 
-				//Event<const Message&> OnMessageLogged;
+				Event<const LoggerMessage&> OnMessageLogged;
 			private:
 				/// <summary>
 				/// Initializes the thread.

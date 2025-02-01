@@ -28,7 +28,7 @@ namespace coopscoop
 			{
 				m_Name = std::wstring(a_Name.begin(), a_Name.end());
 
-				std::string path = std::format("./resources/models/{0}", a_Name.c_str());
+				fs::path path = file::FileLoader::GetPath(std::format("./resources/models/{0}", a_Name.c_str()));
 
 				// Upload vertex buffer data.
 				core::DataStream data;
@@ -41,7 +41,7 @@ namespace coopscoop
 				tinygltf::Model model;
 				tinygltf::TinyGLTF loader;
 				std::string err, warn;
-				if (!loader.LoadASCIIFromString(&model, &err, &warn, data.dataAs<const char>(), data.size(), std::filesystem::path(path).parent_path().string()))
+				if (!loader.LoadASCIIFromString(&model, &err, &warn, data.dataAs<const char>(), data.size(), path.parent_path().string()))
 				{
 					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading bin file %s.", err.c_str());
 					return false;

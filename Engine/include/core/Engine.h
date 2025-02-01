@@ -4,6 +4,9 @@
 #include "graphics/dx12/DX12System.h"
 #include "graphics/win32/Window.h"
 #include "core/input/InputSystem.h"
+#ifdef __EDITOR__
+#include "editor/Editor.h"
+#endif // __EDITOR__
 
 #include <wtypes.h>
 
@@ -46,10 +49,17 @@ namespace coopscoop
 			/// </summary>
 			/// <returns>Reference to the dx12 instance.</returns>
 			graphics::dx12::DX12System& GetDX12();
+
+#ifdef __EDITOR__
+			editor::Editor& GetEditor();
+#endif // __EDITOR__
 		private:
 			graphics::win32::Window m_Window;
 			graphics::dx12::DX12System m_DX12System;
 			input::InputSystem m_InputSystem;
+#ifdef __EDITOR__
+			editor::Editor m_Editor;
+#endif // __EDITOR__
 		};
 
 		/// <summary>

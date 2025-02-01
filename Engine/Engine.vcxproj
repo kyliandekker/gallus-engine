@@ -60,7 +60,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_OPTIMIZE;_DEBUG;_CONSOLE;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>RAPIDJSON_NOMEMBERITERATORCLASS;_OPTIMIZE;_DEBUG;_CONSOLE;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)external;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -69,7 +69,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dxgi.lib;d3d12.lib;d3dcompiler.lib;dxguid.lib;Shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Shcore.lib;dxgi.lib;d3d12.lib;d3dcompiler.lib;dxguid.lib;Shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /E /I /Y "$(SolutionDir)shaders" "$(OutDir)resources\shaders"</Command>
@@ -79,7 +79,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_OPTIMIZE;_DEBUG;_CONSOLE;_WINDOWS;__EDITOR__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>RAPIDJSON_NOMEMBERITERATORCLASS;_OPTIMIZE;_DEBUG;_CONSOLE;_WINDOWS;__EDITOR__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)external;</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -88,7 +88,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dxgi.lib;d3d12.lib;d3dcompiler.lib;dxguid.lib;Shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Shcore.lib;dxgi.lib;d3d12.lib;d3dcompiler.lib;dxguid.lib;Shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /E /I /Y "$(SolutionDir)shaders" "$(OutDir)resources\shaders"</Command>
@@ -100,7 +100,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>RAPIDJSON_NOMEMBERITERATORCLASS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)external;</AdditionalIncludeDirectories>
@@ -110,34 +110,13 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>dxgi.lib;d3d12.lib;dxguid.lib;d2d1.lib;dwrite.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Shcore.lib;dxgi.lib;d3d12.lib;dxguid.lib;d2d1.lib;dwrite.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy /E /I /Y "$(SolutionDir)shaders" "$(OutDir)resources\shaders"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\BC.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\BC4BC5.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\BC6HBC7.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\BCDirectCompute.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexCompress.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexCompressGPU.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexConvert.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexD3D11.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexD3D12.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexDDS.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexFlipRotate.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexHDR.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexImage.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexMipmaps.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexMisc.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexNormalMaps.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexPMAlpha.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexResize.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexTGA.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexUtil.cpp" />
-    <ClCompile Include="external\dx12\DirectXTex\DirectXTex\DirectXTexWIC.cpp" />
     <ClCompile Include="external\dx12\directx\d3dx12_property_format_table.cpp" />
     <ClCompile Include="external\imgui\backends\imgui_impl_dx12.cpp" />
     <ClCompile Include="external\imgui\backends\imgui_impl_win32.cpp" />
@@ -151,8 +130,19 @@
     <ClCompile Include="external\imgui\implot.cpp" />
     <ClCompile Include="external\imgui\implot_items.cpp" />
     <ClCompile Include="external\tiny_gltf\tiny_gltf.cc" />
+    <ClCompile Include="src\editor\AssetDatabase.cpp" />
+    <ClCompile Include="src\editor\Editor.cpp" />
+    <ClCompile Include="src\editor\EditorSettings.cpp" />
+    <ClCompile Include="src\editor\ExplorerResource.cpp" />
+    <ClCompile Include="src\editor\explorer_resources\AudioExplorerResource.cpp" />
+    <ClCompile Include="src\editor\explorer_resources\SceneExplorerResource.cpp" />
     <ClCompile Include="src\editor\imgui\ImGuiDefines.cpp" />
     <ClCompile Include="src\editor\imgui\ImGuiWindow.cpp" />
+    <ClCompile Include="src\editor\imgui\views\DataTypes\StringTextInput.cpp" />
+    <ClCompile Include="src\editor\imgui\views\ImGuiUIView.cpp" />
+    <ClCompile Include="src\editor\imgui\windows\BaseWindow.cpp" />
+    <ClCompile Include="src\editor\imgui\windows\ConsoleWindow.cpp" />
+    <ClCompile Include="src\editor\imgui\windows\MainWindow.cpp" />
     <ClCompile Include="src\graphics\dx12\CommandList.cpp" />
     <ClCompile Include="src\graphics\dx12\Material.cpp" />
     <ClCompile Include="src\graphics\dx12\Light.cpp" />
@@ -179,20 +169,34 @@
     <ClCompile Include="src\graphics\dx12\Transform.cpp" />
     <ClCompile Include="src\graphics\dx12\VertexBuffer.cpp" />
     <ClCompile Include="src\graphics\win32\Window.cpp" />
+    <ClCompile Include="src\utils\string_extensions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\tiny_gltf\json.hpp" />
+    <ClInclude Include="include\assets\AssetType.h" />
     <ClInclude Include="include\core\Data.h" />
     <ClInclude Include="include\core\DataStream.h" />
     <ClInclude Include="include\core\Engine.h" />
+    <ClInclude Include="include\core\Event.h" />
     <ClInclude Include="include\core\FileUtils.h" />
     <ClInclude Include="include\core\logger\Logger.h" />
     <ClInclude Include="include\core\MemoryInfo.h" />
     <ClInclude Include="include\core\System.h" />
+    <ClInclude Include="include\editor\AssetDatabase.h" />
+    <ClInclude Include="include\editor\Editor.h" />
+    <ClInclude Include="include\editor\EditorSettings.h" />
+    <ClInclude Include="include\editor\ExplorerResource.h" />
+    <ClInclude Include="include\editor\explorer_resources\AudioExplorerResource.h" />
+    <ClInclude Include="include\editor\explorer_resources\SceneExplorerResource.h" />
     <ClInclude Include="include\editor\imgui\font_arial.h" />
     <ClInclude Include="include\editor\imgui\font_icon.h" />
     <ClInclude Include="include\editor\imgui\ImGuiDefines.h" />
     <ClInclude Include="include\editor\imgui\ImGuiWindow.h" />
+    <ClInclude Include="include\editor\imgui\views\DataTypes\StringTextInput.h" />
+    <ClInclude Include="include\editor\imgui\views\ImGuiUIView.h" />
+    <ClInclude Include="include\editor\imgui\windows\BaseWindow.h" />
+    <ClInclude Include="include\editor\imgui\windows\ConsoleWindow.h" />
+    <ClInclude Include="include\editor\imgui\windows\MainWindow.h" />
     <ClInclude Include="include\graphics\dx12\Buffer.h" />
     <ClInclude Include="include\graphics\dx12\CommandList.h" />
     <ClInclude Include="include\graphics\dx12\CommandQueue.h" />
@@ -215,6 +219,7 @@
     <ClInclude Include="include\graphics\dx12\VertexBuffer.h" />
     <ClInclude Include="include\graphics\win32\Window.h" />
     <ClInclude Include="include\core\input\InputSystem.h" />
+    <ClInclude Include="include\utils\string_extensions.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

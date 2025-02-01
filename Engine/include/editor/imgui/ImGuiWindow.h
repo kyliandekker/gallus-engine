@@ -7,6 +7,10 @@
 #include <wtypes.h>
 #include <memory>
 #include <imgui/imgui.h>
+#include <glm/vec2.hpp>
+
+#include "editor/imgui/windows/MainWindow.h"
+#include "editor/imgui/windows/ConsoleWindow.h"
 
 namespace coopscoop
 {
@@ -14,6 +18,7 @@ namespace coopscoop
 	{
 		namespace dx12
 		{
+			class DX12System;
 			class CommandList;
 		}
 	}
@@ -24,6 +29,8 @@ namespace coopscoop
 			class ImGuiWindow : public core::System
 			{
 			public:
+				ImGuiWindow();
+
 				/// <summary>
 				/// Initializes the imgui system.
 				/// </summary>
@@ -33,8 +40,6 @@ namespace coopscoop
 				/// Destroys all imgui resources.
 				/// </summary>
 				bool Destroy() override;
-
-				void Render(std::shared_ptr<graphics::dx12::CommandList> a_CommandList);
 			private:
 				/// <summary>
 				/// Handles Windows messages for the editor's window.
@@ -63,23 +68,63 @@ namespace coopscoop
 				/// </summary>
 				void CreateImGui();
 
+				/// <summary>
+				/// Called when the render target is created.
+				/// </summary>
+				void OnRenderTargetCreated();
+
+				/// <summary>
+				/// Called when the render target is created.
+				/// </summary>
+				/// <param name="a_Pos">Position of the window.</param>
+				/// <param name="a_Size">Size of the window.</param>
+				void Resize(const glm::ivec2& a_Pos, const glm::ivec2& a_Size);
+
+				/// <summary>
+				/// Called when the render target is cleaned.
+				/// </summary>
+				void OnRenderTargetCleaned();
+			public:
+				void Render(std::shared_ptr<graphics::dx12::CommandList> a_CommandList);
+
+				ImFont* GetCapitalFont() const;
+				ImFont* GetBigIconFont() const;
+				ImFont* GetIconFont() const;
+				ImFont* GetSmallIconFont() const;
+				ImFont* GetBoldFont() const;
+				float GetFontSize() const;
+				ImVec2 GetFramePadding() const;
+				ImVec2 GetWindowPadding() const;
+				ImVec2 GetHeaderSize() const;
+			private:
+				/// <summary>
+				/// Updates the mouse cursor when hovering over certain imgui elements.
+				/// </summary>
+				void UpdateMouseCursor();
+
 				std::string m_IniPath; /// Path to the ImGui configuration file.
 
 				size_t m_SrvIndex = 0;
 
-				ImFont* m_DefaultFont;
-				ImFont* m_Capital;
-				ImFont* m_CapitalIconFont;
-				ImFont* m_BoldFont;
-				ImFont* m_IconFont;
-				ImFont* m_SmallIconFont;
+				ImFont* m_DefaultFont = nullptr;
+				ImFont* m_Capital = nullptr;
+				ImFont* m_CapitalIconFont = nullptr;
+				ImFont* m_BoldFont = nullptr;
+				ImFont* m_IconFont = nullptr;
+				ImFont* m_SmallIconFont = nullptr;
 
 				float m_FontSize = 17.5f; /// Default font size for ImGui.
 				float m_IconFontSize = 25.0f; /// Default font size for ImGui.
 
 				ImVec2 m_FramePadding = ImVec2(8, 8); /// Frame padding for ImGui elements.
 				ImVec2 m_WindowPadding = ImVec2(8, 8); /// Window padding for ImGui elements.
-				ImVec2 m_HeaderSize; /// Header size for ImGui elements.
+				ImVec2 m_HeaderSize;
+
+				// Windows.
+				MainWindow m_MainWindow;
+				ConsoleWindow m_ConsoleWindow;
+
+				friend graphics::dx12::DX12System;
 			};
 		}
 	}

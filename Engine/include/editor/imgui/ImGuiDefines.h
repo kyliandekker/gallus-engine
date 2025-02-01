@@ -4,7 +4,7 @@
 
 #include <string>
 
-namespace renegade
+namespace coopscoop
 {
 	namespace editor
 	{

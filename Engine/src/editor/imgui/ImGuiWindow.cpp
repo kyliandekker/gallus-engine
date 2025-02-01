@@ -13,8 +13,7 @@
 #include "editor/imgui/font_arial.h"
 #include "editor/imgui/font_icon.h"
 #include "graphics/dx12/CommandList.h"
-
-#define SETTINGS_FOLDER "/coopscoop/"
+#include "editor/Editor.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -24,13 +23,18 @@ namespace coopscoop
     {
         namespace imgui
         {
-            bool ImGuiWindow::Initialize()
+			ImGuiWindow::ImGuiWindow()
+				: m_MainWindow(*this),
+				m_ConsoleWindow(*this)
+			{ }
+
+			bool ImGuiWindow::Initialize()
             {
                 IMGUI_CHECKVERSION();
                 ImGui::CreateContext();
                 ImPlot::CreateContext();
 
-                m_IniPath = std::string(file::FileLoader::GetAppDataPath() + SETTINGS_FOLDER + "imgui.ini");
+                m_IniPath = std::string(file::FileLoader::GetAppDataPath().generic_string() + SETTINGS_FOLDER + "imgui.ini");
                 ImGuiIO& io = ImGui::GetIO();
                 io.IniFilename = m_IniPath.c_str();
 
@@ -38,62 +42,51 @@ namespace coopscoop
                 {
                     return false;
                 }
+				core::ENGINE.GetWindow().m_OnMsg += std::bind(&ImGuiWindow::WndProcHandler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 
                 CreateImGui();
 
-                LOG(LOGSEVERITY_SUCCESS, LOGGER_CATEGORY_EDITOR, "Initialized ImGui.");
+                LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_EDITOR, "Initialized ImGui.");
 
-                return true;
+				m_MainWindow.Initialize();
+				m_ConsoleWindow.Initialize();
+				//m_SceneWindow.Initialize();
+				//m_InspectorWindow.Initialize();
+				//m_HierarchyWindow.Initialize();
+				//m_ExplorerWindow.Initialize();
+				//m_LoadProjectWindow.Initialize();
+
+                return System::Initialize();
             }
 
             bool ImGuiWindow::Destroy()
             {
+				m_MainWindow.Destroy();
+				m_ConsoleWindow.Destroy();
+				//m_SceneWindow.Destroy();
+				//m_InspectorWindow.Destroy();
+				//m_HierarchyWindow.Destroy();
+				//m_ExplorerWindow.Destroy();
+
                 ImGui_ImplDX12_Shutdown();
                 ImGui_ImplWin32_Shutdown();
                 ImPlot::DestroyContext();
                 ImGui::DestroyContext();
 
-                LOG(LOGSEVERITY_SUCCESS, LOGGER_CATEGORY_EDITOR, "Destroyed ImGui.");
+                LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_EDITOR, "Destroyed ImGui.");
 
                 return true;
-            }
-
-			void ImGuiWindow::Render(std::shared_ptr<graphics::dx12::CommandList> a_CommandList)
-			{
-				ImGui_ImplDX12_NewFrame();
-				ImGui_ImplWin32_NewFrame();
-				ImGui::NewFrame();
-
-				ImGui::Begin("Scene View");
-				ImGui::Text("HEEY");
-				ImGui::End();
-
-				ImGui::EndFrame();
-				ImGui::Render();
-
-				ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), a_CommandList->GetCommandList().Get());
-			}
-
-            LRESULT ImGuiWindow::WndProcHandler(HWND a_hWnd, UINT a_Msg, WPARAM a_wParam, LPARAM a_lParam)
-            {
-                if (!m_Ready)
-                {
-                    return a_Msg;
-                }
-
-                ImGui_ImplWin32_WndProcHandler(a_hWnd, a_Msg, a_wParam, a_lParam);
-                return a_Msg;
             }
 
             bool ImGuiWindow::CreateContextWin32()
             {
                 if (!ImGui_ImplWin32_Init(core::ENGINE.GetWindow().GetHWnd()))
                 {
-                    LOG(LOGSEVERITY_ERROR, LOGGER_CATEGORY_EDITOR, "Failed creating WIN32 context for ImGui.");
+                    LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_EDITOR, "Failed creating WIN32 context for ImGui.");
                     return false;
                 }
 
-                LOG(LOGSEVERITY_INFO_SUCCESS, LOGGER_CATEGORY_EDITOR, "Created WIN32 context for ImGui.");
+                LOG(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_EDITOR, "Created WIN32 context for ImGui.");
                 return true;
             }
 
@@ -107,11 +100,11 @@ namespace coopscoop
                     dx12window.GetSRV().GetCPUHandle(m_SrvIndex),
                     dx12window.GetSRV().GetGPUHandle(m_SrvIndex)))
                 {
-                    LOG(LOGSEVERITY_ERROR, LOGGER_CATEGORY_EDITOR, "Failed creating DX12 context for ImGui.");
+                    LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_EDITOR, "Failed creating DX12 context for ImGui.");
                     return false;
                 }
 
-                LOG(LOGSEVERITY_INFO_SUCCESS, LOGGER_CATEGORY_EDITOR, "Created DX12 context for ImGui.");
+                LOG(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_EDITOR, "Created DX12 context for ImGui.");
                 return true;
             }
 
@@ -239,6 +232,159 @@ namespace coopscoop
 
 				m_HeaderSize = ImVec2(0, m_FontSize * 2.5f);
             }
+
+			void ImGuiWindow::OnRenderTargetCreated()
+			{
+				if (!m_Ready)
+				{
+					return;
+				}
+
+				ImGui_ImplDX12_CreateDeviceObjects();
+			}
+
+			void ImGuiWindow::Resize(const glm::ivec2& a_Pos, const glm::ivec2& a_Size)
+			{
+				ImGuiIO& io = ImGui::GetIO();
+				io.DisplaySize.x = a_Size.x;
+				io.DisplaySize.y = a_Size.y;
+
+				core::ENGINE.GetEditor().GetEditorSettings().SetSize(a_Size);
+			}
+
+			void ImGuiWindow::OnRenderTargetCleaned()
+			{
+				if (!m_Ready)
+				{
+					return;
+				}
+
+				ImGui_ImplDX12_InvalidateDeviceObjects();
+			}
+
+			void ImGuiWindow::Render(std::shared_ptr<graphics::dx12::CommandList> a_CommandList)
+			{
+				if (!m_Ready)
+				{
+					return;
+				}
+
+				ImGui_ImplDX12_NewFrame();
+				ImGui_ImplWin32_NewFrame();
+				ImGui::NewFrame();
+
+				ImGuiIO& io = ImGui::GetIO();
+				m_MainWindow.SetSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y));
+				m_MainWindow.Update();
+				m_ConsoleWindow.Update();
+
+				UpdateMouseCursor();
+
+				ImGui::EndFrame();
+				ImGui::Render();
+
+				ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), a_CommandList->GetCommandList().Get());
+			}
+
+			LRESULT ImGuiWindow::WndProcHandler(HWND a_hWnd, UINT a_Msg, WPARAM a_wParam, LPARAM a_lParam)
+			{
+				if (!m_Ready)
+				{
+					return a_Msg;
+				}
+
+				return ImGui_ImplWin32_WndProcHandler(a_hWnd, a_Msg, a_wParam, a_lParam);
+			}
+
+			void ImGuiWindow::UpdateMouseCursor()
+			{
+				if (!m_Ready)
+				{
+					return;
+				}
+
+				if (ImGui::IsAnyItemHovered())
+				{
+					// Set the cursor to a hand pointer
+					if (ImGui::GetMouseCursor() == ImGuiMouseCursor_Arrow)
+					{
+						ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+					}
+
+					ImGuiIO& io = ImGui::GetIO();
+					ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
+					if (io.MouseDrawCursor || imgui_cursor == ImGuiMouseCursor_None)
+					{
+						::SetCursor(NULL);
+					}
+					else
+					{
+						// Map ImGui cursor types to Win32 system cursors
+						LPTSTR win32_cursor = IDC_ARROW; // Default arrow
+
+						switch (imgui_cursor)
+						{
+							case ImGuiMouseCursor_TextInput:    win32_cursor = IDC_IBEAM; break;
+							case ImGuiMouseCursor_ResizeAll:    win32_cursor = IDC_SIZEALL; break;
+							case ImGuiMouseCursor_ResizeNS:     win32_cursor = IDC_SIZENS; break;
+							case ImGuiMouseCursor_ResizeEW:     win32_cursor = IDC_SIZEWE; break;
+							case ImGuiMouseCursor_ResizeNESW:   win32_cursor = IDC_SIZENESW; break;
+							case ImGuiMouseCursor_ResizeNWSE:   win32_cursor = IDC_SIZENWSE; break;
+							case ImGuiMouseCursor_Hand:         win32_cursor = IDC_HAND; break;
+							case ImGuiMouseCursor_NotAllowed:   win32_cursor = IDC_NO; break;
+							default:                            win32_cursor = IDC_ARROW; break;
+						}
+
+						// Set the system cursor using Win32 API
+						::SetCursor(LoadCursor(NULL, win32_cursor));
+					}
+				}
+			}
+
+			ImFont* ImGuiWindow::GetCapitalFont() const
+			{
+				return m_Capital;
+			}
+
+			ImFont* ImGuiWindow::GetBigIconFont() const
+			{
+				return m_CapitalIconFont;
+			}
+
+			ImFont* ImGuiWindow::GetIconFont() const
+			{
+				return m_IconFont;
+			}
+
+			ImFont* ImGuiWindow::GetSmallIconFont() const
+			{
+				return m_SmallIconFont;
+			}
+
+			ImFont* ImGuiWindow::GetBoldFont() const
+			{
+				return m_BoldFont;
+			}
+
+			float ImGuiWindow::GetFontSize() const
+			{
+				return m_FontSize;
+			}
+
+			ImVec2 ImGuiWindow::GetFramePadding() const
+			{
+				return m_FramePadding;
+			}
+
+			ImVec2 ImGuiWindow::GetWindowPadding() const
+			{
+				return m_WindowPadding;
+			}
+
+			ImVec2 ImGuiWindow::GetHeaderSize() const
+			{
+				return m_HeaderSize;
+			}
         }
     }
 }

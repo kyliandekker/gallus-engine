@@ -20,6 +20,10 @@ namespace coopscoop
 
 			LOG(LOGSEVERITY_INFO, CATEGORY_ENGINE, "Initializing engine.");
 
+#ifdef __EDITOR__
+			m_Editor.Initialize();
+#endif // __EDITOR__
+
 			// Initialize the input system, we do not need to wait until it is ready.
 			m_InputSystem.Initialize(false);
 
@@ -29,7 +33,7 @@ namespace coopscoop
 			m_Window.SetTitle(a_Name);
 
 			// TODO: We can initialize DX12 without having to wait for it for now. Later when we introduce the editor it might be important to wait.
-			m_DX12System.Initialize(false, m_Window.GetHWnd(), glm::ivec2(a_Width, a_Height));
+			m_DX12System.Initialize(false, m_Window.GetHWnd(), m_Window.GetRealSize());
 
 			System::Initialize();
 
@@ -85,5 +89,12 @@ namespace coopscoop
 		{
 			return m_DX12System;
 		}
+
+#ifdef __EDITOR__
+		editor::Editor& Engine::GetEditor()
+		{
+			return m_Editor;
+		}
+#endif // __EDITOR__
 	}
 }

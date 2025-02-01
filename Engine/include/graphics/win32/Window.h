@@ -5,6 +5,7 @@
 #include <string>
 
 #include "core/System.h"
+#include "core/Event.h"
 
 #if defined(CreateWindow)
 #undef CreateWindow
@@ -83,6 +84,8 @@ namespace coopscoop
 				/// <returns>A 2D vector representing the width and height of the window.</returns>
 				glm::ivec2 GetRealSize() const;
 
+				glm::ivec2 GetPosition() const;
+
 				/// <summary>
 				/// Sets the size of the window.
 				/// </summary>
@@ -106,6 +109,9 @@ namespace coopscoop
 				/// </summary>
 				/// <returns></returns>
 				WNDCLASSEX& GetWc();
+
+				SimpleEvent<HWND, UINT, WPARAM, LPARAM> m_OnMsg;
+				SimpleEvent<const glm::ivec2&, const glm::ivec2&> m_OnResize;
 			private:
 				/// <summary>
 				/// Generic size method that changes the size and position of the window.

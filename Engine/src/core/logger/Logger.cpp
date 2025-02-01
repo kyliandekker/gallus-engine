@@ -185,7 +185,7 @@ namespace coopscoop
 
 					fprintf(logFile, message.c_str());
 
-					//OnMessageLogged(lm);
+					OnMessageLogged(lm);
 				}
 			}
 

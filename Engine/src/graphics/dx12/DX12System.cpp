@@ -99,6 +99,8 @@ namespace coopscoop
 					return false;
 				}
 
+				core::ENGINE.GetWindow().m_OnResize += std::bind(&DX12System::Resize, this, std::placeholders::_1, std::placeholders::_2);
+
 				// Create the command queues.
 				m_DirectCommandQueue = std::make_shared<CommandQueue>(D3D12_COMMAND_LIST_TYPE_DIRECT);
 				m_ComputeCommandQueue = std::make_shared<CommandQueue>(D3D12_COMMAND_LIST_TYPE_COMPUTE);
@@ -136,6 +138,9 @@ namespace coopscoop
 #endif // __EDITOR__
 
 				UpdateRenderTargetViews();
+#ifdef __EDITOR__
+				m_ImGuiWindow.OnRenderTargetCreated();
+#endif // __EDITOR__
 
 				if (!CreateRootSignature())
 				{
@@ -549,6 +554,10 @@ namespace coopscoop
 
 			void DX12System::Finalize()
 			{
+#ifdef __EDITOR__
+				m_ImGuiWindow.Destroy();
+#endif // __EDITOR__
+
 				Flush();
 
 				ThreadedSystem::Finalize();
@@ -635,6 +644,45 @@ namespace coopscoop
 					m_DSV.GetCPUDescriptorHandleForHeapStart());
 			}
 
+			void DX12System::Resize(const glm::ivec2& a_Pos, const glm::ivec2& a_Size)
+			{
+				std::lock_guard<std::mutex> lock(m_RenderMutex);
+
+				Flush();
+				for (int i = 0; i < g_BufferCount; ++i)
+				{
+					m_BackBuffers[i].Reset();  // This will release the old resource properly
+				}
+#ifdef __EDITOR__
+				m_ImGuiWindow.OnRenderTargetCleaned();
+#endif // __EDITOR__
+
+				DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
+				if (FAILED(m_SwapChain->GetDesc(&swapChainDesc)))
+				{
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed getting desc from swap chain.");
+					return;
+				}
+				if (FAILED(m_SwapChain->ResizeBuffers(g_BufferCount, a_Size.x,
+					a_Size.y, swapChainDesc.BufferDesc.Format, swapChainDesc.Flags)))
+				{
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed resizing buffers.");
+					return;
+				}
+				ResizeDepthBuffer(a_Size);
+
+				m_CurrentBackBufferIndex = m_SwapChain->GetCurrentBackBufferIndex();
+
+				UpdateRenderTargetViews();
+
+#ifdef __EDITOR__
+				m_ImGuiWindow.Resize(a_Pos, a_Size);
+#endif // __EDITOR__
+
+				m_Size = glm::vec2(a_Size.x, a_Size.y);
+				m_Viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(m_Size.x), static_cast<float>(m_Size.y));
+			}
+
 			Microsoft::WRL::ComPtr<ID3D12Resource> DX12System::GetCurrentBackBuffer() const
 			{
 				return m_BackBuffers[m_CurrentBackBufferIndex];
@@ -660,6 +708,8 @@ namespace coopscoop
 
 			void DX12System::Loop()
 			{
+				std::lock_guard<std::mutex> lock(m_RenderMutex);
+
 				m_FpsCounter.Update();
 
 				//TESTF("FPS: %f", m_FpsCounter.GetFPS());
