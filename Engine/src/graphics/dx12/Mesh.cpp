@@ -21,14 +21,14 @@ namespace coopscoop
 		namespace dx12
 		{
 			Mesh::Mesh() : DX12Resource()
-			{ }
+			{}
 
 			// TODO: This all needs to be loaded from a file eventually instead of from files on the disk.
 			bool Mesh::Load(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList)
 			{
 				m_Name = std::wstring(a_Name.begin(), a_Name.end());
 
-				fs::path path = file::FileLoader::GetPath(std::format("./resources/models/{0}", a_Name.c_str()));
+				fs::path path = file::FileLoader::GetPath(std::format("./assets/models/{0}", a_Name.c_str()));
 
 				// Upload vertex buffer data.
 				core::DataStream data;

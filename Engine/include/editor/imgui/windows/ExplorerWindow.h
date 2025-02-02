@@ -9,7 +9,7 @@
 #include "editor/imgui/views/DataTypes/StringTextInput.h"
 #include "editor/imgui/views/Selectables/ExplorerResourceUIView.h"
 
-namespace renegade
+namespace coopscoop
 {
 	namespace editor
 	{
@@ -50,11 +50,11 @@ namespace renegade
 				/// <returns>True if destruction is successful, otherwise false.</returns>
 				bool Destroy() override;
 
-                /// <summary>
-                /// Sets the root folder of the explorer that shows the files.
-                /// </summary>
+				/// <summary>
+				/// Sets the root folder of the explorer that shows the files.
+				/// </summary>
 				/// <param name="a_Resource">Pointer to the explorer resource.</param>
-                void SetExplorerRoot(ExplorerResourceUIView* a_Resource);
+				void SetExplorerRoot(ExplorerResourceUIView* a_Resource);
 
 				/// <summary>
 				/// Renders a folder in the explorer.

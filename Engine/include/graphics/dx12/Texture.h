@@ -10,38 +10,40 @@
 
 namespace coopscoop
 {
-    namespace graphics
-    {
-        namespace dx12
-        {
-            class CommandList;
+	namespace graphics
+	{
+		namespace dx12
+		{
+			class CommandList;
 
-            class Texture : public DX12Resource
-            {
-            public:
-                Texture() = default;
-                ~Texture();
+			class Texture : public DX12Resource
+			{
+			public:
+				Texture() = default;
+				~Texture();
 
-                bool CheckSRVSupport() const;
-                bool CheckRTVSupport() const;
-                bool CheckUAVSupport() const;
-                bool CheckDSVSupport() const;
+				void Destroy();
 
-                bool Transition(std::shared_ptr<CommandList> a_CommandList);
-                
-                void Bind(std::shared_ptr<CommandList> a_CommandList);
-                void Unbind(std::shared_ptr<CommandList> a_CommandList);
-            private:
-                bool Load(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList);
-                bool Load(const std::string& a_Name, const D3D12_RESOURCE_DESC& a_Description);
+				bool CheckSRVSupport() const;
+				bool CheckRTVSupport() const;
+				bool CheckUAVSupport() const;
+				bool CheckDSVSupport() const;
 
-                Microsoft::WRL::ComPtr<ID3D12Resource> m_ResourceUploadHeap = nullptr;
-                size_t m_SRVIndex = 0;
+				bool Transition(std::shared_ptr<CommandList> a_CommandList);
 
-                D3D12_RESOURCE_STATES m_State = D3D12_RESOURCE_STATE_COMMON;
+				void Bind(std::shared_ptr<CommandList> a_CommandList);
+				void Unbind(std::shared_ptr<CommandList> a_CommandList);
+			private:
+				bool Load(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList);
+				bool Load(const std::string& a_Name, const D3D12_RESOURCE_DESC& a_Description);
 
-                friend class ResourceAtlas;
-            };
-        }
-    }
+				Microsoft::WRL::ComPtr<ID3D12Resource> m_ResourceUploadHeap = nullptr;
+				size_t m_SRVIndex = 0;
+
+				D3D12_RESOURCE_STATES m_State = D3D12_RESOURCE_STATE_COMMON;
+
+				friend class ResourceAtlas;
+			};
+		}
+	}
 }

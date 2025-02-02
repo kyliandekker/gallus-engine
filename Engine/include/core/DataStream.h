@@ -77,7 +77,7 @@ namespace coopscoop
 			bool Read(void* a_Data, size_t a_DataSize, size_t a_Size);
 
 			/// <summary>
-			/// Writes data to the datastream.
+			/// Writes data to the data stream.
 			/// </summary>
 			virtual bool Write(void const* a_Data, size_t a_Size);
 

@@ -7,7 +7,7 @@
 #include "editor/ExplorerResource.h"
 #include "editor/imgui/ImGuiWindow.h"
 
-namespace renegade
+namespace coopscoop
 {
 	namespace editor
 	{
@@ -24,7 +24,7 @@ namespace renegade
 
 				if (m_Resource.GetResourceType() != ExplorerResourceType::Folder)
 				{
-					ImGui::DisplayHeader(m_Window.Bold(), "Type");
+					ImGui::DisplayHeader(m_Window.GetBoldFont(), "Type");
 					ImGui::SameLine();
 					ImGui::Text(assets::AssetTypeToString(m_Resource.GetAssetType()).c_str());
 				}
@@ -33,10 +33,10 @@ namespace renegade
 			}
 
 			DefaultExplorerResourceUIView::DefaultExplorerResourceUIView(const ImGuiWindow& a_Window, ExplorerResource* a_Resource) : ExplorerResourceWithoutPreviewUIView(a_Window), m_Resource(*a_Resource)
-			{ }
+			{}
 
 			DefaultExplorerResourceUIView::DefaultExplorerResourceUIView(const DefaultExplorerResourceUIView& a_Other) : ExplorerResourceWithoutPreviewUIView(a_Other), m_Resource(a_Other.m_Resource)
-			{ }
+			{}
 		}
 	}
 }

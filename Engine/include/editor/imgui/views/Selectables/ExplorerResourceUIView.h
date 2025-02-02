@@ -10,7 +10,7 @@
 #include "editor/imgui/views/DataTypes/StringTextInput.h"
 #include "assets/AssetType.h"
 
-namespace renegade
+namespace coopscoop
 {
 	namespace editor
 	{
@@ -87,15 +87,16 @@ namespace renegade
 				/// <param name="a_FoldedOut">True to fold out, false to collapse.</param>
 				void SetFoldedOut(bool a_FoldedOut);
 
-				void Render() override {};
+				void Render() override
+				{};
 
-				/// <summary>
-				/// Renders the explorer resource in the UI.
-				/// </summary>
-				/// <param name="a_Clicked">Indicates if the resource was clicked.</param>
-				/// <param name="a_RightClicked">Indicates if the resource was right-clicked.</param>
-				/// <param name="a_DoubleClicked">Indicates if the resource was double-clicked.</param>
-				/// <param name="a_Selected">Indicates if the resource is selected.</param>
+/// <summary>
+/// Renders the explorer resource in the UI.
+/// </summary>
+/// <param name="a_Clicked">Indicates if the resource was clicked.</param>
+/// <param name="a_RightClicked">Indicates if the resource was right-clicked.</param>
+/// <param name="a_DoubleClicked">Indicates if the resource was double-clicked.</param>
+/// <param name="a_Selected">Indicates if the resource is selected.</param>
 				void Render(bool& a_Clicked, bool& a_RightClicked, bool& a_DoubleClicked, bool a_Selected);
 
 				/// <summary>
@@ -130,12 +131,13 @@ namespace renegade
 				/// Logic for handling double-clicks on the resource.
 				/// Override to provide specific behavior.
 				/// </summary>
-				virtual void DoubleClicked() {};
+				virtual void DoubleClicked()
+				{};
 
-				/// <summary>
-				/// Renders base UI elements for the resource in the inspector.
-				/// </summary>
-				/// <param name="a_Resource">Pointer to the explorer resource.</param>
+/// <summary>
+/// Renders base UI elements for the resource in the inspector.
+/// </summary>
+/// <param name="a_Resource">Pointer to the explorer resource.</param>
 				virtual void RenderBaseSelectable(ExplorerResource* a_Resource);
 
 				/// <summary>
@@ -155,11 +157,14 @@ namespace renegade
 				/// Override to provide a specific resource.
 				/// </summary>
 				/// <returns>A pointer to the resource, or nullptr by default.</returns>
-				virtual ExplorerResource* GetResource() { return nullptr; }
+				virtual ExplorerResource* GetResource()
+				{
+					return nullptr;
+				}
 
-				/// <summary>
-				/// Clears all child resources associated with this view.
-				/// </summary>
+			  /// <summary>
+			  /// Clears all child resources associated with this view.
+			  /// </summary>
 				void ClearChildren();
 
 				/// <summary>

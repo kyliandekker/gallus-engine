@@ -6,11 +6,11 @@
 
 #include <vector>
 
-#include "gameplay/EntityID.h"
+//#include "gameplay/EntityID.h"
 #include "editor/imgui/views/DataTypes/StringTextInput.h"
 #include "editor/imgui/views/DataTypes/StringDropdown.h"
 
-namespace renegade
+namespace coopscoop
 {
 	namespace editor
 	{
@@ -43,13 +43,14 @@ namespace renegade
 				/// <returns>A string representing the icon.</returns>
 				std::string GetIcon() const;
 
-				void Render() override {};
+				void Render() override
+				{};
 
-				/// <summary>
-				/// Renders the entity UI with selection and click interaction.
-				/// </summary>
-				/// <param name="clicked">Reference to a boolean indicating if the entity was clicked.</param>
-				/// <param name="selected">Boolean indicating if the entity is currently selected.</param>
+/// <summary>
+/// Renders the entity UI with selection and click interaction.
+/// </summary>
+/// <param name="clicked">Reference to a boolean indicating if the entity was clicked.</param>
+/// <param name="selected">Boolean indicating if the entity is currently selected.</param>
 				void Render(bool& clicked, bool selected);
 
 				/// <summary>

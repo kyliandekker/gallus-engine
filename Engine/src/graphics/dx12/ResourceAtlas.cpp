@@ -23,6 +23,10 @@ namespace coopscoop
 				{
 					if (a_Vector[i] && a_Vector[i]->GetName() == name)
 					{
+						if (!a_Vector[i]->IsValid())
+						{
+							a_Vector[i]->Load(a_Name, a_Arg);
+						}
 						res = a_Vector[i];
 						break;
 					}

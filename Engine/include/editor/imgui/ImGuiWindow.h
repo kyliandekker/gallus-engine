@@ -11,6 +11,10 @@
 
 #include "editor/imgui/windows/MainWindow.h"
 #include "editor/imgui/windows/ConsoleWindow.h"
+#include "editor/imgui/windows/SceneWindow.h"
+#include "editor/imgui/windows/ExplorerWindow.h"
+#include "editor/imgui/windows/HierarchyWindow.h"
+#include "editor/imgui/windows/InspectorWindow.h"
 
 namespace coopscoop
 {
@@ -123,6 +127,10 @@ namespace coopscoop
 				// Windows.
 				MainWindow m_MainWindow;
 				ConsoleWindow m_ConsoleWindow;
+				SceneWindow m_SceneWindow;
+				ExplorerWindow m_ExplorerWindow;
+				HierarchyWindow m_HierarchyWindow;
+				InspectorWindow m_InspectorWindow;
 
 				friend graphics::dx12::DX12System;
 			};

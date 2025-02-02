@@ -20,7 +20,8 @@ namespace coopscoop
 #define LOG_CATEGORY_EDITOR "EDITOR"
 
 	// This one is out of the other namespaces so they can be easily used in other classes.
-	typedef enum LogSeverity {
+	typedef enum LogSeverity
+	{
 		LOGSEVERITY_ASSERT,
 		LOGSEVERITY_ERROR,
 		LOGSEVERITY_WARNING,
@@ -117,7 +118,7 @@ namespace coopscoop
 				/// <summary>
 				/// Retrieves the time the message was logged.
 				/// </summary>
-				/// <returns>The timepoint containing information about when the message was logged.</returns>
+				/// <returns>The time point containing information about when the message was logged.</returns>
 				const std::chrono::system_clock::time_point& GetTime() const;
 			private:
 				std::string m_RawMessage; /// The message without any category, location and severity information.
@@ -206,10 +207,10 @@ do{\
 
 #define TEST(a_Message)\
 do{\
-	core::logger::LOGGER.Log(LOGSEVERITY_TEST, "Test", a_Message, __FILE__, __LINE__);\
+	core::logger::LOGGER.Log(LOGSEVERITY_TEST, "TEST", a_Message, __FILE__, __LINE__);\
 } while (0)
 
 #define TESTF(a_Message, ...)\
 do{\
-	core::logger::LOGGER.LogF(LOGSEVERITY_TEST, "Test", a_Message, __FILE__, __LINE__, __VA_ARGS__);\
+	core::logger::LOGGER.LogF(LOGSEVERITY_TEST, "TEST", a_Message, __FILE__, __LINE__, __VA_ARGS__);\
 } while (0)

@@ -4,7 +4,7 @@
 
 #include "editor/imgui/views/Selectables/ExplorerResourceUIView.h"
 
-namespace renegade
+namespace coopscoop
 {
 	namespace editor
 	{

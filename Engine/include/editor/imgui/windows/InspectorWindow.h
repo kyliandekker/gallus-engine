@@ -4,7 +4,7 @@
 
 #include "editor/imgui/windows/BaseWindow.h"
 
-namespace renegade
+namespace coopscoop
 {
 	namespace editor
 	{

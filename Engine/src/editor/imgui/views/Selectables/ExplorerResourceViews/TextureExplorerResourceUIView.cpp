@@ -8,7 +8,7 @@
 #include "editor/imgui/ImGuiDefines.h"
 #include "editor/imgui/ImGuiWindow.h"
 
-namespace renegade
+namespace coopscoop
 {
 	namespace editor
 	{
@@ -25,7 +25,7 @@ namespace renegade
 			{
 				RenderBaseSelectable(&m_Resource);
 
-				ImGui::DisplayHeader(m_Window.Bold(), "Type");
+				ImGui::DisplayHeader(m_Window.GetBoldFont(), "Type");
 				ImGui::SameLine();
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(m_Window.GetFramePadding().x, 0));
 				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -67,35 +67,34 @@ namespace renegade
 						assets::AssetType::Font,
 					},
 					assets::AssetTypeToString
-				);
+					);
 			}
 
 			template<class T>
 			ImageExplorerResourceUIView<T>::ImageExplorerResourceUIView(const ImGuiWindow& a_Window, T* a_Resource) : ExplorerResourceWithPreviewUIView(a_Window), m_Resource(*a_Resource), m_AssetTypeDropdown(a_Window)
-			{
-			}
+			{}
 
 			template <class T>
 			ImageExplorerResourceUIView<T>::ImageExplorerResourceUIView<T>(const ImageExplorerResourceUIView& a_Other) : ExplorerResourceWithPreviewUIView(a_Other), m_Resource(a_Other.m_Resource), m_AssetTypeDropdown(a_Other.m_Window)
-			{ }
+			{}
 
 			TextureExplorerResourceUIView::TextureExplorerResourceUIView(const ImGuiWindow& a_Window, TextureExplorerResource* a_Resource) : ImageExplorerResourceUIView(a_Window, a_Resource)
-			{ }
+			{}
 
 			TextureExplorerResourceUIView::TextureExplorerResourceUIView(const TextureExplorerResourceUIView& a_Other) : ImageExplorerResourceUIView(a_Other)
-			{ }
+			{}
 
 			SpriteExplorerResourceUIView::SpriteExplorerResourceUIView(const ImGuiWindow& a_Window, SpriteExplorerResource* a_Resource) : ImageExplorerResourceUIView(a_Window, a_Resource)
-			{ }
+			{}
 
 			SpriteExplorerResourceUIView::SpriteExplorerResourceUIView(const SpriteExplorerResourceUIView& a_Other) : ImageExplorerResourceUIView(a_Other)
-			{ }
+			{}
 
 			FontExplorerResourceUIView::FontExplorerResourceUIView(const ImGuiWindow& a_Window, FontExplorerResource* a_Resource) : ImageExplorerResourceUIView(a_Window, a_Resource)
-			{ }
+			{}
 
 			FontExplorerResourceUIView::FontExplorerResourceUIView(const FontExplorerResourceUIView& a_Other) : ImageExplorerResourceUIView(a_Other)
-			{ }
+			{}
 		}
 	}
 }

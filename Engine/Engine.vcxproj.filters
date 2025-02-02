@@ -174,6 +174,42 @@
     <ClCompile Include="src\editor\imgui\windows\MainWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\editor\imgui\views\Selectables\EditorSelectable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\editor\imgui\views\Selectables\ExplorerResourceUIView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\editor\imgui\views\Selectables\ExplorerResourceViews\ExplorerResourceWithPreviewResourceUIView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\editor\imgui\views\Selectables\ExplorerResourceViews\DefaultExplorerResourceUIView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\editor\imgui\views\Selectables\ExplorerResourceViews\AudioExplorerResourceUIView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\editor\imgui\views\DataTypes\StringDropdown.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\editor\imgui\views\Selectables\ExplorerResourceViews\SceneExplorerResourceUIView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\editor\imgui\views\Selectables\ExplorerResourceViews\TextureExplorerResourceUIView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\editor\imgui\windows\ExplorerWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\editor\imgui\windows\SceneWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\editor\imgui\windows\InspectorWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\editor\imgui\windows\HierarchyWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\core\Engine.h">
@@ -318,6 +354,36 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\editor\imgui\windows\MainWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\editor\imgui\windows\ExplorerWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\editor\imgui\views\Selectables\ExplorerResourceUIView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\editor\imgui\views\Selectables\EditorSelectable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\editor\imgui\views\Selectables\ExplorerResourceViews\ExplorerResourceWithPreviewUIView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\editor\imgui\views\Selectables\ExplorerResourceViews\DefaultExplorerResourceUIView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\editor\imgui\views\Selectables\ExplorerResourceViews\AudioExplorerResourceUIView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\editor\imgui\views\DataTypes\StringDropdown.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\editor\imgui\views\Selectables\ExplorerResourceViews\SceneExplorerResourceUIView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\editor\imgui\windows\InspectorWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\editor\imgui\windows\HierarchyWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

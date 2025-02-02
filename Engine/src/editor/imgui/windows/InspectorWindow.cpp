@@ -4,20 +4,20 @@
 
 #include <imgui/imgui_helpers.h>
 
-#include "gameplay/EntityComponentSystem.h"
+//#include "gameplay/EntityComponentSystem.h"
 #include "editor/imgui/ImGuiDefines.h"
-#include "logger/Logger.h"
+#include "core/logger/Logger.h"
 #include "editor/imgui/ImGuiWindow.h"
 #include "core/Engine.h"
 
-namespace renegade
+namespace coopscoop
 {
 	namespace editor
 	{
 		namespace imgui
 		{
 			InspectorWindow::InspectorWindow(const ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, "Inspector", "Inspector")
-			{ }
+			{}
 
 			bool InspectorWindow::Initialize()
 			{
@@ -28,7 +28,7 @@ namespace renegade
 			{
 				if (core::ENGINE.GetEditor().GetSelectable())
 				{
-					std::lock_guard<std::recursive_mutex> lock(gameplay::m_EntityMutex);
+					//std::lock_guard<std::recursive_mutex> lock(gameplay::m_EntityMutex);
 					core::ENGINE.GetEditor().GetSelectable()->RenderSelectable();
 				}
 				//if (ImGui::Button("Info"))

@@ -11,14 +11,14 @@
 #include "editor/explorer_resources/AudioExplorerResource.h"
 #include "editor/explorer_resources/SceneExplorerResource.h"
 #include "core/Engine.h"
-#include "file/FileLoader.h"
+#include "core/FileUtils.h"
 
 #include "editor/imgui/views/Selectables/ExplorerResourceViews/DefaultExplorerResourceUIView.h"
 #include "editor/imgui/views/Selectables/ExplorerResourceViews/TextureExplorerResourceUIView.h"
 #include "editor/imgui/views/Selectables/ExplorerResourceViews/AudioExplorerResourceUIView.h"
 #include "editor/imgui/views/Selectables/ExplorerResourceViews/SceneExplorerResourceUIView.h"
 
-namespace renegade
+namespace coopscoop
 {
 	namespace editor
 	{
@@ -184,8 +184,8 @@ namespace renegade
 
 			void ExplorerResourceUIView::SetData(ExplorerResource* a_Resource)
 			{
-				m_Name = string_extensions::GetFileWithoutExtension(string_extensions::GetFileName(a_Resource->GetPath()));
-				m_Icon = a_Resource->GetResourceType() == ExplorerResourceType::Folder ? ICON_FOLDER : RESOURCE_ICONS[(int)a_Resource->GetAssetType()];
+				m_Name = a_Resource->GetPath().stem().generic_string();
+				m_Icon = a_Resource->GetResourceType() == ExplorerResourceType::Folder ? ICON_FOLDER : RESOURCE_ICONS[(int) a_Resource->GetAssetType()];
 				m_StrResourceType = a_Resource->GetResourceType() == ExplorerResourceType::Folder ? "" : assets::AssetTypeToString(a_Resource->GetAssetType());
 				m_ResourceType = a_Resource->GetResourceType();
 
@@ -275,7 +275,7 @@ namespace renegade
 					childSize,
 					false, // Borderless child
 					ImGuiWindowFlags_None
-				))
+					))
 				{
 					ImGui::SetCursorScreenPos(cursorPos);
 					if (a_Selected)
@@ -438,12 +438,12 @@ namespace renegade
 
 			void ExplorerResourceUIView::RenderBaseSelectable(ExplorerResource* a_Resource)
 			{
-				ImVec2 toolbarSize = ImVec2(ImGui::GetContentRegionAvail().x, core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y * 2.5f);
+				ImVec2 toolbarSize = ImVec2(ImGui::GetContentRegionAvail().x, m_Window.GetHeaderSize().y * 2.5f);
 				ImGui::BeginToolbar(toolbarSize);
 
-				ImVec2 padding = core::ENGINE.GetEditor().GetImGuiWindow().GetWindowPadding();
+				ImVec2 padding = m_Window.GetWindowPadding();
 
-				float fontSize = core::ENGINE.GetEditor().GetImGuiWindow().FontSize();
+				float fontSize = m_Window.GetFontSize();
 
 				float y = ImGui::GetCursorPosY();
 				float x = ImGui::GetCursorPosX() + fontSize;
@@ -468,7 +468,7 @@ namespace renegade
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
 
-				ImGui::SetCursorPosY(y + (core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y * 1.5f));
+				ImGui::SetCursorPosY(y + (m_Window.GetHeaderSize().y * 1.5f));
 
 				// TODO: Find icon for this.
 				//if (ImGui::TransparentButton(IMGUI_FORMAT_ID(std::string(ICON_FA_ARROW_TURN_UP), BUTTON_ID, "SHOW_IN_EXPLORER_INSPECTOR").c_str(), ImVec2(core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y, core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y)))
@@ -479,7 +479,7 @@ namespace renegade
 				//	});
 				//}
 				ImGui::SameLine();
-				if (ImGui::TransparentButton(IMGUI_FORMAT_ID(std::string(ICON_DELETE), BUTTON_ID, "DELETE_INSPECTOR").c_str(), ImVec2(core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y, core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y)))
+				if (ImGui::TransparentButton(IMGUI_FORMAT_ID(std::string(ICON_DELETE), BUTTON_ID, "DELETE_INSPECTOR").c_str(), ImVec2(m_Window.GetHeaderSize().y, m_Window.GetHeaderSize().y)))
 				{
 					core::ENGINE.GetEditor().SetSelectable(nullptr);
 
@@ -497,8 +497,7 @@ namespace renegade
 			}
 
 			void ExplorerResourceUIView::EndBaseSelectable()
-			{
-			}
+			{}
 
 			bool ExplorerResourceUIView::HasFolders() const
 			{

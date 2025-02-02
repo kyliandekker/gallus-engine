@@ -3,7 +3,7 @@
 #include "editor/imgui/views/selectables/ExplorerResourceViews/ExplorerResourceWithPreviewUIView.h"
 #include "editor/imgui/views/DataTypes/StringDropdown.h"
 
-namespace renegade
+namespace coopscoop
 {
 	namespace editor
 	{
@@ -59,7 +59,7 @@ namespace renegade
 
 				T& m_Resource; /// Reference to the associated resource of type <typeparamref name="T"/>.
 
-				StringDropdown<assets::AssetType> m_AssetTypeDropdown; /// Dropdown UI element for selecting asset types.
+				StringDropdown<assets::AssetType> m_AssetTypeDropdown; /// Drop-down UI element for selecting asset types.
 
 				friend ExplorerResourceUIView; /// Grants access to private/protected members for <see cref="ExplorerResourceUIView"/>.
 			};

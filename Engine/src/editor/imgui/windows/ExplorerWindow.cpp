@@ -4,14 +4,14 @@
 
 #include "editor/imgui/ImGuiDefines.h"
 #include "utils/string_extensions.h"
-#include "file/FileLoader.h"
+#include "core/FileUtils.h"
 #include "editor/imgui/ImGuiWindow.h"
 #include "imgui/imgui_helpers.h"
 #include "editor/Editor.h"
 #include "core/Engine.h"
 #include "editor/ExplorerResource.h"
 
-namespace renegade
+namespace coopscoop
 {
 	namespace editor
 	{
@@ -105,7 +105,7 @@ namespace renegade
 				}
 
 				// This needs to be done at the start of the frame to avoid errors.
-				// We refresh the assets that show up based on the searchbar and the root directory.
+				// We refresh the assets that show up based on the search bar and the root directory.
 				if (m_NeedsRefresh)
 				{
 					m_FilteredResources.clear();
@@ -134,7 +134,7 @@ namespace renegade
 					return;
 				}
 
-				ImVec2 toolbarSize = ImVec2(ImGui::GetContentRegionAvail().x, m_Window.HeaderSize().y);
+				ImVec2 toolbarSize = ImVec2(ImGui::GetContentRegionAvail().x, m_Window.GetHeaderSize().y);
 				ImGui::BeginToolbar(toolbarSize);
 
 				float topPosY = ImGui::GetCursorPosY();
@@ -175,7 +175,7 @@ namespace renegade
 				float inputPadding = m_Window.GetFramePadding().x / 2;
 				ImVec2 searchBarPos = ImVec2(
 					ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - (searchbarWidth + m_Window.GetWindowPadding().x),
-					(topPosY + (toolbarSize.y / 2)) - (((inputPadding * 2) + m_Window.FontSize()) / 2)
+					(topPosY + (toolbarSize.y / 2)) - (((inputPadding * 2) + m_Window.GetFontSize()) / 2)
 				);
 				ImGui::SetCursorPos(searchBarPos);
 				if (m_SearchBar.Render(IMGUI_FORMAT_ID("", INPUT_ID, "EXPLORER_CONSOLE").c_str(), ImVec2(searchbarWidth, toolbarSize.y), inputPadding))
@@ -191,11 +191,11 @@ namespace renegade
 				if (ImGui::BeginChild(
 					IMGUI_FORMAT_ID("", CHILD_ID, "DIRECTORIES_EXPLORER").c_str(),
 					ImVec2(
-						0,
-						ImGui::GetContentRegionAvail().y - m_Window.GetFramePadding().y
+					0,
+					ImGui::GetContentRegionAvail().y - m_Window.GetFramePadding().y
 					),
 					ImGuiChildFlags_Borders | ImGuiChildFlags_ResizeX
-				))
+					))
 				{
 					ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 					RenderFolder(m_AssetRoot, 0, ImGui::GetCursorScreenPos());
@@ -208,21 +208,21 @@ namespace renegade
 				if (ImGui::BeginChild(
 					IMGUI_FORMAT_ID("", CHILD_ID, "FILES_EXPLORER").c_str(),
 					ImVec2(
-						ImGui::GetContentRegionAvail().x - m_Window.GetFramePadding().x,
-						ImGui::GetContentRegionAvail().y - m_Window.GetFramePadding().y
+					ImGui::GetContentRegionAvail().x - m_Window.GetFramePadding().x,
+					ImGui::GetContentRegionAvail().y - m_Window.GetFramePadding().y
 					),
 					ImGuiChildFlags_Borders
-				))
+					))
 				{
 					if (m_FolderRoot)
 					{
 						if (ImGui::BeginChild(
 							IMGUI_FORMAT_ID("", CHILD_ID, "FILES_INNER_EXPLORER").c_str(),
 							ImVec2(
-								0,
-								0
+							0,
+							0
 							)
-						))
+							))
 						{
 							if (m_ExplorerViewMode == ExplorerViewMode::ExplorerViewMode_List)
 							{

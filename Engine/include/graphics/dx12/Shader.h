@@ -21,7 +21,15 @@ namespace coopscoop
 
 				static Microsoft::WRL::ComPtr<ID3DBlob> CompileShader(const std::wstring& a_FilePath, const std::string& a_EntryPoint, const std::string& a_Target);
 
-				const std::wstring& GetName() const { return m_Name; };
+				const std::wstring& GetName() const
+				{
+					return m_Name;
+				};
+
+				bool IsValid()
+				{
+					return true;
+				};
 			private:
 				bool Load(const std::string& a_Name, void*);
 

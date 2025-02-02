@@ -151,7 +151,7 @@ namespace coopscoop
 				// Default textures, meshes, shaders and materials.
 				Shader& shaderColor = m_ResourceAtlas.LoadShader("color"); // Default color shader.
 				Shader& shaderAlbedo = m_ResourceAtlas.LoadShader("albedo"); // Default albedo shader.
-				m_ResourceAtlas.LoadTexture("./resources/textures/tex_missing.png", cCommandList); // Default texture.
+				m_ResourceAtlas.LoadTexture("./assets/textures/tex_missing.png", cCommandList); // Default texture.
 				m_ResourceAtlas.LoadMaterial("default", { { 1.0f, 1.0f, 1.0f }, 0.0f, 0.0f }); // Default material.
 
 				Material& m_FaucetMaterial = m_ResourceAtlas.LoadMaterial("faucet", { { 0.16f, 0.16f, 0.16f }, 0.87f, 1.0f });
@@ -161,11 +161,11 @@ namespace coopscoop
 				m_FaucetMesh.Initialize();
 
 				m_ChickenMesh.SetMesh(m_ResourceAtlas.LoadMesh("chicken.gltf", cCommandList));
-				m_ChickenMesh.SetTexture(m_ResourceAtlas.LoadTexture("./resources/textures/tex_chicken_normal.png", cCommandList));
+				m_ChickenMesh.SetTexture(m_ResourceAtlas.LoadTexture("./assets/textures/tex_chicken_normal.png", cCommandList));
 				m_ChickenMesh.SetShader(shaderAlbedo);
 
 				m_ChickenMesh2.SetMesh(m_ResourceAtlas.LoadMesh("chicken.gltf", cCommandList));
-				m_ChickenMesh2.SetTexture(m_ResourceAtlas.LoadTexture("./resources/textures/tex_chicken_sick.png", cCommandList));
+				m_ChickenMesh2.SetTexture(m_ResourceAtlas.LoadTexture("./assets/textures/tex_chicken_sick.png", cCommandList));
 				m_ChickenMesh2.SetShader(shaderAlbedo);
 
 				m_FaucetMesh.SetMesh(m_ResourceAtlas.LoadMesh("mod_faucet.gltf", cCommandList));
@@ -273,7 +273,7 @@ namespace coopscoop
 						// is favored.
 						if ((dxgiAdapterDesc1.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) == 0 &&
 							SUCCEEDED(D3D12CreateDevice(dxgiAdapter1.Get(),
-								D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), nullptr)) &&
+							D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), nullptr)) &&
 							dxgiAdapterDesc1.DedicatedVideoMemory > maxDedicatedVideoMemory)
 						{
 							maxDedicatedVideoMemory = dxgiAdapterDesc1.DedicatedVideoMemory;
@@ -533,7 +533,8 @@ namespace coopscoop
 					&errorBlob
 				);
 
-				if (FAILED(hr)) {
+				if (FAILED(hr))
+				{
 					std::string errorMessage(static_cast<const char*>(errorBlob->GetBufferPointer()), errorBlob->GetBufferSize());
 					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed serializing root signature: \"%s\".", errorMessage.c_str());
 					return false;
@@ -627,7 +628,7 @@ namespace coopscoop
 					D3D12_RESOURCE_STATE_DEPTH_WRITE,
 					&optimizedClearValue,
 					IID_PPV_ARGS(&m_DepthBuffer)
-				)))
+					)))
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating committed resource.");
 					return;
@@ -646,41 +647,41 @@ namespace coopscoop
 
 			void DX12System::Resize(const glm::ivec2& a_Pos, const glm::ivec2& a_Size)
 			{
-				std::lock_guard<std::mutex> lock(m_RenderMutex);
-
-				Flush();
-				for (int i = 0; i < g_BufferCount; ++i)
-				{
-					m_BackBuffers[i].Reset();  // This will release the old resource properly
-				}
-#ifdef __EDITOR__
-				m_ImGuiWindow.OnRenderTargetCleaned();
-#endif // __EDITOR__
-
-				DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
-				if (FAILED(m_SwapChain->GetDesc(&swapChainDesc)))
-				{
-					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed getting desc from swap chain.");
-					return;
-				}
-				if (FAILED(m_SwapChain->ResizeBuffers(g_BufferCount, a_Size.x,
-					a_Size.y, swapChainDesc.BufferDesc.Format, swapChainDesc.Flags)))
-				{
-					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed resizing buffers.");
-					return;
-				}
-				ResizeDepthBuffer(a_Size);
-
-				m_CurrentBackBufferIndex = m_SwapChain->GetCurrentBackBufferIndex();
-
-				UpdateRenderTargetViews();
-
-#ifdef __EDITOR__
-				m_ImGuiWindow.Resize(a_Pos, a_Size);
-#endif // __EDITOR__
-
-				m_Size = glm::vec2(a_Size.x, a_Size.y);
-				m_Viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(m_Size.x), static_cast<float>(m_Size.y));
+//				std::lock_guard<std::mutex> lock(m_RenderMutex);
+//
+//				Flush();
+//				for (int i = 0; i < g_BufferCount; ++i)
+//				{
+//					m_BackBuffers[i].Reset();  // This will release the old resource properly
+//				}
+//#ifdef __EDITOR__
+//				m_ImGuiWindow.OnRenderTargetCleaned();
+//#endif // __EDITOR__
+//
+//				DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
+//				if (FAILED(m_SwapChain->GetDesc(&swapChainDesc)))
+//				{
+//					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed getting desc from swap chain.");
+//					return;
+//				}
+//				if (FAILED(m_SwapChain->ResizeBuffers(g_BufferCount, a_Size.x,
+//					a_Size.y, swapChainDesc.BufferDesc.Format, swapChainDesc.Flags)))
+//				{
+//					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed resizing buffers.");
+//					return;
+//				}
+//				ResizeDepthBuffer(a_Size);
+//
+//				m_CurrentBackBufferIndex = m_SwapChain->GetCurrentBackBufferIndex();
+//
+//				UpdateRenderTargetViews();
+//
+//#ifdef __EDITOR__
+//				m_ImGuiWindow.Resize(a_Pos, a_Size);
+//#endif // __EDITOR__
+//
+//				m_Size = glm::vec2(a_Size.x, a_Size.y);
+//				m_Viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(m_Size.x), static_cast<float>(m_Size.y));
 			}
 
 			Microsoft::WRL::ComPtr<ID3D12Resource> DX12System::GetCurrentBackBuffer() const

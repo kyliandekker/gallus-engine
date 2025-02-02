@@ -19,102 +19,107 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 
 namespace coopscoop
 {
-    namespace editor
-    {
-        namespace imgui
-        {
+	namespace editor
+	{
+		namespace imgui
+		{
 			ImGuiWindow::ImGuiWindow()
 				: m_MainWindow(*this),
-				m_ConsoleWindow(*this)
-			{ }
+				m_ConsoleWindow(*this),
+				m_SceneWindow(*this),
+				m_ExplorerWindow(*this),
+				m_HierarchyWindow(*this),
+				m_InspectorWindow(*this)
+			{}
 
 			bool ImGuiWindow::Initialize()
-            {
-                IMGUI_CHECKVERSION();
-                ImGui::CreateContext();
-                ImPlot::CreateContext();
+			{
+				IMGUI_CHECKVERSION();
+				ImGui::CreateContext();
+				ImPlot::CreateContext();
 
-                m_IniPath = std::string(file::FileLoader::GetAppDataPath().generic_string() + SETTINGS_FOLDER + "imgui.ini");
-                ImGuiIO& io = ImGui::GetIO();
-                io.IniFilename = m_IniPath.c_str();
+				m_IniPath = std::string(file::FileLoader::GetAppDataPath().generic_string() + SETTINGS_FOLDER + "imgui.ini");
+				ImGuiIO& io = ImGui::GetIO();
+				io.IniFilename = m_IniPath.c_str();
 
-                if (!CreateContextWin32() || !CreateContextDX12())
-                {
-                    return false;
-                }
+				if (!CreateContextWin32() || !CreateContextDX12())
+				{
+					return false;
+				}
 				core::ENGINE.GetWindow().m_OnMsg += std::bind(&ImGuiWindow::WndProcHandler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 
-                CreateImGui();
+				CreateImGui();
 
-                LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_EDITOR, "Initialized ImGui.");
+				LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_EDITOR, "Initialized ImGui.");
 
 				m_MainWindow.Initialize();
 				m_ConsoleWindow.Initialize();
-				//m_SceneWindow.Initialize();
-				//m_InspectorWindow.Initialize();
-				//m_HierarchyWindow.Initialize();
-				//m_ExplorerWindow.Initialize();
+				m_SceneWindow.Initialize();
+				m_ExplorerWindow.Initialize();
+				m_HierarchyWindow.Initialize();
+				m_InspectorWindow.Initialize();
 				//m_LoadProjectWindow.Initialize();
 
-                return System::Initialize();
-            }
+				return System::Initialize();
+			}
 
-            bool ImGuiWindow::Destroy()
-            {
+			bool ImGuiWindow::Destroy()
+			{
 				m_MainWindow.Destroy();
 				m_ConsoleWindow.Destroy();
-				//m_SceneWindow.Destroy();
-				//m_InspectorWindow.Destroy();
-				//m_HierarchyWindow.Destroy();
-				//m_ExplorerWindow.Destroy();
+				m_SceneWindow.Destroy();
+				m_ExplorerWindow.Destroy();
+				m_HierarchyWindow.Destroy();
+				m_InspectorWindow.Destroy();
+				//m_LoadProjectWindow.Destroy();
 
-                ImGui_ImplDX12_Shutdown();
-                ImGui_ImplWin32_Shutdown();
-                ImPlot::DestroyContext();
-                ImGui::DestroyContext();
+				ImGui_ImplDX12_Shutdown();
+				ImGui_ImplWin32_Shutdown();
+				ImPlot::DestroyContext();
+				ImGui::DestroyContext();
 
-                LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_EDITOR, "Destroyed ImGui.");
+				LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_EDITOR, "Destroyed ImGui.");
 
-                return true;
-            }
+				return true;
+			}
 
-            bool ImGuiWindow::CreateContextWin32()
-            {
-                if (!ImGui_ImplWin32_Init(core::ENGINE.GetWindow().GetHWnd()))
-                {
-                    LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_EDITOR, "Failed creating WIN32 context for ImGui.");
-                    return false;
-                }
+			bool ImGuiWindow::CreateContextWin32()
+			{
+				if (!ImGui_ImplWin32_Init(core::ENGINE.GetWindow().GetHWnd()))
+				{
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_EDITOR, "Failed creating WIN32 context for ImGui.");
+					return false;
+				}
 
-                LOG(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_EDITOR, "Created WIN32 context for ImGui.");
-                return true;
-            }
+				LOG(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_EDITOR, "Created WIN32 context for ImGui.");
+				return true;
+			}
 
-            bool ImGuiWindow::CreateContextDX12()
-            {
-                graphics::dx12::DX12System& dx12window = core::ENGINE.GetDX12();
-                m_SrvIndex = dx12window.GetSRV().Allocate();
+			bool ImGuiWindow::CreateContextDX12()
+			{
+				graphics::dx12::DX12System& dx12window = core::ENGINE.GetDX12();
+				m_SrvIndex = dx12window.GetSRV().Allocate();
 
-                if (!ImGui_ImplDX12_Init(dx12window.GetDevice().Get(), graphics::dx12::g_BufferCount,
-                    DXGI_FORMAT_R8G8B8A8_UNORM, dx12window.GetSRV().GetHeap().Get(),
-                    dx12window.GetSRV().GetCPUHandle(m_SrvIndex),
-                    dx12window.GetSRV().GetGPUHandle(m_SrvIndex)))
-                {
-                    LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_EDITOR, "Failed creating DX12 context for ImGui.");
-                    return false;
-                }
+				if (!ImGui_ImplDX12_Init(dx12window.GetDevice().Get(), graphics::dx12::g_BufferCount,
+					DXGI_FORMAT_R8G8B8A8_UNORM, dx12window.GetSRV().GetHeap().Get(),
+					dx12window.GetSRV().GetCPUHandle(m_SrvIndex),
+					dx12window.GetSRV().GetGPUHandle(m_SrvIndex)))
+				{
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_EDITOR, "Failed creating DX12 context for ImGui.");
+					return false;
+				}
 
-                LOG(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_EDITOR, "Created DX12 context for ImGui.");
-                return true;
-            }
+				LOG(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_EDITOR, "Created DX12 context for ImGui.");
+				return true;
+			}
 
-            void ImGuiWindow::CreateImGui()
-            {
+			void ImGuiWindow::CreateImGui()
+			{
 				ImGuiIO& io = ImGui::GetIO();
 				io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
 				io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 				io.ConfigFlags &= ~ImGuiConfigFlags_NoMouseCursorChange;
-				(void)io;
+				(void) io;
 
 				// setup Dear ImGui style
 				ImGui::StyleColorsDark();
@@ -146,7 +151,7 @@ namespace coopscoop
 				m_DefaultFont = io.Fonts->AddFontFromMemoryTTF(&font::arial, sizeof(font::arial), m_FontSize, &font_config_default);
 
 				ImFont* font1 = io.Fonts->AddFontDefault();
-				(void)font1;
+				(void) font1;
 
 				io.Fonts->Build();
 
@@ -231,7 +236,7 @@ namespace coopscoop
 				colors[ImPlotCol_Line] = ImVec4(0.66f, 0.66f, 0.66f, 1.00f);
 
 				m_HeaderSize = ImVec2(0, m_FontSize * 2.5f);
-            }
+			}
 
 			void ImGuiWindow::OnRenderTargetCreated()
 			{
@@ -277,6 +282,10 @@ namespace coopscoop
 				m_MainWindow.SetSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y));
 				m_MainWindow.Update();
 				m_ConsoleWindow.Update();
+				m_SceneWindow.Update();
+				m_ExplorerWindow.Update();
+				m_HierarchyWindow.Update();
+				m_InspectorWindow.Update();
 
 				UpdateMouseCursor();
 
@@ -385,8 +394,8 @@ namespace coopscoop
 			{
 				return m_HeaderSize;
 			}
-        }
-    }
+		}
+	}
 }
 
 #endif // __EDITOR__

@@ -10,7 +10,7 @@
 #include "core/Engine.h"
 #include "utils/string_extensions.h"
 
-namespace renegade
+namespace coopscoop
 {
 	namespace editor
 	{
@@ -25,7 +25,7 @@ namespace renegade
 			{
 				RenderBaseSelectable(&m_Resource);
 
-				ImGui::DisplayHeader(m_Window.Bold(), "Type");
+				ImGui::DisplayHeader(m_Window.GetBoldFont(), "Type");
 				ImGui::SameLine();
 				ImGui::Text(assets::AssetTypeToString(m_Resource.GetAssetType()).c_str());
 
@@ -39,10 +39,10 @@ namespace renegade
 			}
 
 			SceneExplorerResourceUIView::SceneExplorerResourceUIView(const ImGuiWindow& a_Window, SceneExplorerResource* a_Resource) : ExplorerResourceWithoutPreviewUIView(a_Window), m_Resource(*a_Resource)
-			{ }
+			{}
 
 			SceneExplorerResourceUIView::SceneExplorerResourceUIView(const SceneExplorerResourceUIView& a_Other) : ExplorerResourceWithoutPreviewUIView(a_Other), m_Resource(a_Other.m_Resource)
-			{ }
+			{}
 		}
 	}
 }

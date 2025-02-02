@@ -18,7 +18,7 @@
 #include "core/logger/Logger.h"
 #include "core/Engine.h"
 
-// General Metadata Variables
+// General meta-data Variables
 #define JSON_ASSETTYPE_VAR "assetType"
 
 namespace coopscoop
@@ -86,14 +86,14 @@ namespace coopscoop
 			// TODO: Fix
 			const std::unordered_map<std::string, std::vector<assets::AssetType>> WAT =
 			{
-				{ "cfg", { assets::AssetType::Cfg }  },
-				{ "scene", { assets::AssetType::Scene }  },
-				{ "mat", { assets::AssetType::Material }  },
-				{ "png", { assets::AssetType::Texture, assets::AssetType::Sprite, assets::AssetType::Font }  },
-				{ "bmp", { assets::AssetType::Texture, assets::AssetType::Sprite, assets::AssetType::Font }  },
-				{ "wav", { assets::AssetType::Sound, assets::AssetType::Song }  },
-				{ "anim", { assets::AssetType::Animation }  },
-				{ "gltf", { assets::AssetType::Model } },
+				{ ".cfg", { assets::AssetType::Cfg } },
+				{ ".scene", { assets::AssetType::Scene } },
+				{ ".mat", { assets::AssetType::Material } },
+				{ ".png", { assets::AssetType::Texture, assets::AssetType::Sprite, assets::AssetType::Font } },
+				{ ".bmp", { assets::AssetType::Texture, assets::AssetType::Sprite, assets::AssetType::Font } },
+				{ ".wav", { assets::AssetType::Sound, assets::AssetType::Song } },
+				{ ".anim", { assets::AssetType::Animation } },
+				{ ".gltf", { assets::AssetType::Model } },
 			};
 
 			if (!fs::exists(m_Path))
@@ -146,7 +146,7 @@ namespace coopscoop
 						{
 							int iAssetType = 0;
 							rapidjson::GetInt(document, JSON_ASSETTYPE_VAR, iAssetType);
-							assetType = (assets::AssetType)iAssetType;
+							assetType = (assets::AssetType) iAssetType;
 						}
 
 						switch (assetType)
@@ -292,7 +292,7 @@ namespace coopscoop
 		{
 			int assetType = 0;
 			rapidjson::GetInt(a_JsonFile, JSON_ASSETTYPE_VAR, assetType);
-			m_AssetType = (assets::AssetType)assetType;
+			m_AssetType = (assets::AssetType) assetType;
 
 			return true;
 		}
@@ -309,7 +309,7 @@ namespace coopscoop
 			document.SetObject();
 			rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
 
-			int assetType = (int)m_AssetType;
+			int assetType = (int) m_AssetType;
 			document.AddMember(JSON_ASSETTYPE_VAR, assetType, allocator);
 
 			return document;

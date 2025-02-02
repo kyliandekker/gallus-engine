@@ -18,7 +18,7 @@ namespace coopscoop
 			bool Shader::Load(const std::string& a_ShaderName, void*)
 			{
 				m_Name = std::wstring(a_ShaderName.begin(), a_ShaderName.end());
-				fs::path path = file::FileLoader::GetPath("./resources/shaders/");
+				fs::path path = file::FileLoader::GetPath("./assets/shaders/");
 
 				fs::path vertexPath = file::FileLoader::GetPath(path.generic_string() + a_ShaderName + "_vertexshader.hlsl");
 				fs::path pixelPath = file::FileLoader::GetPath(path.generic_string() + a_ShaderName + "_pixelshader.hlsl");
@@ -29,7 +29,7 @@ namespace coopscoop
 				// Create the vertex input layout
 				D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
 					{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-					{ "NORMAL",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+					{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 					{ "COLOR", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 					{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 				};
@@ -88,7 +88,7 @@ namespace coopscoop
 					0,
 					&shaderBlob,
 					&errorBlob
-				))
+					))
 				{
 					if (errorBlob)
 					{

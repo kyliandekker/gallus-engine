@@ -91,7 +91,7 @@
       <AdditionalDependencies>Shcore.lib;dxgi.lib;d3d12.lib;d3dcompiler.lib;dxguid.lib;Shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /E /I /Y "$(SolutionDir)shaders" "$(OutDir)resources\shaders"</Command>
+      <Command>xcopy /E /I /Y "$(SolutionDir)shaders" "$(OutDir)assets\shaders"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -138,11 +138,23 @@
     <ClCompile Include="src\editor\explorer_resources\SceneExplorerResource.cpp" />
     <ClCompile Include="src\editor\imgui\ImGuiDefines.cpp" />
     <ClCompile Include="src\editor\imgui\ImGuiWindow.cpp" />
+    <ClCompile Include="src\editor\imgui\views\DataTypes\StringDropdown.cpp" />
     <ClCompile Include="src\editor\imgui\views\DataTypes\StringTextInput.cpp" />
     <ClCompile Include="src\editor\imgui\views\ImGuiUIView.cpp" />
+    <ClCompile Include="src\editor\imgui\views\Selectables\EditorSelectable.cpp" />
+    <ClCompile Include="src\editor\imgui\views\Selectables\ExplorerResourceUIView.cpp" />
+    <ClCompile Include="src\editor\imgui\views\Selectables\ExplorerResourceViews\AudioExplorerResourceUIView.cpp" />
+    <ClCompile Include="src\editor\imgui\views\Selectables\ExplorerResourceViews\DefaultExplorerResourceUIView.cpp" />
+    <ClCompile Include="src\editor\imgui\views\Selectables\ExplorerResourceViews\ExplorerResourceWithPreviewResourceUIView.cpp" />
+    <ClCompile Include="src\editor\imgui\views\Selectables\ExplorerResourceViews\SceneExplorerResourceUIView.cpp" />
+    <ClCompile Include="src\editor\imgui\views\Selectables\ExplorerResourceViews\TextureExplorerResourceUIView.cpp" />
     <ClCompile Include="src\editor\imgui\windows\BaseWindow.cpp" />
     <ClCompile Include="src\editor\imgui\windows\ConsoleWindow.cpp" />
+    <ClCompile Include="src\editor\imgui\windows\ExplorerWindow.cpp" />
+    <ClCompile Include="src\editor\imgui\windows\HierarchyWindow.cpp" />
+    <ClCompile Include="src\editor\imgui\windows\InspectorWindow.cpp" />
     <ClCompile Include="src\editor\imgui\windows\MainWindow.cpp" />
+    <ClCompile Include="src\editor\imgui\windows\SceneWindow.cpp" />
     <ClCompile Include="src\graphics\dx12\CommandList.cpp" />
     <ClCompile Include="src\graphics\dx12\Material.cpp" />
     <ClCompile Include="src\graphics\dx12\Light.cpp" />
@@ -192,10 +204,20 @@
     <ClInclude Include="include\editor\imgui\font_icon.h" />
     <ClInclude Include="include\editor\imgui\ImGuiDefines.h" />
     <ClInclude Include="include\editor\imgui\ImGuiWindow.h" />
+    <ClInclude Include="include\editor\imgui\views\DataTypes\StringDropdown.h" />
     <ClInclude Include="include\editor\imgui\views\DataTypes\StringTextInput.h" />
     <ClInclude Include="include\editor\imgui\views\ImGuiUIView.h" />
+    <ClInclude Include="include\editor\imgui\views\Selectables\EditorSelectable.h" />
+    <ClInclude Include="include\editor\imgui\views\Selectables\ExplorerResourceUIView.h" />
+    <ClInclude Include="include\editor\imgui\views\Selectables\ExplorerResourceViews\AudioExplorerResourceUIView.h" />
+    <ClInclude Include="include\editor\imgui\views\Selectables\ExplorerResourceViews\DefaultExplorerResourceUIView.h" />
+    <ClInclude Include="include\editor\imgui\views\Selectables\ExplorerResourceViews\ExplorerResourceWithPreviewUIView.h" />
+    <ClInclude Include="include\editor\imgui\views\Selectables\ExplorerResourceViews\SceneExplorerResourceUIView.h" />
     <ClInclude Include="include\editor\imgui\windows\BaseWindow.h" />
     <ClInclude Include="include\editor\imgui\windows\ConsoleWindow.h" />
+    <ClInclude Include="include\editor\imgui\windows\ExplorerWindow.h" />
+    <ClInclude Include="include\editor\imgui\windows\HierarchyWindow.h" />
+    <ClInclude Include="include\editor\imgui\windows\InspectorWindow.h" />
     <ClInclude Include="include\editor\imgui\windows\MainWindow.h" />
     <ClInclude Include="include\graphics\dx12\Buffer.h" />
     <ClInclude Include="include\graphics\dx12\CommandList.h" />

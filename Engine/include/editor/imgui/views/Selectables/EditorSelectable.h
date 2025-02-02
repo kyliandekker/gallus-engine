@@ -6,7 +6,7 @@
 
 #include "editor/imgui/views/ImGuiUIView.h"
 
-namespace renegade
+namespace coopscoop
 {
 	namespace editor
 	{
@@ -29,17 +29,20 @@ namespace renegade
 				/// <summary>
 				/// Renders the selectable UI element for this resource.
 				/// </summary>
-				virtual void RenderSelectable() { };
+				virtual void RenderSelectable()
+				{};
 
 				/// <summary>
 				/// Executes logic when the element is selected. Override to define selection behavior.
 				/// </summary>
-				virtual void Select() {};
+				virtual void Select()
+				{};
 
 				/// <summary>
 				/// Executes logic when the element is deselected. Override to define deselection behavior.
 				/// </summary>
-				virtual void Deselect() {};
+				virtual void Deselect()
+				{};
 			};
 		}
 	}

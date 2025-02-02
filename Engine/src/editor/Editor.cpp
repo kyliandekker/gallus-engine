@@ -17,6 +17,7 @@ namespace coopscoop
 			LOG(LOGSEVERITY_INFO, LOG_CATEGORY_EDITOR, "Initializing editor.");
 
 			bool success = m_AssetDatabase.Initialize();
+			m_AssetDatabase.LoadProject("./");
 			LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_EDITOR, "Initialized editor.");
 			return success && System::Initialize();
 		}

@@ -11,7 +11,7 @@
 
 #include <imgui/imgui.h>
 
-namespace renegade
+namespace coopscoop
 {
 	namespace editor
 	{
@@ -20,10 +20,10 @@ namespace renegade
 			// TODO: Use a toString function pointer instead.
 
 			/// <summary>
-			/// A dropdown UI element that allows the user to select from a list of string options.
+			/// A drop-down UI element that allows the user to select from a list of string options.
 			/// This class supports associating each option with a specific value of type T.
 			/// </summary>
-			/// <typeparam name="T">The type associated with each dropdown option (e.g., int, float, custom types).</typeparam>
+			/// <typeparam name="T">The type associated with each drop-down option (e.g., int, float, custom types).</typeparam>
 			template <class T>
 			class StringDropdown : public ImGuiUIView
 			{
@@ -34,13 +34,13 @@ namespace renegade
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
 				StringDropdown(const ImGuiWindow& a_Window) : ImGuiUIView(a_Window)
-				{ }
+				{}
 
 				/// <summary>
-				/// Initializes the dropdown with an initial value, list of options, and their corresponding string labels.
+				/// Initializes the drop-down with an initial value, list of options, and their corresponding string labels.
 				/// </summary>
-				/// <param name="a_InitialValue">The initial value for the dropdown selection.</param>
-				/// <param name="a_Options">A vector containing the options to display in the dropdown.</param>
+				/// <param name="a_InitialValue">The initial value for the drop-down selection.</param>
+				/// <param name="a_Options">A vector containing the options to display in the drop-down.</param>
 				/// <param name="a_ToString">A function that converts the associated type to a string.</param>
 				void Initialize(T a_InitialValue, std::vector<T> a_Options, std::function<std::string(T)> a_ToString)
 				{
@@ -51,16 +51,16 @@ namespace renegade
 				}
 
 				/// <summary>
-				/// Sets the current value of the dropdown.
+				/// Sets the current value of the drop-down.
 				/// </summary>
 				/// <param name="a_Value">The new value to set.</param>
 				void SetValue(T a_Value)
 				{
 					m_Selected = std::distance(m_Options.begin(), std::find(m_Options.begin(), m_Options.end(), a_Value));
 				}
-				
+
 				/// <summary>
-				/// Retrieves the current value of the dropdown.
+				/// Retrieves the current value of the drop-down.
 				/// </summary>
 				/// <returns>The current selected value.</returns>
 				T GetValue() const
@@ -68,13 +68,14 @@ namespace renegade
 					return m_Options[m_Selected];
 				}
 
-				void Render() override { }
+				void Render() override
+				{}
 
 				/// <summary>
-				/// Renders the dropdown UI in the editor window.
+				/// Renders the drop-down UI in the editor window.
 				/// </summary>
-				/// <param name="a_Label">The label for the dropdown UI element.</param>
-				/// <returns>True if the dropdown menu is open, otherwise false.</returns>
+				/// <param name="a_Label">The label for the drop-down UI element.</param>
+				/// <returns>True if the drop-down menu is open, otherwise false.</returns>
 				bool Render(const char* a_Label)
 				{
 					bool b = ImGui::BeginCombo(a_Label, ToString(GetValue()).c_str());
