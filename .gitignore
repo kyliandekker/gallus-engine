@@ -4,8 +4,8 @@
 # Allow only specific directories
 !assets/
 !external/
-!include/
-!src/
+!engine/
+!editor/
 
 !.gitignore
 !GenerateProjectFiles.bat
@@ -14,8 +14,8 @@
 # Re-allow all contents inside the allowed directories
 !assets/**
 !external/**
-!include/**
-!src/**
+!engine/**
+!editor/**
 
 # Prerequisites
 *.d
