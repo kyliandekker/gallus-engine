@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef __EDITOR__
+#ifdef _EDITOR
 
 #include <vector>
 #include <string>
@@ -94,4 +94,4 @@ namespace coopscoop
 	}
 }
 
-#endif // __EDITOR__
+#endif // _EDITOR

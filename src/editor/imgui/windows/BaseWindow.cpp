@@ -52,7 +52,7 @@ namespace coopscoop
 					ImGui::SetNextWindowSize(ImVec2(m_Size.x, m_Size.y));
 				}
 
-				bool showRender = true;
+				bool showRender = false;
 				if (!m_RenderWindowItself)
 				{
 					showRender = WindowBegin();

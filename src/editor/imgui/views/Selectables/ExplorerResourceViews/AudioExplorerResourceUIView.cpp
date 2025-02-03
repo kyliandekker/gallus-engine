@@ -54,7 +54,7 @@ namespace coopscoop
 			{
 				RenderBaseSelectable(&m_Resource);
 
-				ImGui::DisplayHeader(m_Window.GetBoldFont(), m_Window.GetFramePadding(), "Type");
+				ImGui::DisplayHeader(m_Window.GetBoldFont(), "Type");
 				ImGui::SameLine();
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(m_Window.GetFramePadding().x, 0));
 				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);

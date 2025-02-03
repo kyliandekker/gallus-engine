@@ -137,6 +137,9 @@ namespace coopscoop
 				ImVec2 toolbarSize = ImVec2(ImGui::GetContentRegionAvail().x, m_Window.GetHeaderSize().y);
 				ImGui::BeginToolbar(toolbarSize);
 
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
+
 				float topPosY = ImGui::GetCursorPosY();
 
 				if (ImGui::IconButton(
@@ -185,9 +188,12 @@ namespace coopscoop
 
 				ImGui::SetCursorPos(endPos);
 
+				ImGui::PopStyleVar();
+				ImGui::PopStyleVar();
+
 				ImGui::EndToolbar(ImVec2(ImGui::GetStyle().ItemSpacing.x, 0));
 
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + m_Window.GetFramePadding().x, ImGui::GetCursorPos().y + m_Window.GetFramePadding().y));
+				ImGui::SetCursorPosY(ImGui::GetCursorPos().y + m_Window.GetFramePadding().y);
 				if (ImGui::BeginChild(
 					IMGUI_FORMAT_ID("", CHILD_ID, "DIRECTORIES_EXPLORER").c_str(),
 					ImVec2(
@@ -204,7 +210,6 @@ namespace coopscoop
 				ImGui::EndChild();
 
 				ImGui::SameLine();
-				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + m_Window.GetFramePadding().x, ImGui::GetCursorPos().y));
 				if (ImGui::BeginChild(
 					IMGUI_FORMAT_ID("", CHILD_ID, "FILES_EXPLORER").c_str(),
 					ImVec2(
@@ -319,11 +324,11 @@ namespace coopscoop
 									}
 								}
 							}
-							ImGui::EndChild();
 						}
+						ImGui::EndChild();
 					}
-					ImGui::EndChild();
 				}
+				ImGui::EndChild();
 			}
 
 			void ExplorerWindow::OnScanCompleted()

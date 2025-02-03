@@ -90,13 +90,13 @@ namespace coopscoop
 				void Render() override
 				{};
 
-/// <summary>
-/// Renders the explorer resource in the UI.
-/// </summary>
-/// <param name="a_Clicked">Indicates if the resource was clicked.</param>
-/// <param name="a_RightClicked">Indicates if the resource was right-clicked.</param>
-/// <param name="a_DoubleClicked">Indicates if the resource was double-clicked.</param>
-/// <param name="a_Selected">Indicates if the resource is selected.</param>
+				/// <summary>
+				/// Renders the explorer resource in the UI.
+				/// </summary>
+				/// <param name="a_Clicked">Indicates if the resource was clicked.</param>
+				/// <param name="a_RightClicked">Indicates if the resource was right-clicked.</param>
+				/// <param name="a_DoubleClicked">Indicates if the resource was double-clicked.</param>
+				/// <param name="a_Selected">Indicates if the resource is selected.</param>
 				void Render(bool& a_Clicked, bool& a_RightClicked, bool& a_DoubleClicked, bool a_Selected);
 
 				/// <summary>
@@ -134,10 +134,10 @@ namespace coopscoop
 				virtual void DoubleClicked()
 				{};
 
-/// <summary>
-/// Renders base UI elements for the resource in the inspector.
-/// </summary>
-/// <param name="a_Resource">Pointer to the explorer resource.</param>
+				/// <summary>
+				/// Renders base UI elements for the resource in the inspector.
+				/// </summary>
+				/// <param name="a_Resource">Pointer to the explorer resource.</param>
 				virtual void RenderBaseSelectable(ExplorerResource* a_Resource);
 
 				/// <summary>
@@ -162,9 +162,9 @@ namespace coopscoop
 					return nullptr;
 				}
 
-			  /// <summary>
-			  /// Clears all child resources associated with this view.
-			  /// </summary>
+				/// <summary>
+				/// Clears all child resources associated with this view.
+				/// </summary>
 				void ClearChildren();
 
 				/// <summary>

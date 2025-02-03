@@ -28,42 +28,32 @@ namespace coopscoop
 			{
 				if (core::ENGINE.GetEditor().GetSelectable())
 				{
-					//std::lock_guard<std::recursive_mutex> lock(gameplay::m_EntityMutex);
 					core::ENGINE.GetEditor().GetSelectable()->RenderSelectable();
 				}
-				//if (ImGui::Button("Info"))
-				//{
-				//	LOGF(LOGSEVERITY_INFO, "This is an info message.");
-				//}
-				//ImGui::SameLine();
-				//if (ImGui::Button("Warning"))
-				//{
-				//	LOGF(LOGSEVERITY_WARNING, "This is a warning message.");
-				//}
-				//ImGui::SameLine();
-				//if (ImGui::Button("Error"))
-				//{
-				//	LOGF(LOGSEVERITY_ERROR, "This is an error message.");
-				//}
-				//if (ImGui::Button("Assert"))
-				//{
-				//	LOGF(LOGSEVERITY_ASSERT, "This is an assert message.");
-				//}
-				//ImGui::SameLine();
-				//if (ImGui::Button("Success"))
-				//{
-				//	LOGF(LOGSEVERITY_SUCCESS, "This is a success message.");
-				//}
-				//ImGui::SameLine();
-				//if (ImGui::Button("Info Success"))
-				//{
-				//	LOGF(LOGSEVERITY_INFO_SUCCESS, "This is an info success message.");
-				//}
-				//ImGui::SameLine();
-				//if (ImGui::Button("Awesome"))
-				//{
-				//	LOGF(LOGSEVERITY_AWESOME, "This is an awesome message.");
-				//}
+				else
+				{
+					float x = ImGui::GetCursorPosX();
+					float y = ImGui::GetCursorPosY();
+					ImVec2 toolbarSize = ImVec2(ImGui::GetContentRegionAvail().x, m_Window.GetHeaderSize().y * 2.5f + m_Window.GetFramePadding().y);
+					ImGui::BeginToolbar(toolbarSize);
+
+					ImGui::SetCursorPosY(y + toolbarSize.y);
+
+					ImGui::EndToolbar(m_Window.GetFramePadding());
+
+					if (ImGui::BeginChild(
+						IMGUI_FORMAT_ID("", CHILD_ID, "INSPECTOR_DEFAULT").c_str(),
+						ImVec2(
+						ImGui::GetContentRegionAvail().x - m_Window.GetFramePadding().x,
+						ImGui::GetContentRegionAvail().y - m_Window.GetFramePadding().y
+						),
+						ImGuiChildFlags_Borders
+						))
+					{
+
+					}
+					ImGui::EndChild();
+				}
 			}
 		}
 	}

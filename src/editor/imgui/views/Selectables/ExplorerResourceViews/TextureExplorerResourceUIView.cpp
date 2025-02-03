@@ -26,7 +26,7 @@ namespace coopscoop
 			{
 				RenderBaseSelectable(&m_Resource);
 
-				ImGui::DisplayHeader(m_Window.GetBoldFont(), m_Window.GetFramePadding(), "Type: ");
+				ImGui::DisplayHeader(m_Window.GetBoldFont(), "Type: ");
 				ImGui::SameLine();
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(m_Window.GetFramePadding().x, 0));
 				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -41,11 +41,11 @@ namespace coopscoop
 
 				if (m_Window.GetPreviewTexture())
 				{
-					ImGui::DisplayHeader(m_Window.GetBoldFont(), m_Window.GetFramePadding(), "Width: ");
+					ImGui::DisplayHeader(m_Window.GetBoldFont(), "Width: ");
 					ImGui::SameLine();
 					ImGui::Text(std::to_string(m_Window.GetPreviewTexture()->GetResourceDesc().Width).c_str());
 
-					ImGui::DisplayHeader(m_Window.GetBoldFont(), m_Window.GetFramePadding(), "Height: ");
+					ImGui::DisplayHeader(m_Window.GetBoldFont(), "Height: ");
 					ImGui::SameLine();
 					ImGui::Text(std::to_string(m_Window.GetPreviewTexture()->GetResourceDesc().Height).c_str());
 				}

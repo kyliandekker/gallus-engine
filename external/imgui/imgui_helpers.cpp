@@ -1,26 +1,24 @@
 #include "imgui/imgui_helpers.h"
 
-#ifdef __EDITOR__
+#ifdef _EDITOR
 
 #include <cmath>
 #include <cstdio>
 #include <string>
 #include <imgui/imgui_internal.h>
-#include <editor/imgui/ImguiDefines.h>
 #include <algorithm>
-#include <editor/imgui/ImGuiWindow.h>
 
 namespace ImGui
 {
-    ImVec2 operator+(const ImVec2& a, const ImVec2& b)
-    {
-        return ImVec2(a.x + b.x, a.y + b.y);
-    }
+	ImVec2 operator+(const ImVec2& a, const ImVec2& b)
+	{
+		return ImVec2(a.x + b.x, a.y + b.y);
+	}
 
-    ImVec2 operator-(const ImVec2& a, const ImVec2& b)
-    {
-        return ImVec2(a.x - b.x, a.y - b.y);
-    }
+	ImVec2 operator-(const ImVec2& a, const ImVec2& b)
+	{
+		return ImVec2(a.x - b.x, a.y - b.y);
+	}
 
 	ImVec2 operator/(const ImVec2& a, const ImVec2& b)
 	{
@@ -61,25 +59,25 @@ namespace ImGui
 	}
 
 	bool CheckboxButton(const char* label, bool* p_value, const ImVec2& size_arg)
-    {
+	{
 		ImVec2 pos = ImGui::GetCursorScreenPos(); // Get the top-left corner of the button
 
-        ImVec4 color = *p_value ? ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive) : ImVec4(0, 0, 0, 0);
+		ImVec4 color = *p_value ? ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive) : ImVec4(0, 0, 0, 0);
 		ImGui::PushStyleColor(ImGuiCol_Button, color);
-        bool b = ImGui::Button(label, size_arg);
+		bool b = ImGui::Button(label, size_arg);
 		if (b)
 		{
 			*p_value = !(*p_value);
 		}
-        ImGui::PopStyleColor();
+		ImGui::PopStyleColor();
 
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 		ImU32 border_color = ImGui::GetColorU32(ImGuiCol_Border); // Use ImGui border color
 		float border_thickness = ImGui::GetStyle().FrameBorderSize; // Adjust thickness as needed
 		draw_list->AddRect(pos, ImVec2(pos.x + size_arg.x, pos.y + size_arg.y), border_color, 0.0f, 0, border_thickness);
 
-        return b;
-    }
+		return b;
+	}
 
 	bool TransparentButton(const char* label, const ImVec2& size_arg, ImVec4 color)
 	{

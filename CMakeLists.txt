@@ -18,6 +18,11 @@ set(CMAKE_EXE_LINKER_FLAGS_RELEASE "/OPT:REF /OPT:ICF" CACHE STRING "Release lin
 set(CMAKE_EXE_LINKER_FLAGS_EDITORDEBUG "/DEBUG /EDIT" CACHE STRING "Editor Debug linker flags" FORCE)
 set(CMAKE_EXE_LINKER_FLAGS_EDITORRELEASE "/OPT:REF /OPT:ICF /EDIT" CACHE STRING "Editor Release linker flags" FORCE)
 
+set(CMAKE_BUILD_TYPE Debug)
+
+# Set the Linker Debug flag for /DEBUG
+set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /DEBUG")
+
 # These are shared on ALL configurations. Rapidjson gives errors if we do not include this and TINYGLTF uses stb_image but we do not need it.
 set(PREDEFINITIONS_SHARED "RAPIDJSON_NOMEMBERITERATORCLASS;TINYGLTF_NO_INCLUDE_STB_IMAGE;TINYGLTF_NO_STB_IMAGE;TINYGLTF_NO_STB_IMAGE_WRITE")
 
@@ -26,7 +31,7 @@ set(PREDEFINITIONS_DEBUG "_DEBUG;" ${PREDEFINITIONS_SHARED})
 set(PREDEFINITIONS_RELEASE "NDEBUG;" ${PREDEFINITIONS_SHARED})
 
 # These are shared on BOTH the Editor configurations.
-set(PREDEFINITIONS_EDITOR_SHARED "__EDITOR__")
+set(PREDEFINITIONS_EDITOR_SHARED "_EDITOR")
 
 # Editor inherits from their respective configuration and the shared predefinitions.
 set(PREDEFINITIONS_EDITOR_DEBUG ${PREDEFINITIONS_EDITOR_SHARED} ${PREDEFINITIONS_DEBUG})
@@ -158,6 +163,14 @@ if(MSVC)
         "$<$<CONFIG:${EDITOR_DEBUG}>:/MTd>"
         "$<$<CONFIG:${EDITOR_RELEASE}>:/MT>"
     )
+endif()
+
+if(MSVC)
+    # Set Debug Information Format (/ZI) for Debug configuration
+    set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_OPTIONS "/ZI")
+
+    # Set the Linker Debug flag for /DEBUG (for Debug configurations)
+    set_property(TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY LINK_OPTIONS "/DEBUG")
 endif()
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD

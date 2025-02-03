@@ -749,13 +749,6 @@ namespace coopscoop
 
 				//TESTF("FPS: %f", m_FpsCounter.GetFPS());
 
-				m_Camera1.GetTransform().SetPosition({ 0.0f, 0.0f, 0.0f });
-
-				m_CurrentCamera = &m_Camera1;
-
-				const DirectX::XMMATRIX viewMatrix = m_CurrentCamera->GetViewMatrix();
-				const DirectX::XMMATRIX& projectionMatrix = m_CurrentCamera->GetProjectionMatrix();
-
 				// Render part.
 				std::shared_ptr<CommandQueue> commandQueue = GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
 				std::shared_ptr<CommandList> commandList = commandQueue->GetCommandList();
@@ -788,20 +781,16 @@ namespace coopscoop
 
 				commandList->GetCommandList()->SetGraphicsRootConstantBufferView(RootParameters::LIGHT, m_DirectionalLightBuffer->GetGPUVirtualAddress());
 
-				m_FaucetTransform.SetPosition({ -2.0f, 0.0f, 5.0f });
-				m_FaucetTransform.GetRotation().y += 0.1f;
+				m_CurrentCamera = &m_Camera1;
+				m_CurrentCamera->GetTransform().SetPosition({ 0.0f, 0.0f, 0.0f });
 
-				m_FaucetMesh.Render(commandList, m_FaucetTransform, viewMatrix, projectionMatrix);
+				const DirectX::XMMATRIX viewMatrix = m_CurrentCamera->GetViewMatrix();
+				const DirectX::XMMATRIX& projectionMatrix = m_CurrentCamera->GetProjectionMatrix();
 
-				m_ChickenTransform1.SetPosition({ 0.0f, 0.0f, 2.0f });
+				m_ChickenTransform1.SetPosition({ 0.0f, -0.5f, 1.5f });
 				m_ChickenTransform1.GetRotation().y += 0.1f;
 
 				m_ChickenMesh.Render(commandList, m_ChickenTransform1, viewMatrix, projectionMatrix);
-
-				m_ChickenTransform2.SetPosition({ 1.0f, 1.0f, 5.0f });
-				m_ChickenTransform2.GetRotation().y -= 0.1f;
-
-				m_ChickenMesh2.Render(commandList, m_ChickenTransform2, viewMatrix, projectionMatrix);
 
 #ifdef _EDITOR
 				// Transition back to SRV for ImGui usage

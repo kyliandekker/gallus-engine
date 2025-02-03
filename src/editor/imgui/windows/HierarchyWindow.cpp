@@ -139,8 +139,8 @@ namespace coopscoop
 				if (ImGui::BeginChild(
 					IMGUI_FORMAT_ID("", CHILD_ID, "ENTITIES_HIERARCHY").c_str(),
 					ImVec2(
-					ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x,
-					ImGui::GetContentRegionAvail().y - ImGui::GetStyle().ItemSpacing.y
+					ImGui::GetContentRegionAvail().x - m_Window.GetFramePadding().x,
+					ImGui::GetContentRegionAvail().y - m_Window.GetFramePadding().y
 					),
 					ImGuiChildFlags_Borders
 					))

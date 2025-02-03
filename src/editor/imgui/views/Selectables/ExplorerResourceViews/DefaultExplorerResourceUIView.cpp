@@ -24,7 +24,7 @@ namespace coopscoop
 
 				if (m_Resource.GetResourceType() != ExplorerResourceType::Folder)
 				{
-					ImGui::DisplayHeader(m_Window.GetBoldFont(), m_Window.GetFramePadding(), "Type");
+					ImGui::DisplayHeader(m_Window.GetBoldFont(), "Type");
 					ImGui::SameLine();
 					ImGui::Text(assets::AssetTypeToString(m_Resource.GetAssetType()).c_str());
 				}

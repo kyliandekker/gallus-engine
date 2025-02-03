@@ -1,4 +1,4 @@
-#ifdef __EDITOR__
+#ifdef _EDITOR
 
 #pragma once
 
@@ -57,4 +57,4 @@ namespace coopscoop
 	}
 }
 
-#endif // __EDITOR__
+#endif // _EDITOR
