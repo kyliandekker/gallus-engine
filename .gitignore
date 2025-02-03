@@ -1,3 +1,22 @@
+# Ignore everything by default
+*
+
+# Allow only specific directories
+!assets/
+!external/
+!include/
+!src/
+
+!.gitignore
+!GenerateProjectFiles.bat
+!CMakeLists.txt
+
+# Re-allow all contents inside the allowed directories
+!assets/**
+!external/**
+!include/**
+!src/**
+
 # Prerequisites
 *.d
 
@@ -25,16 +44,3 @@
 *.la
 *.a
 *.lib
-
-# Executables
-*.exe
-*.out
-*.app
-/.vs
-/x64
-/x86
-/Engine/x64
-/Engine/x86
-
-# Log files
-*.log
