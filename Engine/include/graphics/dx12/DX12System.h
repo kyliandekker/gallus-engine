@@ -205,6 +205,8 @@ namespace coopscoop
 				/// <returns>Handle to the render target view.</returns>
 				D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentRenderTargetView(bool a_UseRenderTexture = false);
 			public:
+				std::mutex m_RenderMutex;
+
 				/// <summary>
 				/// Loop method for the thread.
 				/// </summary>
@@ -214,43 +216,61 @@ namespace coopscoop
 				/// Retrieves the DSV heap.
 				/// </summary>
 				/// <returns>Reference to the DSV heap allocation.</returns>
-				HeapAllocation& GetDSV() { return m_DSV; };
+				HeapAllocation& GetDSV()
+				{
+					return m_DSV;
+				};
 
 				/// <summary>
 				/// Retrieves the RTV heap.
 				/// </summary>
 				/// <returns>Reference to the RTV heap allocation.</returns>
-				HeapAllocation& GetRTV() { return m_RTV; };
+				HeapAllocation& GetRTV()
+				{
+					return m_RTV;
+				};
 
 				/// <summary>
 				/// Retrieves the SRV heap.
 				/// </summary>
 				/// <returns>Reference to the SRV heap allocation.</returns>
-				HeapAllocation& GetSRV() { return m_SRV; };
+				HeapAllocation& GetSRV()
+				{
+					return m_SRV;
+				};
 
 				/// <summary>
 				/// Retrieves the resource atlas that contains all materials, textures, meshes and shaders.
 				/// </summary>
 				/// <returns>Reference to the resource atlas.</returns>
-				ResourceAtlas& GetResourceAtlas() { return m_ResourceAtlas; };
+				ResourceAtlas& GetResourceAtlas()
+				{
+					return m_ResourceAtlas;
+				};
 
-				/// <summary>
-				/// Retrieves the DirectX 12 device.
-				/// </summary>
-				/// <returns>ComPtr to the ID3D12Device2.</returns>
-				Microsoft::WRL::ComPtr<ID3D12Device2> GetDevice() const { return m_Device; };
+	  /// <summary>
+	  /// Retrieves the DirectX 12 device.
+	  /// </summary>
+	  /// <returns>ComPtr to the ID3D12Device2.</returns>
+				Microsoft::WRL::ComPtr<ID3D12Device2> GetDevice() const
+				{
+					return m_Device;
+				};
 
-				/// <summary>
-				/// Retrieves the DirectX 12 root signature.
-				/// </summary>
-				/// <returns>ComPtr to the ID3D12RootSignature.</returns>
-				Microsoft::WRL::ComPtr<ID3D12RootSignature> GetRootSignature() const { return m_RootSignature; };
+			 /// <summary>
+			 /// Retrieves the DirectX 12 root signature.
+			 /// </summary>
+			 /// <returns>ComPtr to the ID3D12RootSignature.</returns>
+				Microsoft::WRL::ComPtr<ID3D12RootSignature> GetRootSignature() const
+				{
+					return m_RootSignature;
+				};
 
-				/// <summary>
-				/// Retrieves a command queue of a certain type.
-				/// </summary>
-				/// <param name="a_Type">The type of command queue such as direct, copy, etc.</param>
-				/// <returns>Reference to the CommandQueue.</returns>
+	  /// <summary>
+	  /// Retrieves a command queue of a certain type.
+	  /// </summary>
+	  /// <param name="a_Type">The type of command queue such as direct, copy, etc.</param>
+	  /// <returns>Reference to the CommandQueue.</returns>
 				std::shared_ptr<CommandQueue> GetCommandQueue(D3D12_COMMAND_LIST_TYPE a_Type = D3D12_COMMAND_LIST_TYPE_DIRECT) const;
 			protected:
 				ResourceAtlas m_ResourceAtlas;
@@ -293,8 +313,6 @@ namespace coopscoop
 				editor::imgui::ImGuiWindow m_ImGuiWindow;
 				class Texture* m_RenderTexture = nullptr;
 #endif // __EDITOR__
-
-				std::mutex m_RenderMutex;
 
 				// TODO: Delete these as they are all supposed to be temporary.
 

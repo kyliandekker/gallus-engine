@@ -21,7 +21,7 @@ namespace coopscoop
 	{
 		namespace imgui
 		{
-			HierarchyWindow::HierarchyWindow(const ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, "Hierarchy", "Hierarchy"), m_SearchBar(a_Window)
+			HierarchyWindow::HierarchyWindow(ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, "Hierarchy", "Hierarchy"), m_SearchBar(a_Window)
 			{
 				m_SearchBar.Initialize("");
 			}

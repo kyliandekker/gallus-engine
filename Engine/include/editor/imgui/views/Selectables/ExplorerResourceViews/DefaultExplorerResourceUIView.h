@@ -34,7 +34,7 @@ namespace coopscoop
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
 				/// <param name="a_Resource">Pointer to the resource.</param>
-				DefaultExplorerResourceUIView(const ImGuiWindow& a_Window, ExplorerResource* a_Resource);
+				DefaultExplorerResourceUIView(ImGuiWindow& a_Window, ExplorerResource* a_Resource);
 
 				/// <summary>
 				/// Copy constructor.

@@ -21,7 +21,7 @@ namespace renegade
 	{
 		namespace imgui
 		{
-			EntityUIView::EntityUIView(const ImGuiWindow& a_Window, gameplay::EntityID& a_EntityID) : EditorSelectable(a_Window), m_EntityID(a_EntityID), m_NameInput(a_Window)
+			EntityUIView::EntityUIView(ImGuiWindow& a_Window, gameplay::EntityID& a_EntityID) : EditorSelectable(a_Window), m_EntityID(a_EntityID), m_NameInput(a_Window)
 			{
 				m_NameInput.Initialize("");
 			}

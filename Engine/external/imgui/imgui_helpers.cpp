@@ -12,15 +12,15 @@
 
 namespace ImGui
 {
-    ImVec2 operator+(const ImVec2& a, const ImVec2& b)
-    {
-        return ImVec2(a.x + b.x, a.y + b.y);
-    }
+	ImVec2 operator+(const ImVec2& a, const ImVec2& b)
+	{
+		return ImVec2(a.x + b.x, a.y + b.y);
+	}
 
-    ImVec2 operator-(const ImVec2& a, const ImVec2& b)
-    {
-        return ImVec2(a.x - b.x, a.y - b.y);
-    }
+	ImVec2 operator-(const ImVec2& a, const ImVec2& b)
+	{
+		return ImVec2(a.x - b.x, a.y - b.y);
+	}
 
 	ImVec2 operator/(const ImVec2& a, const ImVec2& b)
 	{
@@ -61,25 +61,25 @@ namespace ImGui
 	}
 
 	bool CheckboxButton(const char* label, bool* p_value, const ImVec2& size_arg)
-    {
+	{
 		ImVec2 pos = ImGui::GetCursorScreenPos(); // Get the top-left corner of the button
 
-        ImVec4 color = *p_value ? ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive) : ImVec4(0, 0, 0, 0);
+		ImVec4 color = *p_value ? ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive) : ImVec4(0, 0, 0, 0);
 		ImGui::PushStyleColor(ImGuiCol_Button, color);
-        bool b = ImGui::Button(label, size_arg);
+		bool b = ImGui::Button(label, size_arg);
 		if (b)
 		{
 			*p_value = !(*p_value);
 		}
-        ImGui::PopStyleColor();
+		ImGui::PopStyleColor();
 
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 		ImU32 border_color = ImGui::GetColorU32(ImGuiCol_Border); // Use ImGui border color
 		float border_thickness = ImGui::GetStyle().FrameBorderSize; // Adjust thickness as needed
 		draw_list->AddRect(pos, ImVec2(pos.x + size_arg.x, pos.y + size_arg.y), border_color, 0.0f, 0, border_thickness);
 
-        return b;
-    }
+		return b;
+	}
 
 	bool TransparentButton(const char* label, const ImVec2& size_arg, ImVec4 color)
 	{
@@ -183,6 +183,8 @@ namespace ImGui
 
 	void BeginToolbar(const ImVec2& a_Size)
 	{
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 		ImVec2 header_pos = ImGui::GetCursorScreenPos();
@@ -198,13 +200,16 @@ namespace ImGui
 	{
 		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + a_Padding.y);
 		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + a_Padding.x);
+
+		ImGui::PopStyleVar();
 	}
 
-	void DisplayHeader(ImFont* boldFont, const char* label)
+	void DisplayHeader(ImFont* boldFont, const ImVec2& padding, const char* label)
 	{
 		ImGui::PushFont(boldFont);
 		ImGui::Text(label);
 		ImGui::PopFont();
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + padding.x);
 	}
 
 	bool InvisButton(const char* label, const ImVec2& size_arg, ImU32 button_color_hover)

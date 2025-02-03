@@ -28,7 +28,7 @@ namespace renegade
 				/// Constructs a ColorRGBView that renders an RGB color.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				ColorRGBView(const ImGuiWindow& a_Window) : ImGuiUIView(a_Window)
+				ColorRGBView(ImGuiWindow& a_Window) : ImGuiUIView(a_Window)
 				{ }
 
 				/// <summary>
@@ -80,7 +80,7 @@ namespace renegade
 				/// Constructs a ColorRGBAView that renders an RGB color.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				ColorRGBAView(const ImGuiWindow& a_Window) : Vector2View<T>(a_Window)
+				ColorRGBAView(ImGuiWindow& a_Window) : Vector2View<T>(a_Window)
 				{ }
 
 				void Render() override { }

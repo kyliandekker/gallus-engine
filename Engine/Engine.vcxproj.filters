@@ -45,9 +45,6 @@
     <ClCompile Include="src\graphics\dx12\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="external\tiny_gltf\tiny_gltf.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\graphics\dx12\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -210,6 +207,9 @@
     <ClCompile Include="src\editor\imgui\windows\HierarchyWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="external\tiny_gltf\tiny_gltf.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\core\Engine.h">
@@ -243,9 +243,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\graphics\dx12\DxMath.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="external\tiny_gltf\json.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\core\Data.h">

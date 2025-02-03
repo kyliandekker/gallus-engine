@@ -20,7 +20,7 @@ namespace coopscoop
 				/// Constructs the main window.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				MainWindow(const ImGuiWindow& a_Window);
+				MainWindow(ImGuiWindow& a_Window);
 
 				/// <summary>
 				/// Initializes all values and behaviours associated with the main window.

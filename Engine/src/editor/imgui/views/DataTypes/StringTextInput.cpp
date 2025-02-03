@@ -14,8 +14,8 @@ namespace coopscoop
 	{
 		namespace imgui
 		{
-			StringTextInput::StringTextInput(const ImGuiWindow& a_Window) : ImGuiUIView(a_Window)
-			{ }
+			StringTextInput::StringTextInput(ImGuiWindow& a_Window) : ImGuiUIView(a_Window)
+			{}
 
 			void StringTextInput::Initialize(const std::string& a_InitialValue, size_t a_BufferSize)
 			{
@@ -41,7 +41,9 @@ namespace coopscoop
 
 			bool StringTextInput::Render(const char* a_Label, ImGuiInputTextFlags flags)
 			{
+				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 16);
 				bool success = ImGui::InputText(a_Label, reinterpret_cast<char*>(m_Data.data()), m_Data.size(), flags);
+				ImGui::PopStyleVar();
 
 				if (ImGui::IsItemHovered())
 				{
@@ -51,8 +53,8 @@ namespace coopscoop
 				return success;
 			}
 
-			SearchBarInput::SearchBarInput(const ImGuiWindow& a_Window) : StringTextInput(a_Window)
-			{ }
+			SearchBarInput::SearchBarInput(ImGuiWindow& a_Window) : StringTextInput(a_Window)
+			{}
 
 			bool SearchBarInput::Render(const char* a_Label, const ImVec2& a_Size, float a_Padding)
 			{

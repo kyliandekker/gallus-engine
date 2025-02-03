@@ -54,7 +54,7 @@ namespace coopscoop
 			{
 				RenderBaseSelectable(&m_Resource);
 
-				ImGui::DisplayHeader(m_Window.GetBoldFont(), "Type");
+				ImGui::DisplayHeader(m_Window.GetBoldFont(), m_Window.GetFramePadding(), "Type");
 				ImGui::SameLine();
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(m_Window.GetFramePadding().x, 0));
 				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -140,26 +140,26 @@ namespace coopscoop
 			}
 
 			template<class T>
-			AudioExplorerResourceUIView<T>::AudioExplorerResourceUIView(const ImGuiWindow& a_Window, T* a_Resource) : ExplorerResourceWithPreviewUIView(a_Window), m_Resource(*a_Resource), m_AssetTypeDropdown(a_Window)
+			AudioExplorerResourceUIView<T>::AudioExplorerResourceUIView(ImGuiWindow& a_Window, T* a_Resource) : ExplorerResourceWithPreviewUIView(a_Window), m_Resource(*a_Resource), m_AssetTypeDropdown(a_Window)
 			{}
 
 			template <class T>
 			AudioExplorerResourceUIView<T>::AudioExplorerResourceUIView<T>(const AudioExplorerResourceUIView& a_Other) : ExplorerResourceWithPreviewUIView(a_Other), m_Resource(a_Other.m_Resource), m_AssetTypeDropdown(a_Other.m_Window)
 			{}
 
-			SoundExplorerResourceUIView::SoundExplorerResourceUIView(const ImGuiWindow& a_Window, SoundExplorerResource* a_Resource) : AudioExplorerResourceUIView(a_Window, a_Resource)
+			SoundExplorerResourceUIView::SoundExplorerResourceUIView(ImGuiWindow& a_Window, SoundExplorerResource* a_Resource) : AudioExplorerResourceUIView(a_Window, a_Resource)
 			{}
 
 			SoundExplorerResourceUIView::SoundExplorerResourceUIView(const SoundExplorerResourceUIView& a_Other) : AudioExplorerResourceUIView(a_Other)
 			{}
 
-			SongExplorerResourceUIView::SongExplorerResourceUIView(const ImGuiWindow& a_Window, SongExplorerResource* a_Resource) : AudioExplorerResourceUIView(a_Window, a_Resource)
+			SongExplorerResourceUIView::SongExplorerResourceUIView(ImGuiWindow& a_Window, SongExplorerResource* a_Resource) : AudioExplorerResourceUIView(a_Window, a_Resource)
 			{}
 
 			SongExplorerResourceUIView::SongExplorerResourceUIView(const SongExplorerResourceUIView& a_Other) : AudioExplorerResourceUIView(a_Other)
 			{}
 
-			VOExplorerResourceUIView::VOExplorerResourceUIView(const ImGuiWindow& a_Window, VOExplorerResource* a_Resource) : AudioExplorerResourceUIView(a_Window, a_Resource)
+			VOExplorerResourceUIView::VOExplorerResourceUIView(ImGuiWindow& a_Window, VOExplorerResource* a_Resource) : AudioExplorerResourceUIView(a_Window, a_Resource)
 			{}
 
 			VOExplorerResourceUIView::VOExplorerResourceUIView(const VOExplorerResourceUIView& a_Other) : AudioExplorerResourceUIView(a_Other)

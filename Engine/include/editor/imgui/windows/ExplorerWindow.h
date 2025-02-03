@@ -36,7 +36,7 @@ namespace coopscoop
 				/// Constructs an explorer window.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				ExplorerWindow(const ImGuiWindow& a_Window);
+				ExplorerWindow(ImGuiWindow& a_Window);
 
 				/// <summary>
 				/// Initializes all values and behaviours associated with the explorer window.

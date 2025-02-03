@@ -14,7 +14,7 @@ namespace coopscoop
 	{
 		namespace imgui
 		{
-			SceneWindow::SceneWindow(const ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, "Scene", "Scene")
+			SceneWindow::SceneWindow(ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, "Scene", "Scene")
 			{}
 
 			void SceneWindow::Render()

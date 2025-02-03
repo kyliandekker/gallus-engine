@@ -16,20 +16,20 @@ namespace coopscoop
 	{
 		namespace imgui
 		{
-			BaseWindow::BaseWindow(const ImGuiWindow& a_Window, ImGuiWindowFlags a_Flags, const std::string& a_Name, std::string a_WindowID, bool a_FullScreen) : m_Flags(a_Flags), m_Name(a_Name), m_WindowID(a_WindowID), m_FullScreen(a_FullScreen), ImGuiUIView(a_Window)
-			{ }
+			BaseWindow::BaseWindow(ImGuiWindow& a_Window, ImGuiWindowFlags a_Flags, const std::string& a_Name, std::string a_WindowID, bool a_FullScreen) : m_Flags(a_Flags), m_Name(a_Name), m_WindowID(a_WindowID), m_FullScreen(a_FullScreen), ImGuiUIView(a_Window)
+			{}
 
 			BaseWindow::~BaseWindow() = default;
 
-            bool BaseWindow::Initialize()
-            {
-                return true;
-            }
+			bool BaseWindow::Initialize()
+			{
+				return true;
+			}
 
-            bool BaseWindow::Destroy()
-            {
-                return true;
-            }
+			bool BaseWindow::Destroy()
+			{
+				return true;
+			}
 
 			bool BaseWindow::WindowBegin()
 			{

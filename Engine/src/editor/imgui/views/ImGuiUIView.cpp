@@ -10,10 +10,10 @@ namespace coopscoop
 	{
 		namespace imgui
 		{
-			ImGuiUIView::ImGuiUIView(const ImGuiWindow& a_Window) : m_Window(a_Window)
-			{ }
+			ImGuiUIView::ImGuiUIView(ImGuiWindow& a_Window) : m_Window(a_Window)
+			{}
 
-			const ImGuiWindow& ImGuiUIView::Window() const
+			ImGuiWindow& ImGuiUIView::Window() const
 			{
 				return m_Window;
 			}

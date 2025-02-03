@@ -17,7 +17,7 @@ namespace coopscoop
 	{
 		namespace imgui
 		{
-			ExplorerWindow::ExplorerWindow(const ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, "Explorer", "Explorer"), m_SearchBar(a_Window), m_PreviousFolder(a_Window)
+			ExplorerWindow::ExplorerWindow(ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, "Explorer", "Explorer"), m_SearchBar(a_Window), m_PreviousFolder(a_Window)
 			{
 				m_SearchBar.Initialize("");
 

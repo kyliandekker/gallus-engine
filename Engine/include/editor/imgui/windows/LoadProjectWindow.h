@@ -21,7 +21,7 @@ namespace renegade
 				/// Constructs a project window.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				LoadProjectWindow(const ImGuiWindow& a_Window);
+				LoadProjectWindow(ImGuiWindow& a_Window);
 
 				/// <summary>
 				/// Renders the project window.

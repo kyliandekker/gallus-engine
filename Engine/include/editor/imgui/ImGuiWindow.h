@@ -15,6 +15,7 @@
 #include "editor/imgui/windows/ExplorerWindow.h"
 #include "editor/imgui/windows/HierarchyWindow.h"
 #include "editor/imgui/windows/InspectorWindow.h"
+#include "core/FileUtils.h"
 
 namespace coopscoop
 {
@@ -24,6 +25,7 @@ namespace coopscoop
 		{
 			class DX12System;
 			class CommandList;
+			class Texture;
 		}
 	}
 	namespace editor
@@ -100,12 +102,13 @@ namespace coopscoop
 				ImVec2 GetFramePadding() const;
 				ImVec2 GetWindowPadding() const;
 				ImVec2 GetHeaderSize() const;
-			private:
-				/// <summary>
-				/// Updates the mouse cursor when hovering over certain imgui elements.
-				/// </summary>
-				void UpdateMouseCursor();
 
+				void SetPreviewTexture(const fs::path& a_Path);
+				graphics::dx12::Texture* GetPreviewTexture() const;
+
+				void Update();
+				fs::path m_PreviewPath;
+			private:
 				std::string m_IniPath; /// Path to the ImGui configuration file.
 
 				size_t m_SrvIndex = 0;
@@ -131,6 +134,8 @@ namespace coopscoop
 				ExplorerWindow m_ExplorerWindow;
 				HierarchyWindow m_HierarchyWindow;
 				InspectorWindow m_InspectorWindow;
+
+				graphics::dx12::Texture* m_PreviewTexture = nullptr;
 
 				friend graphics::dx12::DX12System;
 			};

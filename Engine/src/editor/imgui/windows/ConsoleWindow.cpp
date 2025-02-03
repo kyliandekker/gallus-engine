@@ -15,7 +15,7 @@ namespace coopscoop
 	{
 		namespace imgui
 		{
-			ConsoleWindow::ConsoleWindow(const ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, "Console", "Console"), m_SearchBar(a_Window)
+			ConsoleWindow::ConsoleWindow(ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, "Console", "Console"), m_SearchBar(a_Window)
 			{
 				m_SearchBar.Initialize("");
 
@@ -24,8 +24,7 @@ namespace coopscoop
 			}
 
 			ConsoleWindow::~ConsoleWindow()
-			{
-			}
+			{}
 
 			std::string logo_arr[8] =
 			{
@@ -204,11 +203,11 @@ namespace coopscoop
 				if (ImGui::BeginChild(
 					IMGUI_FORMAT_ID("", CHILD_ID, "BOX_LOGGER").c_str(),
 					ImVec2(
-						ImGui::GetContentRegionAvail().x - m_Window.GetFramePadding().x,
-						ImGui::GetContentRegionAvail().y - m_Window.GetFramePadding().y
+					ImGui::GetContentRegionAvail().x - m_Window.GetFramePadding().x,
+					ImGui::GetContentRegionAvail().y - m_Window.GetFramePadding().y
 					),
 					ImGuiChildFlags_Borders
-				))
+					))
 				{
 					static const float timestamp_width = ImGui::CalcTextSize("00:00:00:0000").x;
 
@@ -270,10 +269,10 @@ namespace coopscoop
 				ImGui::EndChild();
 			}
 
-            bool ConsoleWindow::Initialize()
-            {
+			bool ConsoleWindow::Initialize()
+			{
 				return BaseWindow::Initialize();
-            }
+			}
 
 			bool ConsoleWindow::Destroy()
 			{

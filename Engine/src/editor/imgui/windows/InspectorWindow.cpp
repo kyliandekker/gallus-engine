@@ -16,7 +16,7 @@ namespace coopscoop
 	{
 		namespace imgui
 		{
-			InspectorWindow::InspectorWindow(const ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, "Inspector", "Inspector")
+			InspectorWindow::InspectorWindow(ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, "Inspector", "Inspector")
 			{}
 
 			bool InspectorWindow::Initialize()

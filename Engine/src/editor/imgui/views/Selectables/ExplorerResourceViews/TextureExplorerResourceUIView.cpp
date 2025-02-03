@@ -7,6 +7,7 @@
 #include "editor/ExplorerResource.h"
 #include "editor/imgui/ImGuiDefines.h"
 #include "editor/imgui/ImGuiWindow.h"
+#include "graphics/dx12/Texture.h"
 
 namespace coopscoop
 {
@@ -25,7 +26,7 @@ namespace coopscoop
 			{
 				RenderBaseSelectable(&m_Resource);
 
-				ImGui::DisplayHeader(m_Window.GetBoldFont(), "Type");
+				ImGui::DisplayHeader(m_Window.GetBoldFont(), m_Window.GetFramePadding(), "Type: ");
 				ImGui::SameLine();
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(m_Window.GetFramePadding().x, 0));
 				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -38,19 +39,35 @@ namespace coopscoop
 				}
 				ImGui::PopStyleVar();
 
+				if (m_Window.GetPreviewTexture())
+				{
+					ImGui::DisplayHeader(m_Window.GetBoldFont(), m_Window.GetFramePadding(), "Width: ");
+					ImGui::SameLine();
+					ImGui::Text(std::to_string(m_Window.GetPreviewTexture()->GetResourceDesc().Width).c_str());
+
+					ImGui::DisplayHeader(m_Window.GetBoldFont(), m_Window.GetFramePadding(), "Height: ");
+					ImGui::SameLine();
+					ImGui::Text(std::to_string(m_Window.GetPreviewTexture()->GetResourceDesc().Height).c_str());
+				}
+
 				EndBaseSelectable();
 
 				RenderPreviewWindow();
 
-				//if (!m_Resource.m_DescHandle->Invalid())
-				//{
-				//	const float height_new = ImGui::GetContentRegionAvail().y;
-				//	const float width = (m_Resource.m_DescHandle->Width * (1.0f / m_Resource.m_DescHandle->Height * height_new));
+				if (m_Window.GetPreviewTexture())
+				{
+					const float height_new = ImGui::GetContentRegionAvail().y;
+					const float width = (m_Window.GetPreviewTexture()->GetResourceDesc().Width * (1.0f / m_Window.GetPreviewTexture()->GetResourceDesc().Height * height_new));
 
-				//	float offset = (ImGui::GetContentRegionAvail().x - width) / 2;
-				//	ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offset);
-				//	ImGui::Image((void*)m_Resource.m_DescHandle->GpuHandle.ptr, ImVec2(width, height_new));
-				//}
+					float offset = (ImGui::GetContentRegionAvail().x - width) / 2;
+					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offset);
+					ImVec2 image_pos = ImGui::GetCursorScreenPos();
+					ImGui::Image((void*) m_Window.GetPreviewTexture()->GetGPUHandle().ptr, ImVec2(width, height_new));
+
+					// Draw border
+					ImDrawList* draw_list = ImGui::GetForegroundDrawList();
+					draw_list->AddRect(image_pos, ImVec2(image_pos.x + width, image_pos.y + height_new), ImGui::GetColorU32(ImGui::GetStyle().Colors[ImGuiCol_Border])); // White border
+				}
 
 				EndPreviewWindow();
 			}
@@ -71,26 +88,41 @@ namespace coopscoop
 			}
 
 			template<class T>
-			ImageExplorerResourceUIView<T>::ImageExplorerResourceUIView(const ImGuiWindow& a_Window, T* a_Resource) : ExplorerResourceWithPreviewUIView(a_Window), m_Resource(*a_Resource), m_AssetTypeDropdown(a_Window)
+			ImageExplorerResourceUIView<T>::ImageExplorerResourceUIView(ImGuiWindow& a_Window, T* a_Resource) : ExplorerResourceWithPreviewUIView(a_Window), m_Resource(*a_Resource), m_AssetTypeDropdown(a_Window)
 			{}
 
 			template <class T>
 			ImageExplorerResourceUIView<T>::ImageExplorerResourceUIView<T>(const ImageExplorerResourceUIView& a_Other) : ExplorerResourceWithPreviewUIView(a_Other), m_Resource(a_Other.m_Resource), m_AssetTypeDropdown(a_Other.m_Window)
 			{}
 
-			TextureExplorerResourceUIView::TextureExplorerResourceUIView(const ImGuiWindow& a_Window, TextureExplorerResource* a_Resource) : ImageExplorerResourceUIView(a_Window, a_Resource)
+			void TextureExplorerResourceUIView::Select()
+			{
+				m_Window.SetPreviewTexture(m_Resource.GetPath());
+			}
+
+			TextureExplorerResourceUIView::TextureExplorerResourceUIView(ImGuiWindow& a_Window, TextureExplorerResource* a_Resource) : ImageExplorerResourceUIView(a_Window, a_Resource)
 			{}
 
 			TextureExplorerResourceUIView::TextureExplorerResourceUIView(const TextureExplorerResourceUIView& a_Other) : ImageExplorerResourceUIView(a_Other)
 			{}
 
-			SpriteExplorerResourceUIView::SpriteExplorerResourceUIView(const ImGuiWindow& a_Window, SpriteExplorerResource* a_Resource) : ImageExplorerResourceUIView(a_Window, a_Resource)
+			void SpriteExplorerResourceUIView::Select()
+			{
+				m_Window.SetPreviewTexture(m_Resource.GetPath());
+			}
+
+			SpriteExplorerResourceUIView::SpriteExplorerResourceUIView(ImGuiWindow& a_Window, SpriteExplorerResource* a_Resource) : ImageExplorerResourceUIView(a_Window, a_Resource)
 			{}
 
 			SpriteExplorerResourceUIView::SpriteExplorerResourceUIView(const SpriteExplorerResourceUIView& a_Other) : ImageExplorerResourceUIView(a_Other)
 			{}
 
-			FontExplorerResourceUIView::FontExplorerResourceUIView(const ImGuiWindow& a_Window, FontExplorerResource* a_Resource) : ImageExplorerResourceUIView(a_Window, a_Resource)
+			void FontExplorerResourceUIView::Select()
+			{
+				m_Window.SetPreviewTexture(m_Resource.GetPath());
+			}
+
+			FontExplorerResourceUIView::FontExplorerResourceUIView(ImGuiWindow& a_Window, FontExplorerResource* a_Resource) : ImageExplorerResourceUIView(a_Window, a_Resource)
 			{}
 
 			FontExplorerResourceUIView::FontExplorerResourceUIView(const FontExplorerResourceUIView& a_Other) : ImageExplorerResourceUIView(a_Other)

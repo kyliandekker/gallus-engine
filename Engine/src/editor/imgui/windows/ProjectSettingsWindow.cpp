@@ -13,7 +13,7 @@ namespace renegade
 	{
 		namespace imgui
 		{
-			ProjectSettingsWindow::ProjectSettingsWindow(const ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, "Project Settings", "Project Settings") 
+			ProjectSettingsWindow::ProjectSettingsWindow(ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, "Project Settings", "Project Settings") 
 			{
 			}
 

@@ -23,7 +23,7 @@ namespace coopscoop
 				/// Constructs an inspector window.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				InspectorWindow(const ImGuiWindow& a_Window);
+				InspectorWindow(ImGuiWindow& a_Window);
 
 				/// <summary>
 				/// Initializes all values and behaviours associated with the inspector window.

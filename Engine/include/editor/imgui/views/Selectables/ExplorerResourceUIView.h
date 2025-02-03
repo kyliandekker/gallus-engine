@@ -38,7 +38,7 @@ namespace coopscoop
 				/// Constructs an ExplorerResourceUIView for a given window.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				ExplorerResourceUIView(const ImGuiWindow& a_Window);
+				ExplorerResourceUIView(ImGuiWindow& a_Window);
 
 				/// <summary>
 				/// Destructor for ExplorerResourceUIView.
@@ -51,7 +51,7 @@ namespace coopscoop
 				/// <param name="a_Resource">Pointer to the explorer resource.</param>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
 				/// <returns>A pointer to the created ExplorerResourceUIView.</returns>
-				static ExplorerResourceUIView* CreateViewFromExplorerResource(ExplorerResource* a_Resource, const ImGuiWindow& a_Window);
+				static ExplorerResourceUIView* CreateViewFromExplorerResource(ExplorerResource* a_Resource, ImGuiWindow& a_Window);
 
 				/// <summary>
 				/// Retrieves the name of the resource associated with this view.
@@ -146,10 +146,10 @@ namespace coopscoop
 				virtual void EndBaseSelectable();
 
 				/// <summary>
-				/// Checks if the resource has subfolders.
+				/// Checks if the resource has sub folders.
 				/// Override to specify folder support for the resource.
 				/// </summary>
-				/// <returns>True if the resource has subfolders, otherwise false.</returns>
+				/// <returns>True if the resource has sub folders, otherwise false.</returns>
 				virtual bool HasFolders() const;
 
 				/// <summary>
@@ -217,7 +217,7 @@ namespace coopscoop
 				/// <param name="a_ResourceView">Pointer to the resource view that needs to be changed.</param>
 				/// <param name="a_Resource">Pointer to the explorer resource.</param>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				void CreateExplorerResourceUIViewChild(ExplorerResourceUIView* a_ResourceView, ExplorerResource* a_Resource, const ImGuiWindow& a_Window);
+				void CreateExplorerResourceUIViewChild(ExplorerResourceUIView* a_ResourceView, ExplorerResource* a_Resource, ImGuiWindow& a_Window);
 
 				/// <summary>
 				/// Sets the data for the resource view.

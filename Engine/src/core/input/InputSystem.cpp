@@ -31,14 +31,12 @@ namespace coopscoop
 				return m_PreviousState && !m_Pressed;
 			}
 
-#define CATEGORY_INPUT "INPUT"
-
 			bool InputSystem::Initialize(bool a_Wait)
 			{
 				m_MappedKeys.insert({ 'F', Key() });
 				m_MappedKeys.insert({ VK_F11, Key() });
 
-				LOG(LOGSEVERITY_INFO, CATEGORY_INPUT, "Initializing input system.");
+				LOG(LOGSEVERITY_INFO, LOG_CATEGORY_INPUT, "Initializing input system.");
 				return ThreadedSystem::Initialize(a_Wait);
 			}
 
@@ -52,7 +50,7 @@ namespace coopscoop
 
 			bool InputSystem::Destroy()
 			{
-				LOG(LOGSEVERITY_INFO, CATEGORY_INPUT, "Destroying input system.");
+				LOG(LOGSEVERITY_INFO, LOG_CATEGORY_INPUT, "Destroying input system.");
 				return ThreadedSystem::Destroy();
 			}
 
@@ -71,7 +69,7 @@ namespace coopscoop
 				auto it = m_MappedKeys.find(a_Key);
 				if (it != m_MappedKeys.end())
 				{
-					return it->second.GetKeyDown(a_Key); 
+					return it->second.GetKeyDown(a_Key);
 				}
 				return false;
 			}
@@ -85,15 +83,16 @@ namespace coopscoop
 				}
 				return false;
 			}
+
 			bool InputSystem::InitializeThread()
 			{
-				LOG(LOGSEVERITY_SUCCESS, CATEGORY_INPUT, "Initialized input system.");
+				LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_INPUT, "Initialized input system.");
 				return ThreadedSystem::InitializeThread();
 			}
 
 			void InputSystem::Finalize()
 			{
-				LOG(LOGSEVERITY_SUCCESS, CATEGORY_INPUT, "Destroyed input system.");
+				LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_INPUT, "Destroyed input system.");
 				ThreadedSystem::Finalize();
 			}
 		}

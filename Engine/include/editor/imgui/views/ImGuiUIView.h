@@ -20,8 +20,8 @@ namespace coopscoop
 				/// Constructs an <see cref="ExplorerResourceUIView"/> for a given window.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				ImGuiUIView(const ImGuiWindow& a_Window);
-				
+				ImGuiUIView(ImGuiWindow& a_Window);
+
 				/// <summary>
 				/// Renders the element.
 				/// </summary>
@@ -31,9 +31,9 @@ namespace coopscoop
 				/// Retrieves the window the element is being rendered to.
 				/// </summary>
 				/// <returns>Reference to the window.</returns>
-				const ImGuiWindow& Window() const;
+				ImGuiWindow& Window() const;
 			protected:
-				const ImGuiWindow& m_Window; // The window the element is being rendered to.
+				ImGuiWindow& m_Window; // The window the element is being rendered to.
 			};
 		}
 	}

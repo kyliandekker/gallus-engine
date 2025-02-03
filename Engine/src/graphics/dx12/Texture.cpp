@@ -1,5 +1,6 @@
 ﻿#include "graphics/dx12/Texture.h"
 
+#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 #include "core/Engine.h"
@@ -21,7 +22,6 @@ namespace coopscoop
 			{
 				core::ENGINE.GetDX12().GetSRV().Deallocate(m_SRVIndex);
 				m_Resource.Reset();
-				m_State = D3D12_RESOURCE_STATE_COMMON;
 			}
 
 			bool Texture::CheckSRVSupport() const
@@ -47,17 +47,19 @@ namespace coopscoop
 			}
 
 			// TODO: This all needs to be loaded from a file eventually instead of from files on the disk.
-			bool Texture::Load(const std::string& a_FilePath, std::shared_ptr<CommandList> a_CommandList)
+			bool Texture::Load(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList)
 			{
+				fs::path path = file::FileLoader::GetPath(std::format("./assets/textures/{0}", a_Name.c_str()));
+
 				int width, height, channels;
-				stbi_uc* imageData = stbi_load(a_FilePath.c_str(), &width, &height, &channels, STBI_rgb_alpha);
+				stbi_uc* imageData = stbi_load(path.generic_string().c_str(), &width, &height, &channels, STBI_rgb_alpha);
 				if (!imageData)
 				{
-					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to load texture: \"%s\".", a_FilePath.c_str());
+					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to load texture: \"%s\".", path.generic_string().c_str());
 					return false;
 				}
 
-				std::wstring name = std::wstring(a_FilePath.begin(), a_FilePath.end());
+				std::wstring name = std::wstring(a_Name.begin(), a_Name.end());
 
 				D3D12_RESOURCE_DESC textureDesc = {};
 				textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -95,7 +97,7 @@ namespace coopscoop
 
 				stbi_image_free(imageData);
 
-				LOGF(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_DX12, "Successfully loaded texture: \"%s\".", a_FilePath.c_str());
+				LOGF(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_DX12, "Successfully loaded texture: \"%s\".", path.generic_string().c_str());
 				return true;
 			}
 
@@ -106,18 +108,11 @@ namespace coopscoop
 
 			bool Texture::Transition(std::shared_ptr<CommandList> a_CommandList)
 			{
-				if (m_State == D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE)
-				{
-					return false;
-				}
-
 				CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
 					m_Resource.Get(),
 					D3D12_RESOURCE_STATE_COPY_DEST,
 					D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 				a_CommandList->GetCommandList()->ResourceBarrier(1, &barrier);
-
-				m_State = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
 
 				D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 				srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -144,6 +139,16 @@ namespace coopscoop
 
 			void Texture::Unbind(std::shared_ptr<CommandList> a_CommandList)
 			{}
+
+			CD3DX12_GPU_DESCRIPTOR_HANDLE Texture::GetGPUHandle()
+			{
+				return core::ENGINE.GetDX12().GetSRV().GetGPUHandle(m_SRVIndex);
+			}
+
+			CD3DX12_CPU_DESCRIPTOR_HANDLE Texture::GetCPUHandle()
+			{
+				return core::ENGINE.GetDX12().GetSRV().GetCPUHandle(m_SRVIndex);
+			}
 		}
 	}
 }

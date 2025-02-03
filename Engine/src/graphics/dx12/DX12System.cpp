@@ -84,6 +84,14 @@ namespace coopscoop
 					return false;
 				}
 				debugInterface->EnableDebugLayer();
+				debugInterface->Release();
+
+				Microsoft::WRL::ComPtr<ID3D12Debug1> debugController1 = nullptr;
+				if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController1))))
+				{
+					debugController1->SetEnableGPUBasedValidation(TRUE);
+					debugController1->Release();
+				}
 #endif
 				// Get the adapter.
 				if (!GetAdapter(false))
@@ -97,6 +105,27 @@ namespace coopscoop
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating m_Device.");
 					return false;
+				}
+
+				ID3D12InfoQueue* infoQueue = nullptr;
+				if (SUCCEEDED(m_Device->QueryInterface(IID_PPV_ARGS(&infoQueue))))
+				{
+					infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
+					infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
+					infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, FALSE);
+
+					// Optionally filter out less important messages
+					D3D12_MESSAGE_ID denyIds[] = {
+						D3D12_MESSAGE_ID_RESOURCE_BARRIER_MISMATCHING_COMMAND_LIST_TYPE,
+						D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE
+					};
+
+					D3D12_INFO_QUEUE_FILTER filter = {};
+					filter.DenyList.NumIDs = _countof(denyIds);
+					filter.DenyList.pIDList = denyIds;
+					infoQueue->PushStorageFilter(&filter);
+
+					infoQueue->Release();
 				}
 
 				core::ENGINE.GetWindow().m_OnResize += std::bind(&DX12System::Resize, this, std::placeholders::_1, std::placeholders::_2);
@@ -139,6 +168,7 @@ namespace coopscoop
 
 				UpdateRenderTargetViews();
 #ifdef __EDITOR__
+				m_ImGuiWindow.m_PreviewTexture = &m_ResourceAtlas.LoadTexture("tex_missing.png", cCommandList); // Default texture.
 				m_ImGuiWindow.OnRenderTargetCreated();
 #endif // __EDITOR__
 
@@ -151,7 +181,7 @@ namespace coopscoop
 				// Default textures, meshes, shaders and materials.
 				Shader& shaderColor = m_ResourceAtlas.LoadShader("color"); // Default color shader.
 				Shader& shaderAlbedo = m_ResourceAtlas.LoadShader("albedo"); // Default albedo shader.
-				m_ResourceAtlas.LoadTexture("./assets/textures/tex_missing.png", cCommandList); // Default texture.
+				m_ResourceAtlas.LoadTexture("tex_missing.png", cCommandList); // Default texture.
 				m_ResourceAtlas.LoadMaterial("default", { { 1.0f, 1.0f, 1.0f }, 0.0f, 0.0f }); // Default material.
 
 				Material& m_FaucetMaterial = m_ResourceAtlas.LoadMaterial("faucet", { { 0.16f, 0.16f, 0.16f }, 0.87f, 1.0f });
@@ -161,11 +191,11 @@ namespace coopscoop
 				m_FaucetMesh.Initialize();
 
 				m_ChickenMesh.SetMesh(m_ResourceAtlas.LoadMesh("chicken.gltf", cCommandList));
-				m_ChickenMesh.SetTexture(m_ResourceAtlas.LoadTexture("./assets/textures/tex_chicken_normal.png", cCommandList));
+				m_ChickenMesh.SetTexture(m_ResourceAtlas.LoadTexture("tex_chicken_normal.png", cCommandList));
 				m_ChickenMesh.SetShader(shaderAlbedo);
 
 				m_ChickenMesh2.SetMesh(m_ResourceAtlas.LoadMesh("chicken.gltf", cCommandList));
-				m_ChickenMesh2.SetTexture(m_ResourceAtlas.LoadTexture("./assets/textures/tex_chicken_sick.png", cCommandList));
+				m_ChickenMesh2.SetTexture(m_ResourceAtlas.LoadTexture("tex_chicken_sick.png", cCommandList));
 				m_ChickenMesh2.SetShader(shaderAlbedo);
 
 				m_FaucetMesh.SetMesh(m_ResourceAtlas.LoadMesh("mod_faucet.gltf", cCommandList));
@@ -711,6 +741,10 @@ namespace coopscoop
 			{
 				std::lock_guard<std::mutex> lock(m_RenderMutex);
 
+#ifdef __EDITOR__
+				m_ImGuiWindow.Update();
+#endif // __EDITOR
+
 				m_FpsCounter.Update();
 
 				//TESTF("FPS: %f", m_FpsCounter.GetFPS());
@@ -782,7 +816,6 @@ namespace coopscoop
 
 				m_ImGuiWindow.Render(commandList);
 #endif
-
 				// Present
 				{
 					commandList->TransitionResource(backBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);

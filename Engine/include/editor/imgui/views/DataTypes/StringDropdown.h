@@ -33,7 +33,7 @@ namespace coopscoop
 				/// Constructor for StringDropdown.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				StringDropdown(const ImGuiWindow& a_Window) : ImGuiUIView(a_Window)
+				StringDropdown(ImGuiWindow& a_Window) : ImGuiUIView(a_Window)
 				{}
 
 				/// <summary>

@@ -12,8 +12,10 @@
 #include "editor/imgui/ImGuiDefines.h"
 #include "editor/imgui/font_arial.h"
 #include "editor/imgui/font_icon.h"
-#include "graphics/dx12/CommandList.h"
 #include "editor/Editor.h"
+
+#include "graphics/dx12/CommandList.h"
+#include "graphics/dx12/Texture.h"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -119,7 +121,10 @@ namespace coopscoop
 				io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
 				io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 				io.ConfigFlags &= ~ImGuiConfigFlags_NoMouseCursorChange;
+
 				(void) io;
+
+				m_HeaderSize = ImVec2(m_FontSize * 2.5f, m_FontSize * 2.5f);
 
 				// setup Dear ImGui style
 				ImGui::StyleColorsDark();
@@ -132,7 +137,7 @@ namespace coopscoop
 
 				ImFontConfig font_config_icon_capital;
 				font_config_icon_capital.FontDataOwnedByAtlas = false;
-				m_CapitalIconFont = io.Fonts->AddFontFromMemoryTTF(&font::icon, sizeof(font::icon), m_IconFontSize + 20, &font_config_icon_capital, icons_ranges_b);
+				m_CapitalIconFont = io.Fonts->AddFontFromMemoryTTF(&font::icon, sizeof(font::icon), m_HeaderSize.x, &font_config_icon_capital, icons_ranges_b);
 
 				ImFontConfig icons_config_b;
 				icons_config_b.FontDataOwnedByAtlas = false;
@@ -228,14 +233,11 @@ namespace coopscoop
 				style.GrabRounding = 8;
 				style.LogSliderDeadzone = 4;
 				style.FramePadding = ImVec2(0, 0);
-				style.ItemSpacing = ImVec2(0, 0);
 
 				ImPlotStyle& pStyle = ImPlot::GetStyle();
 
 				colors = pStyle.Colors;
 				colors[ImPlotCol_Line] = ImVec4(0.66f, 0.66f, 0.66f, 1.00f);
-
-				m_HeaderSize = ImVec2(0, m_FontSize * 2.5f);
 			}
 
 			void ImGuiWindow::OnRenderTargetCreated()
@@ -267,6 +269,41 @@ namespace coopscoop
 				ImGui_ImplDX12_InvalidateDeviceObjects();
 			}
 
+			void ImGuiWindow::SetPreviewTexture(const fs::path& a_Path)
+			{
+				m_PreviewPath = a_Path;
+			}
+
+			void ImGuiWindow::Update()
+			{
+				if (!m_PreviewPath.empty())
+				{
+					auto cCommandQueue = core::ENGINE.GetDX12().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
+					auto cCommandList = cCommandQueue->GetCommandList();
+
+					m_PreviewTexture->Destroy();
+					m_PreviewTexture->Load(m_PreviewPath.filename().generic_string(), cCommandList);
+
+					float fenceValue = cCommandQueue->ExecuteCommandList(cCommandList);
+					cCommandQueue->WaitForFenceValue(fenceValue);
+
+					auto dCommandQueue = core::ENGINE.GetDX12().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
+					auto dCommandList = dCommandQueue->GetCommandList();
+
+					m_PreviewTexture->Transition(dCommandList);
+
+					fenceValue = dCommandQueue->ExecuteCommandList(dCommandList);
+					dCommandQueue->WaitForFenceValue(fenceValue);
+
+					m_PreviewPath.clear();
+				}
+			}
+
+			graphics::dx12::Texture* ImGuiWindow::GetPreviewTexture() const
+			{
+				return m_PreviewTexture;
+			}
+
 			void ImGuiWindow::Render(std::shared_ptr<graphics::dx12::CommandList> a_CommandList)
 			{
 				if (!m_Ready)
@@ -287,8 +324,6 @@ namespace coopscoop
 				m_HierarchyWindow.Update();
 				m_InspectorWindow.Update();
 
-				UpdateMouseCursor();
-
 				ImGui::EndFrame();
 				ImGui::Render();
 
@@ -303,51 +338,6 @@ namespace coopscoop
 				}
 
 				return ImGui_ImplWin32_WndProcHandler(a_hWnd, a_Msg, a_wParam, a_lParam);
-			}
-
-			void ImGuiWindow::UpdateMouseCursor()
-			{
-				if (!m_Ready)
-				{
-					return;
-				}
-
-				if (ImGui::IsAnyItemHovered())
-				{
-					// Set the cursor to a hand pointer
-					if (ImGui::GetMouseCursor() == ImGuiMouseCursor_Arrow)
-					{
-						ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-					}
-
-					ImGuiIO& io = ImGui::GetIO();
-					ImGuiMouseCursor imgui_cursor = ImGui::GetMouseCursor();
-					if (io.MouseDrawCursor || imgui_cursor == ImGuiMouseCursor_None)
-					{
-						::SetCursor(NULL);
-					}
-					else
-					{
-						// Map ImGui cursor types to Win32 system cursors
-						LPTSTR win32_cursor = IDC_ARROW; // Default arrow
-
-						switch (imgui_cursor)
-						{
-							case ImGuiMouseCursor_TextInput:    win32_cursor = IDC_IBEAM; break;
-							case ImGuiMouseCursor_ResizeAll:    win32_cursor = IDC_SIZEALL; break;
-							case ImGuiMouseCursor_ResizeNS:     win32_cursor = IDC_SIZENS; break;
-							case ImGuiMouseCursor_ResizeEW:     win32_cursor = IDC_SIZEWE; break;
-							case ImGuiMouseCursor_ResizeNESW:   win32_cursor = IDC_SIZENESW; break;
-							case ImGuiMouseCursor_ResizeNWSE:   win32_cursor = IDC_SIZENWSE; break;
-							case ImGuiMouseCursor_Hand:         win32_cursor = IDC_HAND; break;
-							case ImGuiMouseCursor_NotAllowed:   win32_cursor = IDC_NO; break;
-							default:                            win32_cursor = IDC_ARROW; break;
-						}
-
-						// Set the system cursor using Win32 API
-						::SetCursor(LoadCursor(NULL, win32_cursor));
-					}
-				}
 			}
 
 			ImFont* ImGuiWindow::GetCapitalFont() const

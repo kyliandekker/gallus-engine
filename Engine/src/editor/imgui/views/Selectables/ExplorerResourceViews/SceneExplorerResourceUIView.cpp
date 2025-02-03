@@ -25,7 +25,7 @@ namespace coopscoop
 			{
 				RenderBaseSelectable(&m_Resource);
 
-				ImGui::DisplayHeader(m_Window.GetBoldFont(), "Type");
+				ImGui::DisplayHeader(m_Window.GetBoldFont(), m_Window.GetFramePadding(), "Type");
 				ImGui::SameLine();
 				ImGui::Text(assets::AssetTypeToString(m_Resource.GetAssetType()).c_str());
 
@@ -38,7 +38,7 @@ namespace coopscoop
 				m_Resource.ResetDirty();
 			}
 
-			SceneExplorerResourceUIView::SceneExplorerResourceUIView(const ImGuiWindow& a_Window, SceneExplorerResource* a_Resource) : ExplorerResourceWithoutPreviewUIView(a_Window), m_Resource(*a_Resource)
+			SceneExplorerResourceUIView::SceneExplorerResourceUIView(ImGuiWindow& a_Window, SceneExplorerResource* a_Resource) : ExplorerResourceWithoutPreviewUIView(a_Window), m_Resource(*a_Resource)
 			{}
 
 			SceneExplorerResourceUIView::SceneExplorerResourceUIView(const SceneExplorerResourceUIView& a_Other) : ExplorerResourceWithoutPreviewUIView(a_Other), m_Resource(a_Other.m_Resource)

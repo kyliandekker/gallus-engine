@@ -49,7 +49,7 @@ namespace coopscoop
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
 				/// <param name="a_Resource">Pointer to the specific image resource.</param>
-				ImageExplorerResourceUIView(const ImGuiWindow& a_Window, T* a_Resource);
+				ImageExplorerResourceUIView(ImGuiWindow& a_Window, T* a_Resource);
 
 				/// <summary>
 				/// Copy constructor.
@@ -69,13 +69,19 @@ namespace coopscoop
 			/// </summary>
 			class TextureExplorerResourceUIView : public ImageExplorerResourceUIView<TextureExplorerResource>
 			{
+			public:
+				/// <summary>
+				/// Executes logic when the element is selected. Override to define selection behavior.
+				/// </summary>
+				void Select() override;
 			protected:
+
 				/// <summary>
 				/// Constructor for the texture resource view.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
 				/// <param name="a_Resource">Pointer to the texture resource.</param>
-				TextureExplorerResourceUIView(const ImGuiWindow& a_Window, TextureExplorerResource* a_Resource);
+				TextureExplorerResourceUIView(ImGuiWindow& a_Window, TextureExplorerResource* a_Resource);
 
 				/// <summary>
 				/// Copy constructor.
@@ -91,13 +97,19 @@ namespace coopscoop
 			/// </summary>
 			class SpriteExplorerResourceUIView : public ImageExplorerResourceUIView<SpriteExplorerResource>
 			{
+			public:
+				/// <summary>
+				/// Executes logic when the element is selected. Override to define selection behavior.
+				/// </summary>
+				void Select() override;
 			protected:
+
 				/// <summary>
 				/// Constructor for the sprite resource view.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
 				/// <param name="a_Resource">Pointer to the sprite resource.</param>
-				SpriteExplorerResourceUIView(const ImGuiWindow& a_Window, SpriteExplorerResource* a_Resource);
+				SpriteExplorerResourceUIView(ImGuiWindow& a_Window, SpriteExplorerResource* a_Resource);
 
 				/// <summary>
 				/// Copy constructor.
@@ -113,13 +125,19 @@ namespace coopscoop
 			/// </summary>
 			class FontExplorerResourceUIView : public ImageExplorerResourceUIView<FontExplorerResource>
 			{
+			public:
+				/// <summary>
+				/// Executes logic when the element is selected. Override to define selection behavior.
+				/// </summary>
+				void Select() override;
 			protected:
+
 				/// <summary>
 				/// Constructor for the font resource view.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
 				/// <param name="a_Resource">Pointer to the font resource.</param>
-				FontExplorerResourceUIView(const ImGuiWindow& a_Window, FontExplorerResource* a_Resource);
+				FontExplorerResourceUIView(ImGuiWindow& a_Window, FontExplorerResource* a_Resource);
 
 				/// <summary>
 				/// Copy constructor.

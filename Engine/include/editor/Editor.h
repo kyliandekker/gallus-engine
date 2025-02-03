@@ -30,13 +30,19 @@ namespace coopscoop
 		/// <summary>
 		/// Core system for managing project-related changes and editor states.
 		/// </summary>
-		class Editor : public core::System
+		class Editor : public core::ThreadedSystem
 		{
 		public:
 			/// <summary>
-			/// Initializes the imgui system.
+			/// Initializes the window with the right parameters.
 			/// </summary>
-			bool Initialize() override;
+			/// <param name="a_Wait">Determines whether the application waits until the system has been fully initialized.</param>
+			bool Initialize(bool a_Wait) override;
+
+			/// <summary>
+			/// Loop method for the thread.
+			/// </summary>
+			void Loop() override;
 
 			/// <summary>
 			/// Initializes the editor settings.
@@ -109,6 +115,18 @@ namespace coopscoop
 			/// <param name="a_Data">The Data object to set as the clipboard content.</param>
 			void SetClipboard(core::Data& a_Data);
 		private:
+			/// <summary>
+			/// Initializes the thread.
+			/// </summary>
+			/// <returns>True if the initialization was successful, otherwise false.</returns>
+			bool InitializeThread() override;
+
+			/// <summary>
+			/// Destroys the system, releasing resources and performing necessary cleanup.
+			/// </summary>
+			/// <returns>True if the destruction was successful, otherwise false.</returns>
+			void Finalize() override;
+
 			core::Data m_Clipboard; /// Stores clipboard data for copy-paste operations.
 			imgui::EditorSelectable* m_EditorSelectable; /// The currently selected object in the editor.
 

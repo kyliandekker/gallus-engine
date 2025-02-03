@@ -105,6 +105,12 @@ namespace coopscoop
 				HWND& GetHWnd();
 
 				/// <summary>
+				/// Retrieves the handle to the instance.
+				/// </summary>
+				/// <returns>A reference to the instance handle (hInstance).</returns>
+				HINSTANCE& GethInstance();
+
+				/// <summary>
 				/// Retrieves the windows class for the window.
 				/// </summary>
 				/// <returns></returns>
@@ -112,7 +118,11 @@ namespace coopscoop
 
 				SimpleEvent<HWND, UINT, WPARAM, LPARAM> m_OnMsg;
 				SimpleEvent<const glm::ivec2&, const glm::ivec2&> m_OnResize;
+
+				void SetCursor(LPTSTR a_Cursor);
 			private:
+				LPTSTR m_Cursor = IDC_ARROW;
+
 				/// <summary>
 				/// Generic size method that changes the size and position of the window.
 				/// </summary>

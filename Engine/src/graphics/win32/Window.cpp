@@ -38,6 +38,7 @@ namespace coopscoop
 					case WM_EXITSIZEMOVE:
 					{
 						m_OnResize(GetPosition(), GetRealSize());
+						break;
 					}
 				}
 				return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -172,10 +173,10 @@ namespace coopscoop
 				SetWindowPos(
 					m_hWnd,                // Handle to the window
 					HWND_TOP,            // Placement order (HWND_TOP keeps it in its current Z-order)
-					a_Position.x, 
-					a_Position.y, 
+					a_Position.x,
+					a_Position.y,
 					a_Size.x,
-					a_Size.y, 
+					a_Size.y,
 					SWP_NOMOVE | SWP_NOZORDER // Flags to retain position and Z-order
 				);
 			}
@@ -185,9 +186,19 @@ namespace coopscoop
 				return m_hWnd;
 			}
 
+			HINSTANCE& Window::GethInstance()
+			{
+				return m_hInstance;
+			}
+
 			WNDCLASSEX& Window::GetWc()
 			{
 				return m_Wc;
+			}
+
+			void Window::SetCursor(LPTSTR a_Cursor)
+			{
+				m_Cursor = a_Cursor;
 			}
 
 			bool Window::InitializeThread()

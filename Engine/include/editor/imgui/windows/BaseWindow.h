@@ -28,7 +28,7 @@ namespace coopscoop
 				/// <param name="a_Name">The name of the window (displayed at the top).</param>
 				/// <param name="a_WindowID">The ID of the window.</param>
 				/// <param name="a_FullScreen">Whether the window is full screen or not.</param>
-				BaseWindow(const ImGuiWindow& a_Window, ImGuiWindowFlags a_Flags, const std::string& a_Name, std::string a_WindowID, bool a_FullScreen = false);
+				BaseWindow(ImGuiWindow& a_Window, ImGuiWindowFlags a_Flags, const std::string& a_Name, std::string a_WindowID, bool a_FullScreen = false);
 
 				/// <summary>
 				/// Destructor for BaseWindow.
@@ -76,7 +76,7 @@ namespace coopscoop
 			protected:
 				ImGuiWindowFlags m_Flags = 0; /// The flags associated with certain window behaviours.
 				ImVec2 m_Size = ImVec2(0, 0); /// The current size of the window.
-				std::string 
+				std::string
 					m_Name, /// The name of the window.
 					m_WindowID; /// The ID of the window.
 				bool m_FullScreen = false; /// Whether the window is in full screen mode or not.

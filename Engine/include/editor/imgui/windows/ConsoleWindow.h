@@ -30,7 +30,7 @@ namespace coopscoop
 				/// Constructs a console window.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				ConsoleWindow(const ImGuiWindow& a_Window);
+				ConsoleWindow(ImGuiWindow& a_Window);
 
 				/// <summary>
 				/// Cleans up and destroys the console window.

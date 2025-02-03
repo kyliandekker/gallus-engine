@@ -35,7 +35,7 @@ namespace renegade
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
 				/// <param name="a_EntityID">The EntityID associated with the component being rendered.</param>
-				ComponentBaseUIView(const ImGuiWindow& a_Window, gameplay::EntityID& a_EntityID) : ImGuiUIView(a_Window), m_EntityID(a_EntityID)
+				ComponentBaseUIView(ImGuiWindow& a_Window, gameplay::EntityID& a_EntityID) : ImGuiUIView(a_Window), m_EntityID(a_EntityID)
 				{}
 
 				/// <summary>
@@ -86,7 +86,7 @@ namespace renegade
 				/// <param name="a_EntityID">The EntityID associated with the component being rendered.</param>
 				/// <param name="a_Component">The component to render.</param>
 				/// <param name="a_System">The system managing the component.</param>
-				ComponentUIView(const ImGuiWindow& a_Window, gameplay::EntityID& a_EntityID, C& a_Component, S& a_System) : ComponentBaseUIView(a_Window, a_EntityID), m_Component(a_Component), m_System(a_System)
+				ComponentUIView(ImGuiWindow& a_Window, gameplay::EntityID& a_EntityID, C& a_Component, S& a_System) : ComponentBaseUIView(a_Window, a_EntityID), m_Component(a_Component), m_System(a_System)
 				{}
 
 				/// <summary>

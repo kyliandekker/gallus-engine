@@ -24,7 +24,7 @@ namespace coopscoop
 
 				if (m_Resource.GetResourceType() != ExplorerResourceType::Folder)
 				{
-					ImGui::DisplayHeader(m_Window.GetBoldFont(), "Type");
+					ImGui::DisplayHeader(m_Window.GetBoldFont(), m_Window.GetFramePadding(), "Type");
 					ImGui::SameLine();
 					ImGui::Text(assets::AssetTypeToString(m_Resource.GetAssetType()).c_str());
 				}
@@ -32,7 +32,7 @@ namespace coopscoop
 				EndBaseSelectable();
 			}
 
-			DefaultExplorerResourceUIView::DefaultExplorerResourceUIView(const ImGuiWindow& a_Window, ExplorerResource* a_Resource) : ExplorerResourceWithoutPreviewUIView(a_Window), m_Resource(*a_Resource)
+			DefaultExplorerResourceUIView::DefaultExplorerResourceUIView(ImGuiWindow& a_Window, ExplorerResource* a_Resource) : ExplorerResourceWithoutPreviewUIView(a_Window), m_Resource(*a_Resource)
 			{}
 
 			DefaultExplorerResourceUIView::DefaultExplorerResourceUIView(const DefaultExplorerResourceUIView& a_Other) : ExplorerResourceWithoutPreviewUIView(a_Other), m_Resource(a_Other.m_Resource)

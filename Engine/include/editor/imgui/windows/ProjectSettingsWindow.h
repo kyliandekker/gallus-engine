@@ -24,7 +24,7 @@ namespace renegade
 				/// Constructs the project settings window.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				ProjectSettingsWindow(const ImGuiWindow& a_Window);
+				ProjectSettingsWindow(ImGuiWindow& a_Window);
 
 				/// <summary>
 				/// Renders the main window.

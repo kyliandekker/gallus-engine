@@ -28,7 +28,7 @@ namespace coopscoop
 				/// Constructs a hierarchy window.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				HierarchyWindow(const ImGuiWindow& a_Window);
+				HierarchyWindow(ImGuiWindow& a_Window);
 
 				/// <summary>
 				/// Initializes all values and behaviours associated with the hierarchy window.

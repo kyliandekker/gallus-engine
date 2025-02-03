@@ -25,14 +25,14 @@ namespace coopscoop
 				/// Constructor for StringTextInput.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				StringTextInput(const ImGuiWindow& a_Window);
+				StringTextInput(ImGuiWindow& a_Window);
 
 				/// <summary>
 				/// Initializes the text input with an initial value and number of characters.
 				/// </summary>
 				/// <param name="a_InitialValue">The initial value for the text input.</param>
 				/// <param name="a_BufferSize">The maximum number of characters allowed in the input.</param>
-                void Initialize(const std::string& a_InitialValue, size_t a_BufferSize = 256);
+				void Initialize(const std::string& a_InitialValue, size_t a_BufferSize = 256);
 
 				/// <summary>
 				/// Sets the current string value of the input field.
@@ -46,13 +46,14 @@ namespace coopscoop
 				/// <returns>The current string value in the input field.</returns>
 				std::string GetString();
 
-				void Render() override { }
+				void Render() override
+				{}
 
-				/// <summary>
-				/// Renders the string input field in the editor window.
-				/// </summary>
-				/// <param name="a_Label">The label to display next to the input field.</param>
-				/// <param name="flags">Optional ImGui input text flags to customize the behavior.</param>
+/// <summary>
+/// Renders the string input field in the editor window.
+/// </summary>
+/// <param name="a_Label">The label to display next to the input field.</param>
+/// <param name="flags">Optional ImGui input text flags to customize the behavior.</param>
 				bool Render(const char* a_Label, ImGuiInputTextFlags flags = 0);
 			protected:
 				core::Data m_Data;
@@ -68,7 +69,7 @@ namespace coopscoop
 				/// Constructor for SearchBarInput.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				SearchBarInput(const ImGuiWindow& a_Window);
+				SearchBarInput(ImGuiWindow& a_Window);
 
 				/// <summary>
 				/// Renders the search bar input field with custom sizing and padding.

@@ -43,7 +43,7 @@ namespace coopscoop
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
 				/// <param name="a_Resource">Pointer to the specific scene resource.</param>
-				SceneExplorerResourceUIView(const ImGuiWindow& a_Window, SceneExplorerResource* a_Resource);
+				SceneExplorerResourceUIView(ImGuiWindow& a_Window, SceneExplorerResource* a_Resource);
 
 				/// <summary>
 				/// Copy constructor.

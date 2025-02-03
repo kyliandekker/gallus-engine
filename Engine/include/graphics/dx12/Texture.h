@@ -33,14 +33,16 @@ namespace coopscoop
 
 				void Bind(std::shared_ptr<CommandList> a_CommandList);
 				void Unbind(std::shared_ptr<CommandList> a_CommandList);
-			private:
+
+				CD3DX12_GPU_DESCRIPTOR_HANDLE GetGPUHandle();
+				CD3DX12_CPU_DESCRIPTOR_HANDLE GetCPUHandle();
+
 				bool Load(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList);
 				bool Load(const std::string& a_Name, const D3D12_RESOURCE_DESC& a_Description);
+			private:
 
 				Microsoft::WRL::ComPtr<ID3D12Resource> m_ResourceUploadHeap = nullptr;
 				size_t m_SRVIndex = 0;
-
-				D3D12_RESOURCE_STATES m_State = D3D12_RESOURCE_STATE_COMMON;
 
 				friend class ResourceAtlas;
 			};

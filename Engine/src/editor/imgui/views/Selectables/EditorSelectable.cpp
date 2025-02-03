@@ -8,7 +8,7 @@ namespace coopscoop
 	{
 		namespace imgui
 		{
-			EditorSelectable::EditorSelectable(const ImGuiWindow& a_Window) : ImGuiUIView(a_Window)
+			EditorSelectable::EditorSelectable(ImGuiWindow& a_Window) : ImGuiUIView(a_Window)
 			{}
 		}
 	}

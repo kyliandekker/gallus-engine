@@ -45,7 +45,7 @@ namespace coopscoop
 				ClearChildren();
 			}
 
-			ExplorerResourceUIView* ExplorerResourceUIView::CreateViewFromExplorerResource(ExplorerResource* a_Resource, const ImGuiWindow& a_Window)
+			ExplorerResourceUIView* ExplorerResourceUIView::CreateViewFromExplorerResource(ExplorerResource* a_Resource, ImGuiWindow& a_Window)
 			{
 				ExplorerResourceUIView* explorerView = nullptr;
 				switch (a_Resource->GetAssetType())
@@ -135,7 +135,7 @@ namespace coopscoop
 				m_ResourceType = a_ExplorerResourceType;
 			}
 
-			ExplorerResourceUIView::ExplorerResourceUIView(const ImGuiWindow& a_Window) : EditorSelectable(a_Window), m_NameInput(a_Window)
+			ExplorerResourceUIView::ExplorerResourceUIView(ImGuiWindow& a_Window) : EditorSelectable(a_Window), m_NameInput(a_Window)
 			{
 				m_NameInput.Initialize("");
 			}
@@ -170,7 +170,7 @@ namespace coopscoop
 				m_FoldedOut = a_FoldedOut;
 			}
 
-			void ExplorerResourceUIView::CreateExplorerResourceUIViewChild(ExplorerResourceUIView* a_ResourceView, ExplorerResource* a_Resource, const ImGuiWindow& a_Window)
+			void ExplorerResourceUIView::CreateExplorerResourceUIViewChild(ExplorerResourceUIView* a_ResourceView, ExplorerResource* a_Resource, ImGuiWindow& a_Window)
 			{
 				a_ResourceView->ClearChildren();
 				for (ExplorerResource* resource : a_Resource->m_Resources)
@@ -207,7 +207,7 @@ namespace coopscoop
 				}
 
 				// Manually add padding.
-				ImVec2 buttonCursorPos = ImVec2(ImGui::GetCursorPosX() + (m_Window.GetFramePadding().x * 3), ImGui::GetCursorPosY());
+				ImVec2 iconPos = ImVec2(ImGui::GetCursorPosX() + (m_Window.GetFramePadding().x * 3), ImGui::GetCursorPosY());
 				if (ImGui::InvisibleButton(IMGUI_FORMAT_ID("", BUTTON_ID, "FILES_INNER_EXPLORER_LIST_INVIS_BUTTON_" + m_Name).c_str(), childSize))
 				{
 					a_Clicked = true;
@@ -229,7 +229,7 @@ namespace coopscoop
 				float verticalOffset = (childSize.y - iconSize.y) / 2.0f;   // Center vertically
 
 				// Final position of the icon
-				ImVec2 centerPos = buttonCursorPos;
+				ImVec2 centerPos = iconPos;
 				centerPos.y += verticalOffset;
 
 				// Set cursor to the calculated position and render the icon
@@ -242,8 +242,8 @@ namespace coopscoop
 
 				// Calculate position to center the icon
 				centerPos = ImVec2(
-					buttonCursorPos.x + iconOffset,
-					buttonCursorPos.y + (childSize.y - textSize.y) * 0.5f
+					iconPos.x + iconOffset,
+					iconPos.y + (childSize.y - textSize.y) * 0.5f
 				);
 				ImGui::SetCursorPos(centerPos);
 				ImGui::Text(m_Name.c_str());
@@ -253,7 +253,7 @@ namespace coopscoop
 				// Calculate position to center the icon
 				centerPos = ImVec2(
 					centerPos.x + 300,
-					buttonCursorPos.y + (childSize.y - textSize.y) * 0.5f
+					iconPos.y + (childSize.y - textSize.y) * 0.5f
 				);
 				ImGui::SetCursorPos(centerPos);
 				ImVec4 textColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
@@ -438,25 +438,22 @@ namespace coopscoop
 
 			void ExplorerResourceUIView::RenderBaseSelectable(ExplorerResource* a_Resource)
 			{
-				ImVec2 toolbarSize = ImVec2(ImGui::GetContentRegionAvail().x, m_Window.GetHeaderSize().y * 2.5f);
+				float x = ImGui::GetCursorPosX();
+				float y = ImGui::GetCursorPosY();
+				ImVec2 toolbarSize = ImVec2(ImGui::GetContentRegionAvail().x, m_Window.GetHeaderSize().y * 2 + m_Window.GetFramePadding().y);
 				ImGui::BeginToolbar(toolbarSize);
 
-				ImVec2 padding = m_Window.GetWindowPadding();
-
-				float fontSize = m_Window.GetFontSize();
-
-				float y = ImGui::GetCursorPosY();
-				float x = ImGui::GetCursorPosX() + fontSize;
-				ImGui::SetCursorPos(ImVec2(x, y + fontSize));
 				ImGui::PushFont(m_Window.GetBigIconFont());
-				ImGui::Text(m_Icon.c_str());
+				ImVec2 iconSize = ImGui::CalcTextSize(m_Icon.c_str()); // Replace this with your icon size calculation.
 				ImGui::PopFont();
 
-				ImGui::SetCursorPosY(y + (fontSize / 2));
-				ImGui::SetCursorPosX(x + (fontSize * 3));
+				ImVec2 iconPos = ImVec2(x + m_Window.GetFramePadding().x, y + m_Window.GetFramePadding().x);
+
+				ImGui::SetCursorPos(ImVec2(iconPos.x + m_Window.GetFramePadding().x + iconSize.x, iconPos.y));
 
 				m_NameInput.SetString(m_Name);
-				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x);
+				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - m_Window.GetFramePadding().x);
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(m_Window.GetFramePadding().x * 2, ImGui::GetStyle().FramePadding.y));
 				if (m_NameInput.Render(imgui::IMGUI_FORMAT_ID("", INPUT_ID, "NAME_INSPECTOR").c_str(), ImGuiInputTextFlags_EnterReturnsTrue))
 				{
 					if (a_Resource->Rename(m_NameInput.GetString()))
@@ -464,11 +461,23 @@ namespace coopscoop
 						SetData(a_Resource);
 					}
 				}
+				ImGui::PopStyleVar();
 
-				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
+				ImVec2 inputSize = ImGui::GetItemRectSize();
 
-				ImGui::SetCursorPosY(y + (m_Window.GetHeaderSize().y * 1.5f));
+				float dif = (m_Window.GetHeaderSize().y - inputSize.y) / 2;
+				iconPos = ImVec2(x + m_Window.GetFramePadding().x, iconPos.y - dif);
+
+				ImGui::SetCursorPos(iconPos);
+				ImGui::PushFont(m_Window.GetBigIconFont());
+				ImGui::Text(m_Icon.c_str());
+				ImGui::PopFont();
+
+				//ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+				//ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
+
+				ImGui::SetCursorPosY(y + m_Window.GetHeaderSize().y + m_Window.GetFramePadding().y);
+				ImGui::SetCursorPosX(x);
 
 				// TODO: Find icon for this.
 				//if (ImGui::TransparentButton(IMGUI_FORMAT_ID(std::string(ICON_FA_ARROW_TURN_UP), BUTTON_ID, "SHOW_IN_EXPLORER_INSPECTOR").c_str(), ImVec2(core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y, core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y)))
@@ -478,8 +487,8 @@ namespace coopscoop
 				//		return file::FileLoader::OpenInExplorer(a_Resource->GetParent()->GetPath().c_str());
 				//	});
 				//}
-				ImGui::SameLine();
-				if (ImGui::TransparentButton(IMGUI_FORMAT_ID(std::string(ICON_DELETE), BUTTON_ID, "DELETE_INSPECTOR").c_str(), ImVec2(m_Window.GetHeaderSize().y, m_Window.GetHeaderSize().y)))
+				if (ImGui::IconButton(
+					IMGUI_FORMAT_ID(std::string(ICON_DELETE), BUTTON_ID, "DELETE_INSPECTOR").c_str(), m_Window.GetHeaderSize(), m_Window.GetIconFont()))
 				{
 					core::ENGINE.GetEditor().SetSelectable(nullptr);
 
@@ -490,10 +499,7 @@ namespace coopscoop
 
 				ImGui::SetCursorPosY(y + toolbarSize.y);
 
-				ImGui::EndToolbar(padding);
-
-				ImGui::PopStyleVar();
-				ImGui::PopStyleVar();
+				ImGui::EndToolbar(m_Window.GetFramePadding());
 			}
 
 			void ExplorerResourceUIView::EndBaseSelectable()
@@ -618,7 +624,7 @@ namespace coopscoop
 
 
 
-			//ExplorerResourceUIView::ExplorerResourceUIView(const ImGuiWindow& a_Window, ExplorerResource& a_Resource) : EditorSelectable(a_Window), m_Resource(a_Resource)
+			//ExplorerResourceUIView::ExplorerResourceUIView(ImGuiWindow& a_Window, ExplorerResource& a_Resource) : EditorSelectable(a_Window), m_Resource(a_Resource)
 			//{
 			//	ReadResourceData();
 			//}

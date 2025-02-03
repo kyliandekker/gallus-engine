@@ -51,7 +51,7 @@ namespace coopscoop
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
 				/// <param name="a_Resource">Pointer to the specific audio resource.</param>
-				AudioExplorerResourceUIView(const ImGuiWindow& a_Window, T* a_Resource);
+				AudioExplorerResourceUIView(ImGuiWindow& a_Window, T* a_Resource);
 
 				/// <summary>
 				/// Copy constructor.
@@ -77,7 +77,7 @@ namespace coopscoop
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
 				/// <param name="a_Resource">Pointer to the sound resource.</param>
-				SoundExplorerResourceUIView(const ImGuiWindow& a_Window, SoundExplorerResource* a_Resource);
+				SoundExplorerResourceUIView(ImGuiWindow& a_Window, SoundExplorerResource* a_Resource);
 
 				/// <summary>
 				/// Copy constructor.
@@ -99,7 +99,7 @@ namespace coopscoop
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
 				/// <param name="a_Resource">Pointer to the song resource.</param>
-				SongExplorerResourceUIView(const ImGuiWindow& a_Window, SongExplorerResource* a_Resource);
+				SongExplorerResourceUIView(ImGuiWindow& a_Window, SongExplorerResource* a_Resource);
 
 				/// <summary>
 				/// Copy constructor.
@@ -121,7 +121,7 @@ namespace coopscoop
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
 				/// <param name="a_Resource">Pointer to the VO resource.</param>
-				VOExplorerResourceUIView(const ImGuiWindow& a_Window, VOExplorerResource* a_Resource);
+				VOExplorerResourceUIView(ImGuiWindow& a_Window, VOExplorerResource* a_Resource);
 
 				/// <summary>
 				/// Copy constructor.

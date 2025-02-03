@@ -22,7 +22,7 @@ namespace coopscoop
 				/// Constructs the project settings window.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				SceneWindow(const ImGuiWindow& a_Window);
+				SceneWindow(ImGuiWindow& a_Window);
 
 				/// <summary>
 				/// Renders the scene window.

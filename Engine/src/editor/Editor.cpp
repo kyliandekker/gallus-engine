@@ -12,14 +12,15 @@ namespace coopscoop
 {
 	namespace editor
 	{
-		bool Editor::Initialize()
+		bool Editor::Initialize(bool a_Wait)
 		{
 			LOG(LOGSEVERITY_INFO, LOG_CATEGORY_EDITOR, "Initializing editor.");
+			return ThreadedSystem::Initialize(a_Wait);
+		}
 
-			bool success = m_AssetDatabase.Initialize();
-			m_AssetDatabase.LoadProject("./");
-			LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_EDITOR, "Initialized editor.");
-			return success && System::Initialize();
+		void Editor::Loop()
+		{
+			m_AssetDatabase.CheckAssetDatabase();
 		}
 
 		bool Editor::InitializeEditorSettings()
@@ -85,15 +86,15 @@ namespace coopscoop
 
 		void Editor::SetSelectable(imgui::EditorSelectable* a_Selectable)
 		{
-			//if (m_EditorSelectable)
-			//{
-			//	m_EditorSelectable->Deselect();
-			//}
-			//m_EditorSelectable = a_Selectable;
-			//if (m_EditorSelectable)
-			//{
-			//	m_EditorSelectable->Select();
-			//}
+			if (m_EditorSelectable)
+			{
+				m_EditorSelectable->Deselect();
+			}
+			m_EditorSelectable = a_Selectable;
+			if (m_EditorSelectable)
+			{
+				m_EditorSelectable->Select();
+			}
 		}
 
 		core::Data& Editor::GetClipboard()
@@ -104,6 +105,24 @@ namespace coopscoop
 		void Editor::SetClipboard(core::Data& a_Data)
 		{
 			m_Clipboard = a_Data;
+		}
+
+		bool Editor::InitializeThread()
+		{
+			if (!m_AssetDatabase.Initialize())
+			{
+				LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_EDITOR, "Failed initializing asset database.");
+				return false;
+			}
+			m_AssetDatabase.LoadProject("./");
+			LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_EDITOR, "Initialized editor.");
+			return ThreadedSystem::InitializeThread();
+		}
+
+		void Editor::Finalize()
+		{
+			LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_INPUT, "Destroyed editor.");
+			ThreadedSystem::Finalize();
 		}
 	}
 }

@@ -28,7 +28,7 @@ namespace coopscoop
 				/// Constructs a Vector2View that renders a vector.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				Vector2View(const ImGuiWindow& a_Window) : ImGuiUIView(a_Window), m_Value(0)
+				Vector2View(ImGuiWindow& a_Window) : ImGuiUIView(a_Window), m_Value(0)
 				{ }
 
 				/// <summary>
@@ -88,7 +88,7 @@ namespace coopscoop
 				/// Constructor for Vector3View.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				Vector3View(const ImGuiWindow& a_Window) : Vector2View<T>(a_Window)
+				Vector3View(ImGuiWindow& a_Window) : Vector2View<T>(a_Window)
 				{ }
 
 				void Render() override { }

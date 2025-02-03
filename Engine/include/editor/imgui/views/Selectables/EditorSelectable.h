@@ -24,7 +24,7 @@ namespace coopscoop
 				/// Constructor for the selectable.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				EditorSelectable(const ImGuiWindow& a_Window);
+				EditorSelectable(ImGuiWindow& a_Window);
 
 				/// <summary>
 				/// Renders the selectable UI element for this resource.

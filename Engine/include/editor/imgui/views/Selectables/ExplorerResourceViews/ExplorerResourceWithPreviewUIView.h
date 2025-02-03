@@ -45,7 +45,7 @@ namespace coopscoop
 				/// Constructor for the resource view.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				ExplorerResourceWithPreviewUIView(const ImGuiWindow& a_Window);
+				ExplorerResourceWithPreviewUIView(ImGuiWindow& a_Window);
 
 				/// <summary>
 				/// Copy constructor.
@@ -77,7 +77,7 @@ namespace coopscoop
 				/// Constructor for the resource view.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				ExplorerResourceWithoutPreviewUIView(const ImGuiWindow& a_Window);
+				ExplorerResourceWithoutPreviewUIView(ImGuiWindow& a_Window);
 
 				/// <summary>
 				/// Copy constructor.

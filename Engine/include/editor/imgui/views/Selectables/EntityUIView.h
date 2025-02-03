@@ -30,7 +30,7 @@ namespace coopscoop
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
 				/// <param name="a_EntityID">The entity ID associated with this view.</param>
-				EntityUIView(const ImGuiWindow& a_Window, gameplay::EntityID& a_EntityID);
+				EntityUIView(ImGuiWindow& a_Window, gameplay::EntityID& a_EntityID);
 
 				/// <summary>
 				/// Default constructor for EntityUIView.
