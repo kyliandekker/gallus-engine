@@ -44,9 +44,13 @@ namespace coopscoop
 
 				ImGui::EndToolbar(ImVec2(ImGui::GetStyle().ItemSpacing.x, 0));
 
+#ifdef _EDITOR
+#ifdef _RENDER_TEX
 				ImGui::SetCursorPos(ImVec2(initialPos.x, initialPos.y + toolbarSize.y));
 				m_RenderTextureSize = glm::ivec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y);
 				ImGui::Image((ImTextureID) core::ENGINE.GetDX12().GetSRV().GetGPUHandle(1).ptr, ImGui::GetContentRegionAvail());
+#endif // _RENDER_TEX
+#endif // _EDITOR
 
 				//ImGui::SetCursorPosY(y);
 				//std::string fpsValue = std::to_string(static_cast<uint64_t>(std::round(core::ENGINE.GetWindow().GetDX12Window().GetFPS().GetFPS()))) + "fps";

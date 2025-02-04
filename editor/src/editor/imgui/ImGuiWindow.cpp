@@ -34,7 +34,7 @@ namespace coopscoop
 				m_InspectorWindow(*this)
 			{}
 
-			bool ImGuiWindow::Initialize()
+			bool ImGuiWindow::Initialize(std::shared_ptr<graphics::dx12::CommandList> a_CommandList)
 			{
 				IMGUI_CHECKVERSION();
 				ImGui::CreateContext();
@@ -61,6 +61,8 @@ namespace coopscoop
 				m_HierarchyWindow.Initialize();
 				m_InspectorWindow.Initialize();
 				//m_LoadProjectWindow.Initialize();
+
+				m_PreviewTexture = &core::ENGINE.GetDX12().GetResourceAtlas().LoadTexture("tex_missing.png", a_CommandList); // Default texture.
 
 				return System::Initialize();
 			}
@@ -212,6 +214,12 @@ namespace coopscoop
 				colors[ImGuiCol_NavWindowingHighlight] = ImVec4(0.86f, 0.93f, 0.89f, 1.00f);
 				colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
 				colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+#ifndef _RENDER_TEX
+				float transparency = 0.4;
+				ImGui::GetStyle().Colors[ImGuiCol_FrameBg].w = transparency;
+				ImGui::GetStyle().Colors[ImGuiCol_WindowBg].w = transparency;
+				ImGui::GetStyle().Colors[ImGuiCol_ChildBg].w = transparency;
+#endif // _RENDER_TEX
 
 				style.WindowBorderSize = 1;
 				style.WindowRounding = 0;
@@ -276,7 +284,7 @@ namespace coopscoop
 
 			void ImGuiWindow::Update()
 			{
-				if (!m_PreviewPath.empty())
+				if (!m_PreviewPath.empty() && m_PreviewTexture)
 				{
 					auto cCommandQueue = core::ENGINE.GetDX12().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
 					auto cCommandList = cCommandQueue->GetCommandList();

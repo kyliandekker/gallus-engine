@@ -40,7 +40,7 @@ namespace coopscoop
 				/// <summary>
 				/// Initializes the imgui system.
 				/// </summary>
-				bool Initialize() override;
+				bool Initialize(std::shared_ptr<graphics::dx12::CommandList> a_CommandList);
 
 				/// <summary>
 				/// Destroys all imgui resources.
@@ -135,6 +135,7 @@ namespace coopscoop
 				HierarchyWindow m_HierarchyWindow;
 				InspectorWindow m_InspectorWindow;
 
+				// Preview texture in the Inspector window.
 				graphics::dx12::Texture* m_PreviewTexture = nullptr;
 
 				friend graphics::dx12::DX12System;

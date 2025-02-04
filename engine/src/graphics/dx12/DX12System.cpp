@@ -165,14 +165,11 @@ namespace coopscoop
 #ifdef _RENDER_TEX
 				CreateRenderTexture(m_Size);
 #endif // _RENDER_TEX
-				m_ImGuiWindow.Initialize();
+				m_ImGuiWindow.Initialize(cCommandList);
 #endif // _EDITOR
 
 				UpdateRenderTargetViews();
 #ifdef _EDITOR
-#ifdef _RENDER_TEX
-				m_ImGuiWindow.m_PreviewTexture = &m_ResourceAtlas.LoadTexture("tex_missing.png", cCommandList); // Default texture.
-#endif // _RENDER_TEX
 				m_ImGuiWindow.OnRenderTargetCreated();
 #endif // _EDITOR
 
@@ -763,9 +760,7 @@ namespace coopscoop
 				std::lock_guard<std::mutex> lock(m_RenderMutex);
 
 #ifdef _EDITOR
-#ifdef _RENDER_TEX
 				m_ImGuiWindow.Update();
-#endif // _RENDER_TEX
 #endif // __EDITOR
 
 				m_FpsCounter.Update();
