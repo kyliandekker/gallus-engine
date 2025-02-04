@@ -21,8 +21,11 @@ namespace coopscoop
 
 			void Texture::Destroy()
 			{
-				core::ENGINE.GetDX12().GetSRV().Deallocate(m_SRVIndex);
-				m_Resource.Reset();
+				if (m_Resource)
+				{
+					core::ENGINE.GetDX12().GetSRV().Deallocate(m_SRVIndex);
+					m_Resource.Reset();
+				}
 			}
 
 			bool Texture::CheckSRVSupport() const
@@ -45,6 +48,11 @@ namespace coopscoop
 			bool Texture::CheckDSVSupport() const
 			{
 				return CheckFormatSupport(D3D12_FORMAT_SUPPORT1_DEPTH_STENCIL);
+			}
+
+			glm::ivec2 Texture::GetSize() const
+			{
+				return glm::ivec2(GetResourceDesc().Width, GetResourceDesc().Height);
 			}
 
 			// TODO: This all needs to be loaded from a file eventually instead of from files on the disk.

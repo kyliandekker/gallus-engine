@@ -5,6 +5,7 @@
 #include <wrl.h>
 #include <string>
 #include <memory>
+#include <glm/vec2.hpp>
 
 #include "graphics/dx12/DX12Resource.h"
 
@@ -28,6 +29,8 @@ namespace coopscoop
 				bool CheckRTVSupport() const;
 				bool CheckUAVSupport() const;
 				bool CheckDSVSupport() const;
+
+				glm::ivec2 GetSize() const;
 
 				bool Transition(std::shared_ptr<CommandList> a_CommandList);
 

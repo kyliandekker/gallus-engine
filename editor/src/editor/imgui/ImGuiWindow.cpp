@@ -124,7 +124,7 @@ namespace coopscoop
 
 				(void) io;
 
-				m_HeaderSize = ImVec2(m_FontSize * 2.5f, m_FontSize * 2.5f);
+				m_HeaderSize = ImVec2(m_IconFontSize * 1.5f, m_IconFontSize * 1.5f);
 
 				// setup Dear ImGui style
 				ImGui::StyleColorsDark();

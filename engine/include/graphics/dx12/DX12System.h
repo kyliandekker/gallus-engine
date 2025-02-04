@@ -143,10 +143,12 @@ namespace coopscoop
 				void CreateSRV();
 
 #ifdef _EDITOR
+#ifdef _RENDER_TEX
 				/// <summary>
 				/// Creates the Render Texture.
 				/// </summary>
-				void CreateRenderTexture();
+				void CreateRenderTexture(const glm::ivec2& a_Size);
+#endif // _RENDER_TEX
 #endif // _EDITOR
 
 				/// <summary>
@@ -248,30 +250,36 @@ namespace coopscoop
 					return m_ResourceAtlas;
 				};
 
-	  /// <summary>
-	  /// Retrieves the DirectX 12 device.
-	  /// </summary>
-	  /// <returns>ComPtr to the ID3D12Device2.</returns>
+				/// <summary>
+				/// Retrieves the DirectX 12 device.
+				/// </summary>
+				/// <returns>ComPtr to the ID3D12Device2.</returns>
 				Microsoft::WRL::ComPtr<ID3D12Device2> GetDevice() const
 				{
 					return m_Device;
 				};
 
-			 /// <summary>
-			 /// Retrieves the DirectX 12 root signature.
-			 /// </summary>
-			 /// <returns>ComPtr to the ID3D12RootSignature.</returns>
+				/// <summary>
+				/// Retrieves the DirectX 12 root signature.
+				/// </summary>
+				/// <returns>ComPtr to the ID3D12RootSignature.</returns>
 				Microsoft::WRL::ComPtr<ID3D12RootSignature> GetRootSignature() const
 				{
 					return m_RootSignature;
 				};
 
-	  /// <summary>
-	  /// Retrieves a command queue of a certain type.
-	  /// </summary>
-	  /// <param name="a_Type">The type of command queue such as direct, copy, etc.</param>
-	  /// <returns>Reference to the CommandQueue.</returns>
+				/// <summary>
+				/// Retrieves a command queue of a certain type.
+				/// </summary>
+				/// <param name="a_Type">The type of command queue such as direct, copy, etc.</param>
+				/// <returns>Reference to the CommandQueue.</returns>
 				std::shared_ptr<CommandQueue> GetCommandQueue(D3D12_COMMAND_LIST_TYPE a_Type = D3D12_COMMAND_LIST_TYPE_DIRECT) const;
+
+#ifdef _EDITOR
+#ifdef _RENDER_TEX
+				void SetRenderTextureSize(const glm::ivec2& a_Size);
+#endif // _RENDER_TEX
+#endif // _EDITOR
 			protected:
 				ResourceAtlas m_ResourceAtlas;
 
@@ -308,10 +316,11 @@ namespace coopscoop
 				glm::ivec2 m_Size;
 
 				FPSCounter m_FpsCounter;
-
 #ifdef _EDITOR
 				editor::imgui::ImGuiWindow m_ImGuiWindow;
+#ifdef _RENDER_TEX
 				class Texture* m_RenderTexture = nullptr;
+#endif // _RENDER_TEX
 #endif // _EDITOR
 
 				// TODO: Delete these as they are all supposed to be temporary.

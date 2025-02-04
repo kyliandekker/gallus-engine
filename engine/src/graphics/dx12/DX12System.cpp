@@ -162,13 +162,17 @@ namespace coopscoop
 				CreateSRV();
 
 #ifdef _EDITOR
-				CreateRenderTexture();
+#ifdef _RENDER_TEX
+				CreateRenderTexture(m_Size);
+#endif // _RENDER_TEX
 				m_ImGuiWindow.Initialize();
 #endif // _EDITOR
 
 				UpdateRenderTargetViews();
 #ifdef _EDITOR
+#ifdef _RENDER_TEX
 				m_ImGuiWindow.m_PreviewTexture = &m_ResourceAtlas.LoadTexture("tex_missing.png", cCommandList); // Default texture.
+#endif // _RENDER_TEX
 				m_ImGuiWindow.OnRenderTargetCreated();
 #endif // _EDITOR
 
@@ -459,7 +463,9 @@ namespace coopscoop
 			{
 				size_t numBuffers = g_BufferCount;
 #ifdef _EDITOR
+#ifdef _RENDER_TEX
 				numBuffers += 1;
+#endif //_RENDER_TEX
 #endif //_EDITOR
 				D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
 				rtvHeapDesc.NumDescriptors = numBuffers;
@@ -490,12 +496,18 @@ namespace coopscoop
 			}
 
 #ifdef _EDITOR
-			void DX12System::CreateRenderTexture()
+#ifdef _RENDER_TEX
+			void DX12System::CreateRenderTexture(const glm::ivec2& a_Size)
 			{
+				if (m_RenderTexture && m_RenderTexture->IsValid())
+				{
+					m_RenderTexture->Destroy();
+				}
+
 				D3D12_RESOURCE_DESC texDesc = {};
 				texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-				texDesc.Width = m_Size.x;
-				texDesc.Height = m_Size.y;
+				texDesc.Width = a_Size.x;
+				texDesc.Height = a_Size.y;
 				texDesc.DepthOrArraySize = 1;
 				texDesc.MipLevels = 1;
 				texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -505,6 +517,7 @@ namespace coopscoop
 
 				m_RenderTexture = &m_ResourceAtlas.LoadTextureByDescription("RenderTexture", texDesc);
 			}
+#endif // _RENDER_TEX
 #endif // _EDITOR
 
 			bool DX12System::CreateRootSignature()
@@ -608,12 +621,14 @@ namespace coopscoop
 				CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_RTV.GetCPUDescriptorHandleForHeapStart());
 
 #ifdef _EDITOR
+#ifdef _RENDER_TEX
 				// Create RTV for custom render target texture
 				if (m_RenderTexture->IsValid())
 				{
 					m_Device->CreateRenderTargetView(m_RenderTexture->GetResource().Get(), nullptr, rtvHandle);
 				}
 				rtvHandle.Offset(m_RTVDescriptorSize);
+#endif // _RENDER_TEX
 #endif // _EDITOR
 
 				for (int i = 0; i < g_BufferCount; ++i)
@@ -677,41 +692,45 @@ namespace coopscoop
 
 			void DX12System::Resize(const glm::ivec2& a_Pos, const glm::ivec2& a_Size)
 			{
-//				std::lock_guard<std::mutex> lock(m_RenderMutex);
-//
-//				Flush();
-//				for (int i = 0; i < g_BufferCount; ++i)
-//				{
-//					m_BackBuffers[i].Reset();  // This will release the old resource properly
-//				}
-//#ifdef _EDITOR
-//				m_ImGuiWindow.OnRenderTargetCleaned();
-//#endif // _EDITOR
-//
-//				DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
-//				if (FAILED(m_SwapChain->GetDesc(&swapChainDesc)))
-//				{
-//					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed getting desc from swap chain.");
-//					return;
-//				}
-//				if (FAILED(m_SwapChain->ResizeBuffers(g_BufferCount, a_Size.x,
-//					a_Size.y, swapChainDesc.BufferDesc.Format, swapChainDesc.Flags)))
-//				{
-//					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed resizing buffers.");
-//					return;
-//				}
-//				ResizeDepthBuffer(a_Size);
-//
-//				m_CurrentBackBufferIndex = m_SwapChain->GetCurrentBackBufferIndex();
-//
-//				UpdateRenderTargetViews();
-//
-//#ifdef _EDITOR
-//				m_ImGuiWindow.Resize(a_Pos, a_Size);
-//#endif // _EDITOR
-//
-//				m_Size = glm::vec2(a_Size.x, a_Size.y);
-//				m_Viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(m_Size.x), static_cast<float>(m_Size.y));
+				std::lock_guard<std::mutex> lock(m_RenderMutex);
+
+				Flush();
+				for (int i = 0; i < g_BufferCount; ++i)
+				{
+					m_BackBuffers[i].Reset();  // This will release the old resource properly
+				}
+#ifdef _EDITOR
+				m_ImGuiWindow.OnRenderTargetCleaned();
+#endif // _EDITOR
+
+				DXGI_SWAP_CHAIN_DESC swapChainDesc = {};
+				if (FAILED(m_SwapChain->GetDesc(&swapChainDesc)))
+				{
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed getting desc from swap chain.");
+					return;
+				}
+				if (FAILED(m_SwapChain->ResizeBuffers(g_BufferCount, a_Size.x,
+					a_Size.y, swapChainDesc.BufferDesc.Format, swapChainDesc.Flags)))
+				{
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed resizing buffers.");
+					return;
+				}
+
+				ResizeDepthBuffer(a_Size);
+
+				m_CurrentBackBufferIndex = m_SwapChain->GetCurrentBackBufferIndex();
+
+				UpdateRenderTargetViews();
+
+#ifdef _EDITOR
+				m_ImGuiWindow.Resize(a_Pos, a_Size);
+#endif // _EDITOR
+
+				m_Size = glm::vec2(a_Size.x, a_Size.y);
+				m_Viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(m_Size.x), static_cast<float>(m_Size.y));
+				m_ScissorRect = CD3DX12_RECT(0, 0, LONG_MAX, LONG_MAX);
+
+				m_Camera1.SetProjection(45.0f, static_cast<float>(m_Size.x) / static_cast<float>(m_Size.y), 0.1f, 1000.0f);
 			}
 
 			Microsoft::WRL::ComPtr<ID3D12Resource> DX12System::GetCurrentBackBuffer() const
@@ -728,11 +747,13 @@ namespace coopscoop
 			{
 				size_t backBufferStart = 0;
 #ifdef _EDITOR
+#ifdef _RENDER_TEX
 				if (a_UseRenderTexture && m_RenderTexture->IsValid())
 				{
 					return m_RTV.GetCPUHandle(0);
 				}
 				backBufferStart += 1;
+#endif // _RENDER_TEX
 #endif // _EDITOR
 				return m_RTV.GetCPUHandle(backBufferStart + m_CurrentBackBufferIndex);
 			}
@@ -742,7 +763,9 @@ namespace coopscoop
 				std::lock_guard<std::mutex> lock(m_RenderMutex);
 
 #ifdef _EDITOR
+#ifdef _RENDER_TEX
 				m_ImGuiWindow.Update();
+#endif // _RENDER_TEX
 #endif // __EDITOR
 
 				m_FpsCounter.Update();
@@ -763,9 +786,11 @@ namespace coopscoop
 
 				// On editor, we want to render onto a render texture, so transition the texture to a render target.
 #ifdef _EDITOR
+#ifdef _RENDER_TEX
 				commandList->TransitionResource(m_RenderTexture->GetResource(),
 					D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 					D3D12_RESOURCE_STATE_RENDER_TARGET);
+#endif // _RENDER_TEX
 #endif
 
 				commandList->GetCommandList()->ClearDepthStencilView(dsv, D3D12_CLEAR_FLAG_DEPTH, 1.0, 0, 0, nullptr);
@@ -792,7 +817,13 @@ namespace coopscoop
 
 				m_ChickenMesh.Render(commandList, m_ChickenTransform1, viewMatrix, projectionMatrix);
 
+				m_ChickenTransform2.SetPosition({ 1.0f, -0.5f, 1.5f });
+				m_ChickenTransform2.GetRotation().y += 0.1f;
+
+				m_ChickenMesh2.Render(commandList, m_ChickenTransform2, viewMatrix, projectionMatrix);
+
 #ifdef _EDITOR
+#ifdef _RENDER_TEX
 				// Transition back to SRV for ImGui usage
 				commandList->TransitionResource(m_RenderTexture->GetResource(),
 					D3D12_RESOURCE_STATE_RENDER_TARGET,
@@ -803,8 +834,9 @@ namespace coopscoop
 				commandList->GetCommandList()->ClearRenderTargetView(rtv, clearColor, 0, nullptr);
 				commandList->GetCommandList()->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
 
+#endif // _RENDER_TEX
 				m_ImGuiWindow.Render(commandList);
-#endif
+#endif // _EDITOR
 				// Present
 				{
 					commandList->TransitionResource(backBuffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
@@ -852,6 +884,30 @@ namespace coopscoop
 
 				return commandQueue;
 			}
+
+#ifdef _EDITOR
+#ifdef _RENDER_TEX
+			void DX12System::SetRenderTextureSize(const glm::ivec2& a_Size)
+			{
+				//if (m_RenderTexture->GetSize() == a_Size)
+				//{
+				//	return;
+				//}
+
+				//CreateRenderTexture(a_Size);
+				//ResizeDepthBuffer(a_Size);
+
+				//std::shared_ptr<CommandQueue> dCommandQueue = GetCommandQueue();
+				//std::shared_ptr<CommandList> dCommandList = dCommandQueue->GetCommandList();
+
+				//m_RenderTexture->Transition(dCommandList);
+				//float fenceValue = dCommandQueue->ExecuteCommandList(dCommandList);
+				//dCommandQueue->WaitForFenceValue(fenceValue);
+
+				//UpdateRenderTargetViews();
+			}
+#endif // _RENDER_TEX
+#endif // _EDITOR
 
 #pragma endregion DX12_SYSTEM
 		}
