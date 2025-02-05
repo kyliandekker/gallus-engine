@@ -58,7 +58,7 @@ namespace gallus
 				ImGui::SameLine();
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(m_Window.GetFramePadding().x, 0));
 				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-				if (m_AssetTypeDropdown.Render(IMGUI_FORMAT_ID("", COMBO_ID, "ASSETTYPE_INSPECTOR").c_str()))
+				if (m_AssetTypeDropdown.Render(ImGui::IMGUI_FORMAT_ID("", COMBO_ID, "ASSETTYPE_INSPECTOR").c_str()))
 				{
 					m_Resource.SetAssetType(m_AssetTypeDropdown.GetValue());
 					m_Resource.SaveMetadata();

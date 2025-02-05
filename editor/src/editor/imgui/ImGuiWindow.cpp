@@ -14,6 +14,7 @@
 #include "editor/imgui/font_icon.h"
 #include "editor/Editor.h"
 
+#include "graphics/dx12/CommandQueue.h"
 #include "graphics/dx12/CommandList.h"
 #include "graphics/dx12/Texture.h"
 

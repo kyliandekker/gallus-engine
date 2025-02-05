@@ -23,7 +23,7 @@ namespace gallus
 				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(framePadding.x * 2, framePadding.y * 2));
 
 				if (ImGui::BeginChild(
-					IMGUI_FORMAT_ID("", CHILD_ID, "EXPLORER_RESOURCE_INSPECTOR").c_str(),
+					ImGui::IMGUI_FORMAT_ID("", CHILD_ID, "EXPLORER_RESOURCE_INSPECTOR").c_str(),
 					ImVec2(
 					ImGui::GetContentRegionAvail().x - m_Window.GetFramePadding().x,
 					(ImGui::GetContentRegionAvail().y - PREVIEW_SIZE) - m_Window.GetFramePadding().y
@@ -47,7 +47,7 @@ namespace gallus
 			void ExplorerResourceWithPreviewUIView::RenderPreviewWindow()
 			{
 				if (ImGui::BeginChild(
-					imgui::IMGUI_FORMAT_ID("", CHILD_ID, "EXPLORER_RdESOURCE_INSPECTOR").c_str(),
+					ImGui::IMGUI_FORMAT_ID("", CHILD_ID, "EXPLORER_RdESOURCE_INSPECTOR").c_str(),
 					ImVec2(
 					ImGui::GetContentRegionAvail().x,
 					PREVIEW_SIZE
@@ -73,7 +73,7 @@ namespace gallus
 				ExplorerResourceUIView::RenderBaseSelectable(a_Resource);
 
 				if (ImGui::BeginChild(
-					IMGUI_FORMAT_ID("", CHILD_ID, "EXPLORER_RESOURCE_INSPECTOR").c_str(),
+					ImGui::IMGUI_FORMAT_ID("", CHILD_ID, "EXPLORER_RESOURCE_INSPECTOR").c_str(),
 					ImVec2(
 					ImGui::GetContentRegionAvail().x - m_Window.GetFramePadding().x,
 					ImGui::GetContentRegionAvail().y - m_Window.GetFramePadding().y

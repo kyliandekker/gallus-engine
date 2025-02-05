@@ -1,9 +1,13 @@
 #ifdef _EDITOR
 
 #include "editor/imgui/views/DataTypes/StringTextInput.h"
+
 #include <imgui/imgui_internal.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_helpers.h>
+
+#include "editor/imgui/ImGuiWindow.h"
+#include "editor/imgui/ImGuiDefines.h"
 
 namespace gallus
 {

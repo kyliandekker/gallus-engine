@@ -2,11 +2,12 @@
 
 #include "editor/imgui/windows/ExplorerWindow.h"
 
+#include <imgui/imgui_helpers.h>
+
 #include "editor/imgui/ImGuiDefines.h"
 #include "utils/string_extensions.h"
 #include "core/FileUtils.h"
 #include "editor/imgui/ImGuiWindow.h"
-#include "imgui/imgui_helpers.h"
 #include "editor/Editor.h"
 #include "core/Engine.h"
 #include "editor/ExplorerResource.h"
@@ -143,7 +144,7 @@ namespace gallus
 				float topPosY = ImGui::GetCursorPosY();
 
 				if (ImGui::IconButton(
-					IMGUI_FORMAT_ID(std::string(ICON_REFRESH), BUTTON_ID, "RESCAN_EXPLORER").c_str(), m_Window.GetHeaderSize(), m_Window.GetIconFont()))
+					ImGui::IMGUI_FORMAT_ID(std::string(ICON_REFRESH), BUTTON_ID, "RESCAN_EXPLORER").c_str(), m_Window.GetHeaderSize(), m_Window.GetIconFont()))
 				{
 					core::ENGINE.GetEditor().GetAssetDatabase().Rescan();
 				}
@@ -153,7 +154,7 @@ namespace gallus
 				bool list = m_ExplorerViewMode == ExplorerViewMode::ExplorerViewMode_List;
 				bool grid = m_ExplorerViewMode == ExplorerViewMode::ExplorerViewMode_Grid;
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(ICON_LIST), BUTTON_ID, "LIST_EXPLORER").c_str(), &list, m_Window.GetHeaderSize(), m_Window.GetIconFont()))
+					ImGui::IMGUI_FORMAT_ID(std::string(ICON_LIST), BUTTON_ID, "LIST_EXPLORER").c_str(), &list, m_Window.GetHeaderSize(), m_Window.GetIconFont()))
 				{
 					if (list)
 					{
@@ -164,7 +165,7 @@ namespace gallus
 				ImGui::SameLine();
 
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(ICON_GRID), BUTTON_ID, "GRID_EXPLORER").c_str(), &grid, m_Window.GetHeaderSize(), m_Window.GetIconFont()))
+					ImGui::IMGUI_FORMAT_ID(std::string(ICON_GRID), BUTTON_ID, "GRID_EXPLORER").c_str(), &grid, m_Window.GetHeaderSize(), m_Window.GetIconFont()))
 				{
 					if (grid)
 					{
@@ -181,7 +182,7 @@ namespace gallus
 					(topPosY + (toolbarSize.y / 2)) - (((inputPadding * 2) + m_Window.GetFontSize()) / 2)
 				);
 				ImGui::SetCursorPos(searchBarPos);
-				if (m_SearchBar.Render(IMGUI_FORMAT_ID("", INPUT_ID, "EXPLORER_CONSOLE").c_str(), ImVec2(searchbarWidth, toolbarSize.y), inputPadding))
+				if (m_SearchBar.Render(ImGui::IMGUI_FORMAT_ID("", INPUT_ID, "EXPLORER_CONSOLE").c_str(), ImVec2(searchbarWidth, toolbarSize.y), inputPadding))
 				{
 					m_NeedsRefresh = true;
 				}
@@ -195,7 +196,7 @@ namespace gallus
 
 				ImGui::SetCursorPosY(ImGui::GetCursorPos().y + m_Window.GetFramePadding().y);
 				if (ImGui::BeginChild(
-					IMGUI_FORMAT_ID("", CHILD_ID, "DIRECTORIES_EXPLORER").c_str(),
+					ImGui::IMGUI_FORMAT_ID("", CHILD_ID, "DIRECTORIES_EXPLORER").c_str(),
 					ImVec2(
 					0,
 					ImGui::GetContentRegionAvail().y - m_Window.GetFramePadding().y
@@ -211,7 +212,7 @@ namespace gallus
 
 				ImGui::SameLine();
 				if (ImGui::BeginChild(
-					IMGUI_FORMAT_ID("", CHILD_ID, "FILES_EXPLORER").c_str(),
+					ImGui::IMGUI_FORMAT_ID("", CHILD_ID, "FILES_EXPLORER").c_str(),
 					ImVec2(
 					ImGui::GetContentRegionAvail().x - m_Window.GetFramePadding().x,
 					ImGui::GetContentRegionAvail().y - m_Window.GetFramePadding().y
@@ -222,7 +223,7 @@ namespace gallus
 					if (m_FolderRoot)
 					{
 						if (ImGui::BeginChild(
-							IMGUI_FORMAT_ID("", CHILD_ID, "FILES_INNER_EXPLORER").c_str(),
+							ImGui::IMGUI_FORMAT_ID("", CHILD_ID, "FILES_INNER_EXPLORER").c_str(),
 							ImVec2(
 							0,
 							0

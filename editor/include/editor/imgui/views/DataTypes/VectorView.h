@@ -5,9 +5,9 @@
 #include "editor/imgui/views/ImGuiUIView.h"
 
 #include <imgui/imgui.h>
+#include <imgui/imgui_helpers.h>
 #include <string>
 
-#include "editor/imgui/ImGuiDefines.h"
 
 namespace gallus
 {
@@ -29,7 +29,7 @@ namespace gallus
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
 				Vector2View(ImGuiWindow& a_Window) : ImGuiUIView(a_Window), m_Value(0)
-				{ }
+				{}
 
 				/// <summary>
 				/// Sets the value of the 2D vector. Updates the value if it's different from the current one.
@@ -52,10 +52,11 @@ namespace gallus
 					return m_Value;
 				}
 
-				void Render() override { }
+				void Render() override
+				{}
 
 				/// <summary>
-				/// Renders the 2D vector as dragable float inputs in ImGui (X and Y components).
+				/// Renders the 2D vector as draggable float inputs in ImGui (X and Y components).
 				/// </summary>
 				/// <param name="a_Label">The label displayed next to the input fields.</param>
 				virtual bool Render(const char* a_Label)
@@ -63,11 +64,11 @@ namespace gallus
 					ImGui::AlignTextToFramePadding();
 					ImGui::Text("X");
 					ImGui::SameLine();
-					bool changedValue = ImGui::DragFloat(IMGUI_FORMAT_ID("", INPUT_ID, std::string("X_") + a_Label).c_str(), &m_Value.x);
+					bool changedValue = ImGui::DragFloat(ImGui::IMGUI_FORMAT_ID("", INPUT_ID, std::string("X_") + a_Label).c_str(), &m_Value.x);
 					ImGui::SameLine();
 					ImGui::Text("Y");
 					ImGui::SameLine();
-					changedValue |= ImGui::DragFloat(IMGUI_FORMAT_ID("", INPUT_ID, std::string("Y_") + a_Label).c_str(), &m_Value.y);
+					changedValue |= ImGui::DragFloat(ImGui::IMGUI_FORMAT_ID("", INPUT_ID, std::string("Y_") + a_Label).c_str(), &m_Value.y);
 
 					return changedValue;
 				}
@@ -89,12 +90,13 @@ namespace gallus
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
 				Vector3View(ImGuiWindow& a_Window) : Vector2View<T>(a_Window)
-				{ }
+				{}
 
-				void Render() override { }
+				void Render() override
+				{}
 
 				/// <summary>
-				/// Renders the 3D vector as dragable float inputs in ImGui (X, Y and Z components).
+				/// Renders the 3D vector as draggable float inputs in ImGui (X, Y and Z components).
 				/// </summary>
 				/// <param name="a_Label">The label displayed next to the input fields.</param>
 				bool Render(const char* a_Label) override
@@ -103,7 +105,7 @@ namespace gallus
 					ImGui::SameLine();
 					ImGui::Text("Z");
 					ImGui::SameLine();
-					changedValue |= ImGui::DragFloat(IMGUI_FORMAT_ID("", INPUT_ID, std::string("Z_") + a_Label).c_str(), &this->m_Value.z);
+					changedValue |= ImGui::DragFloat(ImGui::IMGUI_FORMAT_ID("", INPUT_ID, std::string("Z_") + a_Label).c_str(), &this->m_Value.z);
 
 					return changedValue;
 				}

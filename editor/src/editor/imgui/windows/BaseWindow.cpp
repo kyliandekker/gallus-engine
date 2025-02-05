@@ -34,7 +34,7 @@ namespace gallus
 			bool BaseWindow::WindowBegin()
 			{
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, m_Window.GetFramePadding());
-				bool b = ImGui::Begin(IMGUI_FORMAT_ID(m_Name, WINDOW_ID, string_extensions::StringToUpper(m_WindowID)).c_str(), &m_Enabled, m_Flags);
+				bool b = ImGui::Begin(ImGui::IMGUI_FORMAT_ID(m_Name, WINDOW_ID, string_extensions::StringToUpper(m_WindowID)).c_str(), &m_Enabled, m_Flags);
 				return b;
 			}
 

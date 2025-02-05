@@ -57,7 +57,7 @@ namespace gallus
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
 
-				//if (ImGui::TransparentButton(IMGUI_FORMAT_ID(std::string(ICON_CUBE), BUTTON_ID, "SPAWN_ENTITY_HIERARCHY").c_str(), ImVec2(toolbarSize.y, toolbarSize.y)))
+				//if (ImGui::TransparentButton(ImGui::IMGUI_FORMAT_ID(std::string(ICON_CUBE), BUTTON_ID, "SPAWN_ENTITY_HIERARCHY").c_str(), ImVec2(toolbarSize.y, toolbarSize.y)))
 				//{
 				//	//core::ENGINE.GetECS().CreateEntity(core::ENGINE.GetECS().GetUniqueName("New GameObject"));
 				//	//m_NeedsRefresh = true;
@@ -75,7 +75,7 @@ namespace gallus
 				//	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
 				//}
 
-				//if (ImGui::TransparentButton(IMGUI_FORMAT_ID(std::string(ICON_SAVE), BUTTON_ID, "SAVE_HIERARCHY").c_str(), ImVec2(toolbarSize.y, toolbarSize.y)))
+				//if (ImGui::TransparentButton(ImGui::IMGUI_FORMAT_ID(std::string(ICON_SAVE), BUTTON_ID, "SAVE_HIERARCHY").c_str(), ImVec2(toolbarSize.y, toolbarSize.y)))
 				//{
 				//	core::ENGINE.GetEditor().GetCurrentScene()->Save();
 				//}
@@ -96,7 +96,7 @@ namespace gallus
 					(topPosY + (toolbarSize.y / 2)) - (((inputPadding * 2) + m_Window.GetFontSize()) / 2)
 				);
 				ImGui::SetCursorPos(searchBarPos);
-				if (m_SearchBar.Render(IMGUI_FORMAT_ID("", INPUT_ID, "SEARCHBAR_HIERARCHY").c_str(), ImVec2(searchbarWidth, toolbarSize.y), inputPadding))
+				if (m_SearchBar.Render(ImGui::IMGUI_FORMAT_ID("", INPUT_ID, "SEARCHBAR_HIERARCHY").c_str(), ImVec2(searchbarWidth, toolbarSize.y), inputPadding))
 				{
 					//m_NeedsRefresh = true;
 				}
@@ -137,7 +137,7 @@ namespace gallus
 
 				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(m_Window.GetFramePadding().x * 2, m_Window.GetFramePadding().y * 2));
 				if (ImGui::BeginChild(
-					IMGUI_FORMAT_ID("", CHILD_ID, "ENTITIES_HIERARCHY").c_str(),
+					ImGui::IMGUI_FORMAT_ID("", CHILD_ID, "ENTITIES_HIERARCHY").c_str(),
 					ImVec2(
 					ImGui::GetContentRegionAvail().x - m_Window.GetFramePadding().x,
 					ImGui::GetContentRegionAvail().y - m_Window.GetFramePadding().y

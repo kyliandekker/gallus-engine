@@ -42,7 +42,7 @@ namespace gallus
 					ImGui::EndToolbar(m_Window.GetFramePadding());
 
 					if (ImGui::BeginChild(
-						IMGUI_FORMAT_ID("", CHILD_ID, "INSPECTOR_DEFAULT").c_str(),
+						ImGui::IMGUI_FORMAT_ID("", CHILD_ID, "INSPECTOR_DEFAULT").c_str(),
 						ImVec2(
 						ImGui::GetContentRegionAvail().x - m_Window.GetFramePadding().x,
 						ImGui::GetContentRegionAvail().y - m_Window.GetFramePadding().y

@@ -98,7 +98,7 @@ namespace gallus
 
 				ImGui::PushFont(m_Window.GetIconFont());
 				if (ImGui::TransparentButton(
-					IMGUI_FORMAT_ID(std::string(ICON_CLEAR), BUTTON_ID, "CLEAR_CONSOLE").c_str(), m_Window.GetHeaderSize()))
+					ImGui::IMGUI_FORMAT_ID(std::string(ICON_CLEAR), BUTTON_ID, "CLEAR_CONSOLE").c_str(), m_Window.GetHeaderSize()))
 				{
 					std::lock_guard<std::mutex> lock(MESSAGE_MUTEX);
 					m_FilteredMessages.clear();
@@ -109,7 +109,7 @@ namespace gallus
 				ImGui::SameLine();
 				bool scrollToBottom = editorSettings.ScrollToBottom();
 				if (ImGui::CheckboxButton(
-					IMGUI_FORMAT_ID("Scroll to bottom", BUTTON_ID, "SCROLL_TO_BOTTOM_CONSOLE").c_str(), &scrollToBottom, ImVec2(ImGui::CalcTextSize("Scroll to bottom").x + (m_Window.GetFramePadding().x * 2), toolbarSize.y)))
+					ImGui::IMGUI_FORMAT_ID("Scroll to bottom", BUTTON_ID, "SCROLL_TO_BOTTOM_CONSOLE").c_str(), &scrollToBottom, ImVec2(ImGui::CalcTextSize("Scroll to bottom").x + (m_Window.GetFramePadding().x * 2), toolbarSize.y)))
 				{
 					editorSettings.SetScrollToBottom(scrollToBottom);
 					m_NeedsRefresh = true;
@@ -118,7 +118,7 @@ namespace gallus
 				ImGui::SameLine();
 				bool info = editorSettings.Info();
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_INFO]), BUTTON_ID, "SHOW_INFO_CONSOLE").c_str(), &info, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_INFO]))
+					ImGui::IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_INFO]), BUTTON_ID, "SHOW_INFO_CONSOLE").c_str(), &info, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_INFO]))
 				{
 					editorSettings.SetInfo(info);
 					m_NeedsRefresh = true;
@@ -127,7 +127,7 @@ namespace gallus
 				ImGui::SameLine();
 				bool warning = editorSettings.Warning();
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_WARNING]), BUTTON_ID, "SHOW_WARNING_CONSOLE").c_str(), &warning, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_WARNING]))
+					ImGui::IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_WARNING]), BUTTON_ID, "SHOW_WARNING_CONSOLE").c_str(), &warning, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_WARNING]))
 				{
 					editorSettings.SetWarning(warning);
 					m_NeedsRefresh = true;
@@ -136,7 +136,7 @@ namespace gallus
 				ImGui::SameLine();
 				bool error = editorSettings.Error();
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_ERROR]), BUTTON_ID, "SHOW_ERROR_CONSOLE").c_str(), &error, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_ERROR]))
+					ImGui::IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_ERROR]), BUTTON_ID, "SHOW_ERROR_CONSOLE").c_str(), &error, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_ERROR]))
 				{
 					editorSettings.SetError(error);
 					m_NeedsRefresh = true;
@@ -145,7 +145,7 @@ namespace gallus
 				ImGui::SameLine();
 				bool assert = editorSettings.Assert();
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_ASSERT]), BUTTON_ID, "SHOW_ASSERT_CONSOLE").c_str(), &assert, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_ASSERT]))
+					ImGui::IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_ASSERT]), BUTTON_ID, "SHOW_ASSERT_CONSOLE").c_str(), &assert, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_ASSERT]))
 				{
 					editorSettings.SetAssert(assert);
 					m_NeedsRefresh = true;
@@ -154,7 +154,7 @@ namespace gallus
 				ImGui::SameLine();
 				bool success = editorSettings.Success();
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_SUCCESS]), BUTTON_ID, "SHOW_SUCCESS_CONSOLE").c_str(), &success, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_SUCCESS]))
+					ImGui::IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_SUCCESS]), BUTTON_ID, "SHOW_SUCCESS_CONSOLE").c_str(), &success, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_SUCCESS]))
 				{
 					editorSettings.SetSuccess(success);
 					m_NeedsRefresh = true;
@@ -163,7 +163,7 @@ namespace gallus
 				ImGui::SameLine();
 				bool infoSuccess = editorSettings.InfoSuccess();
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_INFO_SUCCESS]), BUTTON_ID, "SHOW_INFO_SUCCESS_CONSOLE").c_str(), &infoSuccess, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_INFO_SUCCESS]))
+					ImGui::IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_INFO_SUCCESS]), BUTTON_ID, "SHOW_INFO_SUCCESS_CONSOLE").c_str(), &infoSuccess, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_INFO_SUCCESS]))
 				{
 					editorSettings.SetInfoSuccess(infoSuccess);
 					m_NeedsRefresh = true;
@@ -172,7 +172,7 @@ namespace gallus
 				ImGui::SameLine();
 				bool awesome = editorSettings.Awesome();
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_AWESOME]), BUTTON_ID, "SHOW_AWESOME_CONSOLE").c_str(), &awesome, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_AWESOME]))
+					ImGui::IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_AWESOME]), BUTTON_ID, "SHOW_AWESOME_CONSOLE").c_str(), &awesome, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_AWESOME]))
 				{
 					editorSettings.SetAwesome(awesome);
 					m_NeedsRefresh = true;
@@ -187,7 +187,7 @@ namespace gallus
 					(topPosY + (toolbarSize.y / 2)) - (((inputPadding * 2) + m_Window.GetFontSize()) / 2)
 				);
 				ImGui::SetCursorPos(searchBarPos);
-				if (m_SearchBar.Render(IMGUI_FORMAT_ID("", INPUT_ID, "SEARCHBAR_CONSOLE").c_str(), ImVec2(searchbarWidth, toolbarSize.y), inputPadding))
+				if (m_SearchBar.Render(ImGui::IMGUI_FORMAT_ID("", INPUT_ID, "SEARCHBAR_CONSOLE").c_str(), ImVec2(searchbarWidth, toolbarSize.y), inputPadding))
 				{
 					m_NeedsRefresh = true;
 				}
@@ -201,7 +201,7 @@ namespace gallus
 
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + m_Window.GetFramePadding().x, ImGui::GetCursorPos().y + m_Window.GetFramePadding().y));
 				if (ImGui::BeginChild(
-					IMGUI_FORMAT_ID("", CHILD_ID, "BOX_LOGGER").c_str(),
+					ImGui::IMGUI_FORMAT_ID("", CHILD_ID, "BOX_LOGGER").c_str(),
 					ImVec2(
 					ImGui::GetContentRegionAvail().x - m_Window.GetFramePadding().x,
 					ImGui::GetContentRegionAvail().y - m_Window.GetFramePadding().y

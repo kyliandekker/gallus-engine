@@ -208,7 +208,7 @@ namespace gallus
 
 				// Manually add padding.
 				ImVec2 iconPos = ImVec2(ImGui::GetCursorPosX() + (m_Window.GetFramePadding().x * 3), ImGui::GetCursorPosY());
-				if (ImGui::InvisibleButton(IMGUI_FORMAT_ID("", BUTTON_ID, "FILES_INNER_EXPLORER_LIST_INVIS_BUTTON_" + m_Name).c_str(), childSize))
+				if (ImGui::InvisibleButton(ImGui::IMGUI_FORMAT_ID("", BUTTON_ID, "FILES_INNER_EXPLORER_LIST_INVIS_BUTTON_" + m_Name).c_str(), childSize))
 				{
 					a_Clicked = true;
 				}
@@ -271,7 +271,7 @@ namespace gallus
 				ImVec2 childEnd = ImVec2(cursorPos.x + childSize.x, cursorPos.y + childSize.y);
 
 				if (ImGui::BeginChild(
-					IMGUI_FORMAT_ID("", CHILD_ID, "FILES_INNER_EXPLORER_GRID_" + m_Name).c_str(),
+					ImGui::IMGUI_FORMAT_ID("", CHILD_ID, "FILES_INNER_EXPLORER_GRID_" + m_Name).c_str(),
 					childSize,
 					false, // Borderless child
 					ImGuiWindowFlags_None
@@ -284,7 +284,7 @@ namespace gallus
 					}
 
 					ImGui::SetCursorScreenPos(cursorPos);
-					if (ImGui::InvisibleButton(IMGUI_FORMAT_ID("", BUTTON_ID, "FILES_INNER_EXPLORER_GRID_INVIS_BUTTON_" + m_Name).c_str(), childSize))
+					if (ImGui::InvisibleButton(ImGui::IMGUI_FORMAT_ID("", BUTTON_ID, "FILES_INNER_EXPLORER_GRID_INVIS_BUTTON_" + m_Name).c_str(), childSize))
 					{
 						a_Clicked = true;
 					}
@@ -330,7 +330,7 @@ namespace gallus
 				}
 
 				ImVec2 buttonCursorPos = ImVec2(ImGui::GetCursorPosX() + (m_Window.GetFramePadding().x * 3), ImGui::GetCursorPosY());
-				if (ImGui::InvisibleButton(IMGUI_FORMAT_ID("", BUTTON_ID, "FILES_FOLDERS_INVIS_BUTTON_" + m_Name).c_str(), childSize))
+				if (ImGui::InvisibleButton(ImGui::IMGUI_FORMAT_ID("", BUTTON_ID, "FILES_FOLDERS_INVIS_BUTTON_" + m_Name).c_str(), childSize))
 				{
 					a_Clicked = true;
 				}
@@ -454,7 +454,7 @@ namespace gallus
 				m_NameInput.SetString(m_Name);
 				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - m_Window.GetFramePadding().x);
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(m_Window.GetFramePadding().x * 2, ImGui::GetStyle().FramePadding.y));
-				if (m_NameInput.Render(imgui::IMGUI_FORMAT_ID("", INPUT_ID, "NAME_INSPECTOR").c_str(), ImGuiInputTextFlags_EnterReturnsTrue))
+				if (m_NameInput.Render(ImGui::IMGUI_FORMAT_ID("", INPUT_ID, "NAME_INSPECTOR").c_str(), ImGuiInputTextFlags_EnterReturnsTrue))
 				{
 					if (a_Resource->Rename(m_NameInput.GetString()))
 					{
@@ -480,7 +480,7 @@ namespace gallus
 				ImGui::SetCursorPosX(x);
 
 				// TODO: Find icon for this.
-				//if (ImGui::TransparentButton(IMGUI_FORMAT_ID(std::string(ICON_FA_ARROW_TURN_UP), BUTTON_ID, "SHOW_IN_EXPLORER_INSPECTOR").c_str(), ImVec2(core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y, core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y)))
+				//if (ImGui::TransparentButton(ImGui::IMGUI_FORMAT_ID(std::string(ICON_FA_ARROW_TURN_UP), BUTTON_ID, "SHOW_IN_EXPLORER_INSPECTOR").c_str(), ImVec2(core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y, core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y)))
 				//{
 				//	core::ENGINE.GetFileLoader().EnqueueTask([&a_Resource]() mutable
 				//	{
@@ -488,7 +488,7 @@ namespace gallus
 				//	});
 				//}
 				if (ImGui::IconButton(
-					IMGUI_FORMAT_ID(std::string(ICON_DELETE), BUTTON_ID, "DELETE_INSPECTOR").c_str(), m_Window.GetHeaderSize(), m_Window.GetIconFont()))
+					ImGui::IMGUI_FORMAT_ID(std::string(ICON_DELETE), BUTTON_ID, "DELETE_INSPECTOR").c_str(), m_Window.GetHeaderSize(), m_Window.GetIconFont()))
 				{
 					core::ENGINE.GetEditor().SetSelectable(nullptr);
 
