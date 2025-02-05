@@ -11,6 +11,13 @@
 !GenerateProjectFiles.bat
 !CMakeLists.txt
 
+# Tools directory
+!tools/include/
+!tools/src/
+!tools/include/**
+!tools/src/**
+!tools/CMakeLists.txt
+
 # Re-allow all contents inside the allowed directories
 !assets/**
 !external/**
