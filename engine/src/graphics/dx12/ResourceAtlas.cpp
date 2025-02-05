@@ -8,7 +8,7 @@
 #include "graphics/dx12/Material.h"
 #include "graphics/dx12/CommandList.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{

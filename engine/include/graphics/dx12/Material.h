@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{

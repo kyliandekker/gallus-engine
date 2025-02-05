@@ -9,7 +9,7 @@
 #include "editor/imgui/views/DataTypes/StringTextInput.h"
 //#include "editor/imgui/views/Selectables/EntityUIView.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

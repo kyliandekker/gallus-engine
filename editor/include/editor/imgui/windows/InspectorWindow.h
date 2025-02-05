@@ -4,7 +4,7 @@
 
 #include "editor/imgui/windows/BaseWindow.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

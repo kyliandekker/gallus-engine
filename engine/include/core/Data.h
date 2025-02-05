@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <string>
 
-namespace coopscoop
+namespace gallus
 {
 	namespace core
 	{

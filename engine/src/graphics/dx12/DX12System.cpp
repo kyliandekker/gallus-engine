@@ -5,11 +5,17 @@
 #include "core/logger/Logger.h"
 #include "core/DataStream.h"
 #include "core/FileUtils.h"
-#include "core/Engine.h"
-#include "graphics/dx12/Material.h" // TODO: remove this one when we load assets from scenes.
-#include "graphics/dx12/Texture.h"
+#include "graphics/win32/Window.h"
+#include "graphics/dx12/CommandQueue.h"
+#include "graphics/dx12/CommandList.h"
 
-namespace coopscoop
+#ifdef _EDITOR 
+#ifdef _RENDER_TEX
+#include "graphics/dx12/Texture.h"
+#endif // _RENDER_TEX
+#endif // _EDITOR
+
+namespace gallus
 {
 	namespace graphics
 	{
@@ -57,9 +63,11 @@ namespace coopscoop
 
 #pragma region DX12_SYSTEM
 
-			bool DX12System::Initialize(bool a_Wait, HWND a_hWnd, const glm::ivec2& a_Size)
+			bool DX12System::Initialize(bool a_Wait, HWND a_hWnd, const glm::ivec2& a_Size, win32::Window* a_Window)
 			{
 				m_Size = a_Size;
+				m_hWnd = a_hWnd;
+				m_Window = a_Window;
 
 				LOG(LOGSEVERITY_INFO, LOG_CATEGORY_DX12, "Initializing dx12 system.");
 				return ThreadedSystem::Initialize(a_Wait);
@@ -128,12 +136,12 @@ namespace coopscoop
 					infoQueue->Release();
 				}
 
-				core::ENGINE.GetWindow().m_OnResize += std::bind(&DX12System::Resize, this, std::placeholders::_1, std::placeholders::_2);
+				m_Window->m_OnResize += std::bind(&DX12System::Resize, this, std::placeholders::_1, std::placeholders::_2);
 
 				// Create the command queues.
-				m_DirectCommandQueue = std::make_shared<CommandQueue>(D3D12_COMMAND_LIST_TYPE_DIRECT);
-				m_ComputeCommandQueue = std::make_shared<CommandQueue>(D3D12_COMMAND_LIST_TYPE_COMPUTE);
-				m_CopyCommandQueue = std::make_shared<CommandQueue>(D3D12_COMMAND_LIST_TYPE_COPY);
+				m_DirectCommandQueue = std::make_shared<CommandQueue>(D3D12_COMMAND_LIST_TYPE_DIRECT, m_Device);
+				m_ComputeCommandQueue = std::make_shared<CommandQueue>(D3D12_COMMAND_LIST_TYPE_COMPUTE, m_Device);
+				m_CopyCommandQueue = std::make_shared<CommandQueue>(D3D12_COMMAND_LIST_TYPE_COPY, m_Device);
 
 				m_IsTearingSupported = CheckTearingSupport();
 
@@ -161,11 +169,12 @@ namespace coopscoop
 				CreateDSV();
 				CreateSRV();
 
+				m_OnInitialize(*this);
 #ifdef _EDITOR
+				m_ImGuiWindow.Initialize();
 #ifdef _RENDER_TEX
 				CreateRenderTexture(m_Size);
 #endif // _RENDER_TEX
-				m_ImGuiWindow.Initialize(cCommandList);
 #endif // _EDITOR
 
 				UpdateRenderTargetViews();
@@ -179,37 +188,12 @@ namespace coopscoop
 					return false;
 				}
 
-				// Default textures, meshes, shaders and materials.
-				Shader& shaderColor = m_ResourceAtlas.LoadShader("color"); // Default color shader.
-				Shader& shaderAlbedo = m_ResourceAtlas.LoadShader("albedo"); // Default albedo shader.
-				m_ResourceAtlas.LoadTexture("tex_missing.png", cCommandList); // Default texture.
-				m_ResourceAtlas.LoadMaterial("default", { { 1.0f, 1.0f, 1.0f }, 0.0f, 0.0f }); // Default material.
-
-				Material& m_FaucetMaterial = m_ResourceAtlas.LoadMaterial("faucet", { { 0.16f, 0.16f, 0.16f }, 0.87f, 1.0f });
-
-				m_ChickenMesh.Initialize();
-				m_ChickenMesh2.Initialize();
-				m_FaucetMesh.Initialize();
-
-				m_ChickenMesh.SetMesh(m_ResourceAtlas.LoadMesh("chicken.gltf", cCommandList));
-				m_ChickenMesh.SetTexture(m_ResourceAtlas.LoadTexture("tex_chicken_normal.png", cCommandList));
-				m_ChickenMesh.SetShader(shaderAlbedo);
-
-				m_ChickenMesh2.SetMesh(m_ResourceAtlas.LoadMesh("chicken.gltf", cCommandList));
-				m_ChickenMesh2.SetTexture(m_ResourceAtlas.LoadTexture("tex_chicken_sick.png", cCommandList));
-				m_ChickenMesh2.SetShader(shaderAlbedo);
-
-				m_FaucetMesh.SetMesh(m_ResourceAtlas.LoadMesh("mod_faucet.gltf", cCommandList));
-				m_FaucetMesh.SetMaterial(m_FaucetMaterial);
-				m_FaucetMesh.SetShader(shaderColor);
-
 				auto fenceValue = cCommandQueue->ExecuteCommandList(cCommandList);
 				cCommandQueue->WaitForFenceValue(fenceValue);
 
 				std::shared_ptr<CommandQueue> dCommandQueue = GetCommandQueue();
 				std::shared_ptr<CommandList> dCommandList = dCommandQueue->GetCommandList();
 
-				m_ResourceAtlas.TransitionResources(dCommandList);
 				dCommandQueue->ExecuteCommandList(dCommandList);
 				dCommandQueue->WaitForFenceValue(fenceValue);
 
@@ -217,45 +201,6 @@ namespace coopscoop
 				ResizeDepthBuffer(m_Size);
 
 				LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_DX12, "Initialized dx12 system.");
-
-
-
-
-
-
-
-
-
-
-				// Define a default light direction (pointing downward)
-				m_DirectionalLight = { DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f), 0.0f, DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), 0.5f };
-
-				size_t bufferSize = sizeof(DirectionalLight);
-
-				CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
-				CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-
-				if (FAILED(m_Device->CreateCommittedResource(
-					&heapProps,
-					D3D12_HEAP_FLAG_NONE,
-					&bufferDesc,
-					D3D12_RESOURCE_STATE_GENERIC_READ,
-					nullptr,
-					IID_PPV_ARGS(&m_DirectionalLightBuffer))))
-				{
-					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create DirectionalLight buffer.");
-					return false;
-				}
-
-				// Copy light data to GPU buffer
-				void* mappedData;
-				CD3DX12_RANGE readRange(0, 0);
-				m_DirectionalLightBuffer->Map(0, &readRange, &mappedData);
-				memcpy(mappedData, &m_DirectionalLight, bufferSize);
-				m_DirectionalLightBuffer->Unmap(0, nullptr);
-
-
-
 
 				m_FpsCounter.Initialize();
 
@@ -427,7 +372,7 @@ namespace coopscoop
 				Microsoft::WRL::ComPtr<IDXGISwapChain1> swapChain1;
 				if (FAILED(dxgiFactory4->CreateSwapChainForHwnd(
 					pCommandQueue,
-					core::ENGINE.GetWindow().GetHWnd(),
+					m_hWnd,
 					&swapChainDesc,
 					nullptr,
 					nullptr,
@@ -439,7 +384,7 @@ namespace coopscoop
 
 				// Disable the Alt+Enter fullscreen toggle feature. Switching to fullscreen
 				// will be handled manually.
-				if (FAILED(dxgiFactory4->MakeWindowAssociation(core::ENGINE.GetWindow().GetHWnd(), DXGI_MWA_NO_ALT_ENTER)))
+				if (FAILED(dxgiFactory4->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER)))
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed associating window.");
 					return false;
@@ -468,7 +413,7 @@ namespace coopscoop
 				rtvHeapDesc.NumDescriptors = numBuffers;
 				rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 				rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-				m_RTV = HeapAllocation(rtvHeapDesc);
+				m_RTV = HeapAllocation(rtvHeapDesc, m_Device);
 
 				m_RTVDescriptorSize = m_Device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 			}
@@ -480,7 +425,7 @@ namespace coopscoop
 				dsvHeapDesc.NumDescriptors = 1;
 				dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 				dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-				m_DSV = HeapAllocation(dsvHeapDesc);
+				m_DSV = HeapAllocation(dsvHeapDesc, m_Device);
 			}
 
 			void DX12System::CreateSRV()
@@ -489,13 +434,14 @@ namespace coopscoop
 				srvHeapDesc.NumDescriptors = 100;  // Adjust based on how many textures you need
 				srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 				srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // Important for binding!
-				m_SRV = HeapAllocation(srvHeapDesc);
+				m_SRV = HeapAllocation(srvHeapDesc, m_Device);
 			}
 
 #ifdef _EDITOR
 #ifdef _RENDER_TEX
 			void DX12System::CreateRenderTexture(const glm::ivec2& a_Size)
 			{
+#ifdef _RESOURCE_ATLAS
 				if (m_RenderTexture && m_RenderTexture->IsValid())
 				{
 					m_RenderTexture->Destroy();
@@ -513,6 +459,9 @@ namespace coopscoop
 				texDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
 				m_RenderTexture = &m_ResourceAtlas.LoadTextureByDescription("RenderTexture", texDesc);
+#else
+				LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Could not create render texture because ResourceAtlas was missing.");
+#endif // _RESOURCES
 			}
 #endif // _RENDER_TEX
 #endif // _EDITOR
@@ -595,6 +544,7 @@ namespace coopscoop
 
 			void DX12System::Finalize()
 			{
+				std::lock_guard<std::mutex> lock(m_RenderMutex);
 #ifdef _EDITOR
 				m_ImGuiWindow.Destroy();
 #endif // _EDITOR
@@ -719,6 +669,7 @@ namespace coopscoop
 
 				UpdateRenderTargetViews();
 
+				m_OnResize(a_Pos, a_Size);
 #ifdef _EDITOR
 				m_ImGuiWindow.Resize(a_Pos, a_Size);
 #endif // _EDITOR
@@ -726,8 +677,6 @@ namespace coopscoop
 				m_Size = glm::vec2(a_Size.x, a_Size.y);
 				m_Viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(m_Size.x), static_cast<float>(m_Size.y));
 				m_ScissorRect = CD3DX12_RECT(0, 0, LONG_MAX, LONG_MAX);
-
-				m_Camera1.SetProjection(45.0f, static_cast<float>(m_Size.x) / static_cast<float>(m_Size.y), 0.1f, 1000.0f);
 			}
 
 			Microsoft::WRL::ComPtr<ID3D12Resource> DX12System::GetCurrentBackBuffer() const
@@ -799,24 +748,10 @@ namespace coopscoop
 				commandList->GetCommandList()->RSSetViewports(1, &m_Viewport);
 				commandList->GetCommandList()->RSSetScissorRects(1, &m_ScissorRect);
 
-				commandList->GetCommandList()->SetGraphicsRootConstantBufferView(RootParameters::LIGHT, m_DirectionalLightBuffer->GetGPUVirtualAddress());
+				ID3D12DescriptorHeap* descriptorHeaps[] = { m_SRV.GetHeap().Get() };
+				commandList->GetCommandList()->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
-				m_CurrentCamera = &m_Camera1;
-				m_CurrentCamera->GetTransform().SetPosition({ 0.0f, 0.0f, 0.0f });
-
-				const DirectX::XMMATRIX viewMatrix = m_CurrentCamera->GetViewMatrix();
-				const DirectX::XMMATRIX& projectionMatrix = m_CurrentCamera->GetProjectionMatrix();
-
-				m_ChickenTransform1.SetPosition({ 0.0f, -0.5f, 1.5f });
-				m_ChickenTransform1.GetRotation().y += 0.1f;
-
-				m_ChickenMesh.Render(commandList, m_ChickenTransform1, viewMatrix, projectionMatrix);
-
-				m_ChickenTransform2.SetPosition({ 1.0f, -0.5f, 1.5f });
-				m_ChickenTransform2.GetRotation().y += 0.1f;
-
-				m_ChickenMesh2.Render(commandList, m_ChickenTransform2, viewMatrix, projectionMatrix);
-
+				m_OnRender(commandList);
 #ifdef _EDITOR
 #ifdef _RENDER_TEX
 				// Transition back to SRV for ImGui usage
@@ -828,7 +763,6 @@ namespace coopscoop
 
 				commandList->GetCommandList()->ClearRenderTargetView(rtv, clearColor, 0, nullptr);
 				commandList->GetCommandList()->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
-
 #endif // _RENDER_TEX
 				m_ImGuiWindow.Render(commandList);
 #endif // _EDITOR
@@ -884,22 +818,17 @@ namespace coopscoop
 #ifdef _RENDER_TEX
 			void DX12System::SetRenderTextureSize(const glm::ivec2& a_Size)
 			{
-				//if (m_RenderTexture->GetSize() == a_Size)
-				//{
-				//	return;
-				//}
+				if (m_RenderTexture->GetSize() == a_Size)
+				{
+					return;
+				}
 
-				//CreateRenderTexture(a_Size);
-				//ResizeDepthBuffer(a_Size);
-
-				//std::shared_ptr<CommandQueue> dCommandQueue = GetCommandQueue();
-				//std::shared_ptr<CommandList> dCommandList = dCommandQueue->GetCommandList();
-
-				//m_RenderTexture->Transition(dCommandList);
-				//float fenceValue = dCommandQueue->ExecuteCommandList(dCommandList);
-				//dCommandQueue->WaitForFenceValue(fenceValue);
-
-				//UpdateRenderTargetViews();
+				CreateRenderTexture(a_Size);
+				ResizeDepthBuffer(a_Size);
+			}
+			Texture*& DX12System::GetRenderTexture()
+			{
+				return m_RenderTexture;
 			}
 #endif // _RENDER_TEX
 #endif // _EDITOR

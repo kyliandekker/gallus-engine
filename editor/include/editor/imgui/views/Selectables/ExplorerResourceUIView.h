@@ -10,7 +10,7 @@
 #include "editor/imgui/views/DataTypes/StringTextInput.h"
 #include "assets/AssetType.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

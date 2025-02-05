@@ -2,7 +2,7 @@
 
 #include "graphics/dx12/DX12PCH.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{

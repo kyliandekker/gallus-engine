@@ -7,7 +7,7 @@
 #include "core/FileUtils.h"
 #include "core/Engine.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

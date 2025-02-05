@@ -11,7 +11,7 @@
 #undef CreateWindow
 #endif
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{
@@ -118,6 +118,7 @@ namespace coopscoop
 
 				SimpleEvent<HWND, UINT, WPARAM, LPARAM> m_OnMsg;
 				SimpleEvent<const glm::ivec2&, const glm::ivec2&> m_OnResize;
+				SimpleEvent<> m_OnQuit;
 
 				void SetCursor(LPTSTR a_Cursor);
 			private:

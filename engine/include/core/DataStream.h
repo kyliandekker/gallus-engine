@@ -14,7 +14,7 @@
 #define SEEK_END 2
 #endif
 
-namespace coopscoop
+namespace gallus
 {
 	namespace core
 	{

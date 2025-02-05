@@ -3,28 +3,35 @@
 #include "core/System.h"
 
 #include "graphics/dx12/DX12PCH.h"
+
 #include <chrono>
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 #include <memory>
 #include <mutex>
 
-#include "graphics/dx12/CommandQueue.h"
-#include "graphics/dx12/Camera.h"
-#include "graphics/dx12/ResourceAtlas.h"
-
 #include "graphics/dx12/HeapAllocation.h"
-#include "graphics/dx12/Light.h"
-#include "graphics/dx12/MeshComponent.h"
+#ifdef _EDITOR 
 #include "editor/imgui/ImGuiWindow.h"
+#endif // _EDITOR
+
+#ifdef _RESOURCE_ATLAS
+#include "graphics/dx12/ResourceAtlas.h"
+#endif // _RESOURCE_ATLAS
+
+#include "core/Event.h"
 
 #undef min
 #undef max
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{
+		namespace win32
+		{
+			class Window;
+		}
 		namespace dx12
 		{
 			inline const uint8_t g_BufferCount = 3; /// Number of swap chain buffers.
@@ -65,6 +72,15 @@ namespace coopscoop
 				std::chrono::steady_clock::time_point m_T0 = m_Clock.now(); /// The clock from first frame.
 			};
 
+#ifdef _EDITOR
+#ifdef _RENDER_TEX
+			class Texture;
+#endif // _RENDER_TEX
+#endif // _EDITOR
+
+			class CommandQueue;
+			class CommandList;
+
 			enum RootParameters
 			{
 				CBV,                // ConstantBuffer<ModelViewProjection> ModelViewProjectionCB : register(b0);
@@ -86,8 +102,9 @@ namespace coopscoop
 				/// <param name="a_Wait">Determines whether the application waits until the system has been fully initialized.</param>
 				/// <param name="a_hWnd">Handle to the window.</param>
 				/// <param name="a_Size">Size of the window.</param>
+				/// <param name="a_Window">The window.</param>
 				/// <returns>True if the initialization was successful, otherwise false.</returns>
-				bool Initialize(bool a_Wait, HWND a_hWnd, const glm::ivec2& a_Size);
+				bool Initialize(bool a_Wait, HWND a_hWnd, const glm::ivec2& a_Size, win32::Window* a_Window);
 
 				/// <summary>
 				/// Cleans up resources and destroys the dx12 window.
@@ -150,7 +167,6 @@ namespace coopscoop
 				void CreateRenderTexture(const glm::ivec2& a_Size);
 #endif // _RENDER_TEX
 #endif // _EDITOR
-
 				/// <summary>
 				/// Creates the DirectX 12 root signature.
 				/// </summary>
@@ -171,11 +187,6 @@ namespace coopscoop
 				/// It is useful for synchronization, resource cleanup, or preparing for device destruction.
 				/// </remarks>
 				void Flush();
-
-				/// <summary>
-				/// Updates the render target views (RTVs) for the back buffers.
-				/// </summary>
-				void UpdateRenderTargetViews();
 
 				/// <summary>
 				/// Resizes the depth buffer.
@@ -242,15 +253,6 @@ namespace coopscoop
 				};
 
 				/// <summary>
-				/// Retrieves the resource atlas that contains all materials, textures, meshes and shaders.
-				/// </summary>
-				/// <returns>Reference to the resource atlas.</returns>
-				ResourceAtlas& GetResourceAtlas()
-				{
-					return m_ResourceAtlas;
-				};
-
-				/// <summary>
 				/// Retrieves the DirectX 12 device.
 				/// </summary>
 				/// <returns>ComPtr to the ID3D12Device2.</returns>
@@ -268,27 +270,48 @@ namespace coopscoop
 					return m_RootSignature;
 				};
 
+#ifdef _RESOURCE_ATLAS
+				/// <summary>
+				/// Retrieves the resource atlas that contains all materials, textures, meshes and shaders.
+				/// </summary>
+				/// <returns>Reference to the resource atlas.</returns>
+				ResourceAtlas& GetResourceAtlas()
+				{
+					return m_ResourceAtlas;
+				};
+#endif // _RESOURCE_ATLAS
+
 				/// <summary>
 				/// Retrieves a command queue of a certain type.
 				/// </summary>
 				/// <param name="a_Type">The type of command queue such as direct, copy, etc.</param>
 				/// <returns>Reference to the CommandQueue.</returns>
 				std::shared_ptr<CommandQueue> GetCommandQueue(D3D12_COMMAND_LIST_TYPE a_Type = D3D12_COMMAND_LIST_TYPE_DIRECT) const;
-
 #ifdef _EDITOR
 #ifdef _RENDER_TEX
 				void SetRenderTextureSize(const glm::ivec2& a_Size);
+
+				Texture*& GetRenderTexture();
 #endif // _RENDER_TEX
 #endif // _EDITOR
-			protected:
-				ResourceAtlas m_ResourceAtlas;
+				/// <summary>
+				/// Updates the render target views (RTVs) for the back buffers.
+				/// </summary>
+				void UpdateRenderTargetViews();
 
+				SimpleEvent<DX12System&> m_OnInitialize;
+				SimpleEvent<std::shared_ptr<graphics::dx12::CommandList>> m_OnRender;
+				SimpleEvent<const glm::ivec2&, const glm::ivec2&> m_OnResize;
+			protected:
 				Microsoft::WRL::ComPtr<IDXGIAdapter4> m_Adapter;
 				Microsoft::WRL::ComPtr<ID3D12Device2> m_Device;
 
 				std::shared_ptr<CommandQueue> m_DirectCommandQueue;
 				std::shared_ptr<CommandQueue> m_ComputeCommandQueue;
 				std::shared_ptr<CommandQueue> m_CopyCommandQueue;
+
+				HWND m_hWnd = nullptr;
+				win32::Window* m_Window = nullptr;
 
 				uint64_t m_FenceValues[g_BufferCount] = {};
 
@@ -323,21 +346,9 @@ namespace coopscoop
 #endif // _RENDER_TEX
 #endif // _EDITOR
 
-				// TODO: Delete these as they are all supposed to be temporary.
-
-				Camera m_Camera1;
-				Camera* m_CurrentCamera = nullptr;
-
-				Transform m_ChickenTransform1;
-				Transform m_ChickenTransform2;
-				Transform m_FaucetTransform;
-
-				MeshComponent m_ChickenMesh;
-				MeshComponent m_ChickenMesh2;
-				MeshComponent m_FaucetMesh;
-
-				Microsoft::WRL::ComPtr<ID3D12Resource> m_DirectionalLightBuffer;
-				DirectionalLight m_DirectionalLight;
+#ifdef _RESOURCE_ATLAS
+				ResourceAtlas m_ResourceAtlas;
+#endif // _RESOURCE_ATLAS
 			};
 		}
 	}

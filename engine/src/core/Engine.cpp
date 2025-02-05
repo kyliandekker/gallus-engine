@@ -2,7 +2,7 @@
 
 #include "core/logger/Logger.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace core
 	{
@@ -24,6 +24,7 @@ namespace coopscoop
 			m_InputSystem.Initialize(false);
 
 			// We initialize the window first and set the size and title after it has been created.
+			m_Window.m_OnQuit += std::bind(&Engine::Shutdown, this);
 			m_Window.Initialize(true, a_hInstance);
 			m_Window.SetSize(glm::ivec2(a_Width, a_Height));
 			m_Window.SetTitle(a_Name);
@@ -33,7 +34,7 @@ namespace coopscoop
 #endif // _EDITOR
 
 			// TODO: We can initialize DX12 without having to wait for it for now. Later when we introduce the editor it might be important to wait.
-			m_DX12System.Initialize(false, m_Window.GetHWnd(), m_Window.GetRealSize());
+			m_DX12System.Initialize(false, m_Window.GetHWnd(), m_Window.GetRealSize(), &m_Window);
 
 			System::Initialize();
 

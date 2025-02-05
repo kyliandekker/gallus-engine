@@ -9,7 +9,7 @@
 
 #include "graphics/dx12/DX12Resource.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{

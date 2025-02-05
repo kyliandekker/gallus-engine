@@ -5,7 +5,7 @@
 #include <wrl.h>
 #include <memory>
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{

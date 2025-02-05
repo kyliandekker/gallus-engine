@@ -3,7 +3,7 @@
 #include <vector>
 #include <functional>
 
-namespace coopscoop
+namespace gallus
 {
 	/// <summary>
 	/// A generic event class that supports multiple listeners and can notify them with provided arguments.

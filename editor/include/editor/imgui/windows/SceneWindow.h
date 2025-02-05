@@ -2,12 +2,21 @@
 
 #ifdef _EDITOR
 
+#include "graphics/dx12/DX12PCH.h"
+
 #include <glm/vec2.hpp>
 
 #include "editor/imgui/windows/BaseWindow.h"
 
-namespace coopscoop
+namespace gallus
 {
+	namespace graphics
+	{
+		namespace dx12
+		{
+			class CommandList;
+		}
+	}
 	namespace editor
 	{
 		namespace imgui
@@ -30,17 +39,6 @@ namespace coopscoop
 				/// Renders the scene window.
 				/// </summary>
 				void Render() override;
-
-#ifdef _EDITOR
-#ifdef _RENDER_TEX
-				/// <summary>
-				/// Renders the scene window.
-				/// </summary>
-				void UpdateRenderTexture();
-#endif // _RENDER_TEX
-#endif // _EDITOR
-			private:
-				glm::ivec2 m_RenderTextureSize;
 			};
 		}
 	}

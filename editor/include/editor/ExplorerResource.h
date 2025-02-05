@@ -10,7 +10,7 @@
 #include "core/FileUtils.h"
 #include "assets/AssetType.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

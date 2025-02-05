@@ -2,7 +2,7 @@
 
 #include "graphics/dx12/DxMath.h"
 
-namespace coopscoop
+namespace gallus
 {
     namespace graphics
     {

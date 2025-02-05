@@ -9,7 +9,7 @@
 #include "core/Event.h"
 #include "core/FileUtils.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

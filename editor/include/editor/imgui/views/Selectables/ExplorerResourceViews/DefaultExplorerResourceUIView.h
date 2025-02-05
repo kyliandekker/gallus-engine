@@ -2,7 +2,7 @@
 
 #include "editor/imgui/views/Selectables/ExplorerResourceViews/ExplorerResourceWithPreviewUIView.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

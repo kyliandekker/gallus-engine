@@ -2,7 +2,7 @@
 
 #ifdef _EDITOR
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

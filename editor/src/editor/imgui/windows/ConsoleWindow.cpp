@@ -9,7 +9,7 @@
 #include "core/Engine.h"
 #include "utils/string_extensions.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{
@@ -98,7 +98,7 @@ namespace coopscoop
 
 				ImGui::PushFont(m_Window.GetIconFont());
 				if (ImGui::TransparentButton(
-					IMGUI_FORMAT_ID(std::string(ICON_CLEAR), BUTTON_ID, "CLEAR_CONSOLE").c_str(), ImVec2(50, toolbarSize.y)))
+					IMGUI_FORMAT_ID(std::string(ICON_CLEAR), BUTTON_ID, "CLEAR_CONSOLE").c_str(), m_Window.GetHeaderSize()))
 				{
 					std::lock_guard<std::mutex> lock(MESSAGE_MUTEX);
 					m_FilteredMessages.clear();
@@ -118,7 +118,7 @@ namespace coopscoop
 				ImGui::SameLine();
 				bool info = editorSettings.Info();
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_INFO]), BUTTON_ID, "SHOW_INFO_CONSOLE").c_str(), &info, ImVec2(50, toolbarSize.y), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_INFO]))
+					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_INFO]), BUTTON_ID, "SHOW_INFO_CONSOLE").c_str(), &info, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_INFO]))
 				{
 					editorSettings.SetInfo(info);
 					m_NeedsRefresh = true;
@@ -127,7 +127,7 @@ namespace coopscoop
 				ImGui::SameLine();
 				bool warning = editorSettings.Warning();
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_WARNING]), BUTTON_ID, "SHOW_WARNING_CONSOLE").c_str(), &warning, ImVec2(50, toolbarSize.y), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_WARNING]))
+					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_WARNING]), BUTTON_ID, "SHOW_WARNING_CONSOLE").c_str(), &warning, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_WARNING]))
 				{
 					editorSettings.SetWarning(warning);
 					m_NeedsRefresh = true;
@@ -136,7 +136,7 @@ namespace coopscoop
 				ImGui::SameLine();
 				bool error = editorSettings.Error();
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_ERROR]), BUTTON_ID, "SHOW_ERROR_CONSOLE").c_str(), &error, ImVec2(50, toolbarSize.y), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_ERROR]))
+					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_ERROR]), BUTTON_ID, "SHOW_ERROR_CONSOLE").c_str(), &error, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_ERROR]))
 				{
 					editorSettings.SetError(error);
 					m_NeedsRefresh = true;
@@ -145,7 +145,7 @@ namespace coopscoop
 				ImGui::SameLine();
 				bool assert = editorSettings.Assert();
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_ASSERT]), BUTTON_ID, "SHOW_ASSERT_CONSOLE").c_str(), &assert, ImVec2(50, toolbarSize.y), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_ASSERT]))
+					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_ASSERT]), BUTTON_ID, "SHOW_ASSERT_CONSOLE").c_str(), &assert, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_ASSERT]))
 				{
 					editorSettings.SetAssert(assert);
 					m_NeedsRefresh = true;
@@ -154,7 +154,7 @@ namespace coopscoop
 				ImGui::SameLine();
 				bool success = editorSettings.Success();
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_SUCCESS]), BUTTON_ID, "SHOW_SUCCESS_CONSOLE").c_str(), &success, ImVec2(50, toolbarSize.y), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_SUCCESS]))
+					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_SUCCESS]), BUTTON_ID, "SHOW_SUCCESS_CONSOLE").c_str(), &success, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_SUCCESS]))
 				{
 					editorSettings.SetSuccess(success);
 					m_NeedsRefresh = true;
@@ -163,7 +163,7 @@ namespace coopscoop
 				ImGui::SameLine();
 				bool infoSuccess = editorSettings.InfoSuccess();
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_INFO_SUCCESS]), BUTTON_ID, "SHOW_INFO_SUCCESS_CONSOLE").c_str(), &infoSuccess, ImVec2(50, toolbarSize.y), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_INFO_SUCCESS]))
+					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_INFO_SUCCESS]), BUTTON_ID, "SHOW_INFO_SUCCESS_CONSOLE").c_str(), &infoSuccess, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_INFO_SUCCESS]))
 				{
 					editorSettings.SetInfoSuccess(infoSuccess);
 					m_NeedsRefresh = true;
@@ -172,7 +172,7 @@ namespace coopscoop
 				ImGui::SameLine();
 				bool awesome = editorSettings.Awesome();
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_AWESOME]), BUTTON_ID, "SHOW_AWESOME_CONSOLE").c_str(), &awesome, ImVec2(50, toolbarSize.y), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_AWESOME]))
+					IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_AWESOME]), BUTTON_ID, "SHOW_AWESOME_CONSOLE").c_str(), &awesome, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_AWESOME]))
 				{
 					editorSettings.SetAwesome(awesome);
 					m_NeedsRefresh = true;

@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-namespace coopscoop
+namespace gallus
 {
 	namespace string_extensions
 	{

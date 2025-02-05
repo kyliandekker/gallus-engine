@@ -21,7 +21,7 @@
 // General meta-data Variables
 #define JSON_ASSETTYPE_VAR "assetType"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

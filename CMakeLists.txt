@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(Gallus)
 
+add_subdirectory(tools)
+
 # Use solution folders to organize projects
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -26,7 +28,7 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /DEBUG")
 
 # These are shared on ALL configurations. Rapidjson gives errors if we do not include this and TINYGLTF uses stb_image but we do not need it.
-set(PREDEFINITIONS_SHARED "RAPIDJSON_NOMEMBERITERATORCLASS;TINYGLTF_NO_INCLUDE_STB_IMAGE;TINYGLTF_NO_STB_IMAGE;TINYGLTF_NO_STB_IMAGE_WRITE")
+set(PREDEFINITIONS_SHARED "RAPIDJSON_NOMEMBERITERATORCLASS;TINYGLTF_NO_INCLUDE_STB_IMAGE;TINYGLTF_NO_STB_IMAGE;TINYGLTF_NO_STB_IMAGE_WRITE;_RESOURCE_ATLAS")
 
 # These are specific configuration-based predefinitions.
 set(PREDEFINITIONS_DEBUG "_DEBUG;" ${PREDEFINITIONS_SHARED})
@@ -87,13 +89,13 @@ file(GLOB_RECURSE HEADERS_EDITOR ${CMAKE_SOURCE_DIR}/editor/include/*.h)
 # Recursively get all source files in the src directory for the editor
 file(GLOB_RECURSE SOURCES_EDITOR ${CMAKE_SOURCE_DIR}/editor/src/*.cpp)
 
-# Include the directories
-include_directories(${CMAKE_SOURCE_DIR}/engine/include)
-include_directories(${CMAKE_SOURCE_DIR}/editor/include)
-include_directories(${CMAKE_SOURCE_DIR}/external)
-
 # Define the executable as a Win32 application
 add_executable(${PROJECT_NAME} WIN32 ${HEADERS} ${SOURCES} ${DX12} ${TINY_GLTF})
+
+# Include the directories
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/engine/include)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/editor/include)
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/external)
 
 target_sources(${PROJECT_NAME} PRIVATE
     $<$<CONFIG:${EDITOR_RELEASE}>:${IMGUI} ${HEADERS_EDITOR} ${SOURCES_EDITOR}>

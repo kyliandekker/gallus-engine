@@ -7,8 +7,9 @@
 #include "editor/imgui/ImGuiDefines.h"
 #include "editor/imgui/ImGuiWindow.h"
 #include "core/Engine.h"
+#include "graphics/dx12/Texture.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{
@@ -47,8 +48,7 @@ namespace coopscoop
 #ifdef _EDITOR
 #ifdef _RENDER_TEX
 				ImGui::SetCursorPos(ImVec2(initialPos.x, initialPos.y + toolbarSize.y));
-				m_RenderTextureSize = glm::ivec2(ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y);
-				ImGui::Image((ImTextureID) core::ENGINE.GetDX12().GetSRV().GetGPUHandle(1).ptr, ImGui::GetContentRegionAvail());
+				ImGui::Image((ImTextureID) core::ENGINE.GetDX12().GetRenderTexture()->GetGPUHandle().ptr, ImGui::GetContentRegionAvail());
 #endif // _RENDER_TEX
 #endif // _EDITOR
 
@@ -58,18 +58,6 @@ namespace coopscoop
 				//ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - (ImGui::CalcTextSize(fpsValue.c_str()).x + m_Window.GetWindowPadding().x));
 				//ImGui::TextColored(ImVec4(1, 1, 0, 1), fpsValue.c_str());
 			}
-
-#ifdef _EDITOR
-#ifdef _RENDER_TEX
-			void SceneWindow::UpdateRenderTexture()
-			{
-				if (m_RenderTextureSize.x > 0 && m_RenderTextureSize.y > 0)
-				{
-					core::ENGINE.GetDX12().SetRenderTextureSize(m_RenderTextureSize);
-				}
-			}
-#endif // _RENDER_TEX
-#endif // _EDITOR
 		}
 	}
 }

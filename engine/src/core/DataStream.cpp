@@ -4,7 +4,7 @@
 
 #include "core/MemoryInfo.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace core
 	{

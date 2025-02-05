@@ -7,9 +7,7 @@
 
 #include "editor/imgui/views/ImGuiUIView.h"
 
-typedef int ImGuiWindowFlags;
-
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

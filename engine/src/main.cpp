@@ -19,8 +19,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE, _In_ LPWSTR lp
 	std::filesystem::current_path(path);
 	SetCurrentDirectoryW(path.c_str());
 
-	coopscoop::core::ENGINE.Initialize(hInstance, 1920, 1080, "CoopScoop");
-	coopscoop::core::ENGINE.Destroy();
+	gallus::core::ENGINE.Initialize(hInstance, 1920, 1080, "Gallus Engine");
+	gallus::core::ENGINE.Destroy();
 
 	return 0;
 }

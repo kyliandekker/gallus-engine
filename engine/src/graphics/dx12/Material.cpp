@@ -3,7 +3,7 @@
 #include "graphics/dx12/DX12System.h"
 #include "graphics/dx12/CommandList.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{

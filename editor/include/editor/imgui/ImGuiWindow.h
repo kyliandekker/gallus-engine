@@ -17,7 +17,7 @@
 #include "editor/imgui/windows/InspectorWindow.h"
 #include "core/FileUtils.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{
@@ -40,7 +40,7 @@ namespace coopscoop
 				/// <summary>
 				/// Initializes the imgui system.
 				/// </summary>
-				bool Initialize(std::shared_ptr<graphics::dx12::CommandList> a_CommandList);
+				bool Initialize();
 
 				/// <summary>
 				/// Destroys all imgui resources.
@@ -120,8 +120,8 @@ namespace coopscoop
 				ImFont* m_IconFont = nullptr;
 				ImFont* m_SmallIconFont = nullptr;
 
-				float m_FontSize = 25.0f; /// Default font size for ImGui.
-				float m_IconFontSize = 30.0f; /// Default font size for ImGui.
+				float m_FontSize = 17.5f; /// Default font size for ImGui.
+				float m_IconFontSize = 25.0f; /// Default font size for ImGui.
 
 				ImVec2 m_FramePadding = ImVec2(8, 8); /// Frame padding for ImGui elements.
 				ImVec2 m_WindowPadding = ImVec2(8, 8); /// Window padding for ImGui elements.

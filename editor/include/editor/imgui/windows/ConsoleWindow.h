@@ -10,7 +10,7 @@
 #include "core/logger/Logger.h"
 #include "editor/imgui/views/DataTypes/StringTextInput.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

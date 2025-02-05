@@ -6,7 +6,7 @@
 #include <vcruntime_string.h>
 #include <string>
 
-namespace coopscoop
+namespace gallus
 {
 	namespace core
 	{

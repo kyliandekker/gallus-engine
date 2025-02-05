@@ -9,7 +9,7 @@
 #include "editor/imgui/ImGuiWindow.h"
 #include "graphics/dx12/Texture.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

@@ -8,7 +8,7 @@ namespace fs = std::filesystem;
 #include "graphics/dx12/CommandList.h"
 #include "core/FileUtils.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{

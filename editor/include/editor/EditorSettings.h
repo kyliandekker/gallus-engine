@@ -9,7 +9,7 @@
 #define DEFAULT_SIZE_X 1080
 #define DEFAULT_SIZE_Y 720
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

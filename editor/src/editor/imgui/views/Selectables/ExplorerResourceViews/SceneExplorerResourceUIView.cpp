@@ -10,7 +10,7 @@
 #include "core/Engine.h"
 #include "utils/string_extensions.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

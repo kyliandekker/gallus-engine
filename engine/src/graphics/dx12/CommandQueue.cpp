@@ -3,17 +3,18 @@
 #include <d3d12.h>
 
 #include "core/logger/Logger.h"
-#include "core/Engine.h"
+#include "graphics/dx12/CommandList.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{
 		namespace dx12
 		{
 #pragma region DX12_COMMAND_QUEUE
-			CommandQueue::CommandQueue(D3D12_COMMAND_LIST_TYPE a_CommandListType) :
+			CommandQueue::CommandQueue(D3D12_COMMAND_LIST_TYPE a_CommandListType, Microsoft::WRL::ComPtr<ID3D12Device2> a_Device) :
 				m_CommandListType(a_CommandListType),
+				m_Device(a_Device),
 				m_FenceValue(0)
 			{
 				D3D12_COMMAND_QUEUE_DESC desc = {};
@@ -22,12 +23,12 @@ namespace coopscoop
 				desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 				desc.NodeMask = 0;
 
-				if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateCommandQueue(&desc, IID_PPV_ARGS(&m_CommandQueue))))
+				if (FAILED(m_Device->CreateCommandQueue(&desc, IID_PPV_ARGS(&m_CommandQueue))))
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating command queue.");
 					return;
 				}
-				if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateFence(m_FenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence))))
+				if (FAILED(m_Device->CreateFence(m_FenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence))))
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating fence.");
 					return;
@@ -75,7 +76,7 @@ namespace coopscoop
 				}
 				else
 				{
-					commandList->CreateCommandList(commandAllocator, m_CommandListType);
+					commandList->CreateCommandList(commandAllocator, m_CommandListType, m_Device);
 				}
 
 				// Associate the command allocator with the command list so that it can be
@@ -153,7 +154,7 @@ namespace coopscoop
 			Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CommandQueue::CreateCommandAllocator()
 			{
 				Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocator;
-				if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateCommandAllocator(m_CommandListType, IID_PPV_ARGS(&commandAllocator))))
+				if (FAILED(m_Device->CreateCommandAllocator(m_CommandListType, IID_PPV_ARGS(&commandAllocator))))
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating command allocator.");
 					return nullptr;

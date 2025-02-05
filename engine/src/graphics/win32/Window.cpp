@@ -1,11 +1,10 @@
 #include "graphics/win32/Window.h"
 
-#include "core/Engine.h"
 #include "core/logger/Logger.h"
 
 #include <iostream>
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{
@@ -13,7 +12,12 @@ namespace coopscoop
 		{
 			LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
-				return core::ENGINE.GetWindow().WndProcHandler(hwnd, msg, wParam, lParam);
+				Window* window = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+				if (window)
+				{
+					return window->WndProcHandler(hwnd, msg, wParam, lParam);
+				}
+				return DefWindowProc(hwnd, msg, wParam, lParam);
 			}
 
 			bool Window::Initialize(bool a_Wait, HINSTANCE a_hInstance)
@@ -32,7 +36,7 @@ namespace coopscoop
 					case WM_DESTROY:
 					{
 						PostQuitMessage(0);
-						core::ENGINE.Shutdown();
+						m_OnQuit();
 						return 0;
 					}
 					case WM_EXITSIZEMOVE:
@@ -263,6 +267,8 @@ namespace coopscoop
 					LOG(LOGSEVERITY_ASSERT, LOG_CATEGORY_WINDOW, "Failed window creation.");
 					return false;
 				}
+
+				SetWindowLongPtr(m_hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
 
 				Show();
 				return true;

@@ -8,7 +8,7 @@
 
 namespace fs = std::filesystem;
 
-namespace coopscoop
+namespace gallus
 {
     namespace file
     {

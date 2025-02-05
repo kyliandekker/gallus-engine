@@ -2,7 +2,7 @@
 
 #include <cassert>
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{

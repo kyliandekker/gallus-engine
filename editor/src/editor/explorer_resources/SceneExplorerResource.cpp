@@ -17,7 +17,7 @@
 
 #define JSON_SCENE_ENTITIES_VAR "entities"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

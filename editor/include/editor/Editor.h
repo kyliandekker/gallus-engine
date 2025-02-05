@@ -12,7 +12,7 @@
 
 struct ID3D12GraphicsCommandList;
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{

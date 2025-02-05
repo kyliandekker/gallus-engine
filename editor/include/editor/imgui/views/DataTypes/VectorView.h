@@ -9,7 +9,7 @@
 
 #include "editor/imgui/ImGuiDefines.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

@@ -6,7 +6,7 @@
 
 #include "editor/imgui/views/ImGuiUIView.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

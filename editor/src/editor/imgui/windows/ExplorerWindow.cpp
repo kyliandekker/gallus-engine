@@ -11,7 +11,7 @@
 #include "core/Engine.h"
 #include "editor/ExplorerResource.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{
@@ -143,7 +143,7 @@ namespace coopscoop
 				float topPosY = ImGui::GetCursorPosY();
 
 				if (ImGui::IconButton(
-					IMGUI_FORMAT_ID(std::string(ICON_REFRESH), BUTTON_ID, "RESCAN_EXPLORER").c_str(), ImVec2(50, toolbarSize.y), m_Window.GetIconFont()))
+					IMGUI_FORMAT_ID(std::string(ICON_REFRESH), BUTTON_ID, "RESCAN_EXPLORER").c_str(), m_Window.GetHeaderSize(), m_Window.GetIconFont()))
 				{
 					core::ENGINE.GetEditor().GetAssetDatabase().Rescan();
 				}
@@ -153,7 +153,7 @@ namespace coopscoop
 				bool list = m_ExplorerViewMode == ExplorerViewMode::ExplorerViewMode_List;
 				bool grid = m_ExplorerViewMode == ExplorerViewMode::ExplorerViewMode_Grid;
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(ICON_LIST), BUTTON_ID, "LIST_EXPLORER").c_str(), &list, ImVec2(50, toolbarSize.y), m_Window.GetIconFont()))
+					IMGUI_FORMAT_ID(std::string(ICON_LIST), BUTTON_ID, "LIST_EXPLORER").c_str(), &list, m_Window.GetHeaderSize(), m_Window.GetIconFont()))
 				{
 					if (list)
 					{
@@ -164,7 +164,7 @@ namespace coopscoop
 				ImGui::SameLine();
 
 				if (ImGui::IconCheckboxButton(
-					IMGUI_FORMAT_ID(std::string(ICON_GRID), BUTTON_ID, "GRID_EXPLORER").c_str(), &grid, ImVec2(50, toolbarSize.y), m_Window.GetIconFont()))
+					IMGUI_FORMAT_ID(std::string(ICON_GRID), BUTTON_ID, "GRID_EXPLORER").c_str(), &grid, m_Window.GetHeaderSize(), m_Window.GetIconFont()))
 				{
 					if (grid)
 					{

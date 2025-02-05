@@ -4,7 +4,7 @@
 
 #include <Windows.h>
 
-namespace coopscoop
+namespace gallus
 {
 	namespace core
 	{

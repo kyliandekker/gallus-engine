@@ -10,7 +10,7 @@
 
 #include "core/Event.h"
 
-namespace coopscoop
+namespace gallus
 {
 #define LOG_CATEGORY_ENGINE "ENGINE"
 #define LOG_CATEGORY_INPUT "INPUT"

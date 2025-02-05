@@ -1,6 +1,6 @@
 #include "core/System.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace core
 	{

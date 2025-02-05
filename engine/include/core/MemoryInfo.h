@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace coopscoop
+namespace gallus
 {
 	namespace memory
 	{

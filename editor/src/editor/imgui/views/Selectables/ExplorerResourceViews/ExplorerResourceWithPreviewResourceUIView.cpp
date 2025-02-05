@@ -9,7 +9,7 @@
 
 constexpr float PREVIEW_SIZE = 200;
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

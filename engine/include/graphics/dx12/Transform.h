@@ -2,7 +2,7 @@
 
 #include <DirectXMath.h>
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{

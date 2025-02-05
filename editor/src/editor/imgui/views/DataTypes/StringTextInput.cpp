@@ -5,10 +5,7 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_helpers.h>
 
-#include "core/Engine.h"
-#include "editor/imgui/ImGuiDefines.h"
-
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

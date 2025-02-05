@@ -18,7 +18,7 @@
 #include "editor/imgui/views/Selectables/ExplorerResourceViews/AudioExplorerResourceUIView.h"
 #include "editor/imgui/views/Selectables/ExplorerResourceViews/SceneExplorerResourceUIView.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

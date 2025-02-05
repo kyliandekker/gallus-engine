@@ -3,7 +3,7 @@
 #include <thread>
 #include <mutex>
 
-namespace coopscoop
+namespace gallus
 {
 	namespace core
 	{

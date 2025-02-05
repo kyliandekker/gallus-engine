@@ -4,7 +4,7 @@
 
 #include <vector>
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{

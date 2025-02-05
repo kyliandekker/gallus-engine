@@ -11,7 +11,7 @@
 
 #include <imgui/imgui.h>
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

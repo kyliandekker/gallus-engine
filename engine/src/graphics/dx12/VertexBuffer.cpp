@@ -1,6 +1,6 @@
 #include "graphics/dx12/VertexBuffer.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{

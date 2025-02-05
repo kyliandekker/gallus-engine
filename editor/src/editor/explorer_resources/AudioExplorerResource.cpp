@@ -11,7 +11,7 @@
 
 constexpr int MAX_SAMPLES = 70560;
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

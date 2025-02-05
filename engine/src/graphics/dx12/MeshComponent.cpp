@@ -7,7 +7,7 @@
 #include "graphics/dx12/Material.h"
 #include "graphics/dx12/CommandList.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{
@@ -15,10 +15,13 @@ namespace coopscoop
 		{
 			void MeshComponent::Initialize()
 			{
+#ifdef _RESOURCE_ATLAS
 				// TODO: Default model and shader.
 				m_Material = &core::ENGINE.GetDX12().GetResourceAtlas().GetDefaultMaterial();
 				m_Texture = &core::ENGINE.GetDX12().GetResourceAtlas().GetDefaultTexture();
-				//m_Shader = &core::ENGINE.GetDX12().GetResourceAtlas().GetDefaultShader();
+				// m_Shader = &core::ENGINE.GetDX12().GetResourceAtlas().GetDefaultShader();
+				// m_Model = &core::ENGINE.GetDX12().GetResourceAtlas().GetDefaultModel();
+#endif // _RESOURCES
 			}
 
 			void MeshComponent::SetMesh(Mesh& a_Mesh)

@@ -9,7 +9,7 @@
 
 #include "core/Data.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{
@@ -49,11 +49,11 @@ namespace coopscoop
 				void Render() override
 				{}
 
-/// <summary>
-/// Renders the string input field in the editor window.
-/// </summary>
-/// <param name="a_Label">The label to display next to the input field.</param>
-/// <param name="flags">Optional ImGui input text flags to customize the behavior.</param>
+				/// <summary>
+				/// Renders the string input field in the editor window.
+				/// </summary>
+				/// <param name="a_Label">The label to display next to the input field.</param>
+				/// <param name="flags">Optional ImGui input text flags to customize the behavior.</param>
 				bool Render(const char* a_Label, ImGuiInputTextFlags flags = 0);
 			protected:
 				core::Data m_Data;

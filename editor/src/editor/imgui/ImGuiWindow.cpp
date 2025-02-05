@@ -19,7 +19,7 @@
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{
@@ -34,7 +34,7 @@ namespace coopscoop
 				m_InspectorWindow(*this)
 			{}
 
-			bool ImGuiWindow::Initialize(std::shared_ptr<graphics::dx12::CommandList> a_CommandList)
+			bool ImGuiWindow::Initialize()
 			{
 				IMGUI_CHECKVERSION();
 				ImGui::CreateContext();
@@ -62,7 +62,7 @@ namespace coopscoop
 				m_InspectorWindow.Initialize();
 				//m_LoadProjectWindow.Initialize();
 
-				m_PreviewTexture = &core::ENGINE.GetDX12().GetResourceAtlas().LoadTexture("tex_missing.png", a_CommandList); // Default texture.
+				m_PreviewTexture = nullptr; // Default texture.
 
 				return System::Initialize();
 			}
@@ -126,7 +126,7 @@ namespace coopscoop
 
 				(void) io;
 
-				m_HeaderSize = ImVec2(m_IconFontSize * 1.5f, m_IconFontSize * 1.5f);
+				m_HeaderSize = ImVec2(m_IconFontSize * 2.0f, m_IconFontSize * 2.0f);
 
 				// setup Dear ImGui style
 				ImGui::StyleColorsDark();
@@ -284,6 +284,10 @@ namespace coopscoop
 
 			void ImGuiWindow::Update()
 			{
+				auto dCommandQueue = core::ENGINE.GetDX12().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
+				auto dCommandList = dCommandQueue->GetCommandList();
+
+				bool update = false;
 				if (!m_PreviewPath.empty() && m_PreviewTexture)
 				{
 					auto cCommandQueue = core::ENGINE.GetDX12().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
@@ -295,15 +299,16 @@ namespace coopscoop
 					float fenceValue = cCommandQueue->ExecuteCommandList(cCommandList);
 					cCommandQueue->WaitForFenceValue(fenceValue);
 
-					auto dCommandQueue = core::ENGINE.GetDX12().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_DIRECT);
-					auto dCommandList = dCommandQueue->GetCommandList();
-
 					m_PreviewTexture->Transition(dCommandList);
 
-					fenceValue = dCommandQueue->ExecuteCommandList(dCommandList);
-					dCommandQueue->WaitForFenceValue(fenceValue);
-
 					m_PreviewPath.clear();
+					update = true;
+				}
+
+				if (update)
+				{
+					float fenceValue = dCommandQueue->ExecuteCommandList(dCommandList);
+					dCommandQueue->WaitForFenceValue(fenceValue);
 				}
 			}
 

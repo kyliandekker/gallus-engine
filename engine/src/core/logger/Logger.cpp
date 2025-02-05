@@ -10,7 +10,7 @@
 
 #define CATEGORY_LOGGER "LOGGER"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace core
 	{
@@ -28,7 +28,7 @@ namespace coopscoop
 				m_Location(a_Location),
 				m_Severity(a_Severity),
 				m_Time(a_Time)
-			{ }
+			{}
 
 			const std::string& LoggerMessage::GetRawMessage() const
 			{
@@ -181,9 +181,12 @@ namespace coopscoop
 					message =
 						"[" + LogSeverityToString(lm.GetSeverity()) +
 						"] " + lm.GetRawMessage() + " " +
-						lm.GetLocation() +"\n";
+						lm.GetLocation() + "\n";
 
-					fprintf(logFile, message.c_str());
+					if (logFile)
+					{
+						fprintf(logFile, message.c_str());
+					}
 
 					OnMessageLogged(lm);
 				}
@@ -206,7 +209,7 @@ namespace coopscoop
 				va_start(va_format_list, a_Line);
 
 				const size_t buffersize = vsnprintf(NULL, 0, a_Message, va_format_list) + 1;
-				char* formatted_message = (char*)malloc(buffersize);
+				char* formatted_message = (char*) malloc(buffersize);
 				vsnprintf(formatted_message, buffersize, a_Message, va_format_list);
 
 				PrintMessage(a_Severity, a_Category, formatted_message, a_File, a_Line);

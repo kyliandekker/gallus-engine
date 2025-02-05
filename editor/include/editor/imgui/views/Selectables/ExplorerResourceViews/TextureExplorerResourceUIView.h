@@ -3,7 +3,7 @@
 #include "editor/imgui/views/selectables/ExplorerResourceViews/ExplorerResourceWithPreviewUIView.h"
 #include "editor/imgui/views/DataTypes/StringDropdown.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

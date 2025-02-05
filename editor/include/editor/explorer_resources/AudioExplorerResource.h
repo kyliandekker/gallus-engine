@@ -4,7 +4,7 @@
 
 #include "editor/ExplorerResource.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

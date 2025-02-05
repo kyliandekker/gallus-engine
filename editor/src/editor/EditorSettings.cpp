@@ -35,7 +35,7 @@
 
 #define JSON_EXPLORER_TAB_SIZE_VAR "explorerTabSize"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

@@ -15,7 +15,7 @@
 //#include "gameplay/systems/EntityDetailSystem.h"
 #include "editor/explorer_resources/SceneExplorerResource.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

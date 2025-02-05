@@ -6,14 +6,14 @@
 #include <queue>    // For std::queue
 #include <memory>
 
-#include "graphics/dx12/CommandList.h"
-
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{
 		namespace dx12
 		{
+			class CommandList;
+
 			/// <summary>
 			/// A wrapper for an ID3D12CommandQueue to manage DirectX 12 command 
 			/// lists, allocators, and fence synchronization.
@@ -30,7 +30,8 @@ namespace coopscoop
 				/// Constructs a CommandQueue with the specified device and command list type.
 				/// </summary>
 				/// <param name="a_CommandListType">The type of command list (e.g., DIRECT, BUNDLE).</param>
-				CommandQueue(D3D12_COMMAND_LIST_TYPE a_CommandListType);
+				/// <param name="a_Device">The dx12 device.</param>
+				CommandQueue(D3D12_COMMAND_LIST_TYPE a_CommandListType, Microsoft::WRL::ComPtr<ID3D12Device2> a_Device);
 
 				/// <summary>
 				/// Retrieves an available command list from the command queue.
@@ -75,6 +76,8 @@ namespace coopscoop
 				/// <returns>A ComPtr to the ID3D12CommandQueue.</returns>
 				Microsoft::WRL::ComPtr<ID3D12CommandQueue> GetCommandQueue() const;
 			private:
+				Microsoft::WRL::ComPtr<ID3D12Device2> m_Device;
+
 				/// <summary>
 				/// Creates a new command allocator.
 				/// </summary>

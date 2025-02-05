@@ -4,7 +4,7 @@
 
 #include <string>
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{
@@ -58,36 +58,6 @@ namespace coopscoop
 #define ICON_SETTINGS "\xEE\xA4\xA9"
 #define ICON_STOP "\xEE\xA4\xAA"
 #define ICON_TERMINAL "\xEE\xA4\xAB"
-
-
-			/// <summary>
-			/// Formats a string to combine a base text, an identifier, and a name, which can be used 
-			/// for ImGui widgets to ensure unique IDs and descriptive labels.
-			/// </summary>
-			/// <param name="a_Text">The base text to display.</param>
-			/// <param name="a_ID">A unique identifier for the widget, typically used for ImGui ID scoping.</param>
-			/// <param name="a_IDName">An additional name to append, adding context or detail.</param>
-			/// <returns>
-			/// A formatted string combining the base text, ID, and name in a manner suitable for ImGui.
-			/// </returns>
-			std::string IMGUI_FORMAT_ID(const std::string& a_Text, const char* a_ID, const std::string& a_IDName);
-
-#define POPUP_WINDOW_ID "###POPUP_"
-#define POPUP_WINDOW_BUTTON_ID "###POPUP_DIALOG_SAVE_BUTTON_"
-#define CHILD_ID "###CHILD_"
-#define BUTTON_ID "###BUTTON_"
-#define COMBO_ID "###COMBO_"
-#define WINDOW_ID "###WINDOW_"
-#define MENU_ITEM_ID "###MENU_ITEM_"
-#define TREE_NODE_ID "###TREE_NODE_"
-#define MENU_ID "###MENU_"
-#define INPUT_ID "###INPUT_"
-#define CHECKBOX_ID "###CHECKBOX_"
-#define FOLD_ID "###CHECKBOX_"
-#define DRAG_ITEM_ID "###DRAG_ITEM_"
-#define SELECTABLE_ID "###SELECTABLE_"
-#define FOLDOUT_ID "###FOLDOUT_"
-#define COLOR_WHEEL_ID "###COLOR_WHEEL_"
 		}
 	}
 }

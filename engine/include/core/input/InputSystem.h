@@ -4,7 +4,7 @@
 
 #include <unordered_map>
 
-namespace coopscoop
+namespace gallus
 {
 	namespace core
 	{

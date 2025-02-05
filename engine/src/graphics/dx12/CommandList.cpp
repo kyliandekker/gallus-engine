@@ -1,17 +1,17 @@
 #include "graphics/dx12/CommandList.h"
 
 #include "core/logger/Logger.h"
-#include "core/Engine.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{
 		namespace dx12
 		{
-			bool CommandList::CreateCommandList(Microsoft::WRL::ComPtr<ID3D12CommandAllocator> a_Allocator, D3D12_COMMAND_LIST_TYPE a_CommandListType)
+			bool CommandList::CreateCommandList(Microsoft::WRL::ComPtr<ID3D12CommandAllocator> a_Allocator, D3D12_COMMAND_LIST_TYPE a_CommandListType, Microsoft::WRL::ComPtr<ID3D12Device2> a_Device)
 			{
-				if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateCommandList(0, a_CommandListType, a_Allocator.Get(), nullptr, IID_PPV_ARGS(&m_CommandList))))
+				m_Device = a_Device;
+				if (FAILED(m_Device->CreateCommandList(0, a_CommandListType, a_Allocator.Get(), nullptr, IID_PPV_ARGS(&m_CommandList))))
 				{
 					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating command list.");
 					return false;
@@ -26,14 +26,12 @@ namespace coopscoop
 				size_t a_NumElements, size_t a_ElementSize, const void* a_BufferData,
 				D3D12_RESOURCE_FLAGS a_Flags)
 			{
-				auto device = core::ENGINE.GetDX12().GetDevice();
-
 				size_t bufferSize = a_NumElements * a_ElementSize;
 
 				CD3DX12_HEAP_PROPERTIES defaultHeaptype = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
 				CD3DX12_RESOURCE_DESC buffer = CD3DX12_RESOURCE_DESC::Buffer(bufferSize, a_Flags);
 				// Create a committed resource for the GPU resource in a default heap.
-				if (FAILED(device->CreateCommittedResource(
+				if (FAILED(m_Device->CreateCommittedResource(
 					&defaultHeaptype,
 					D3D12_HEAP_FLAG_NONE,
 					&buffer,
@@ -50,7 +48,7 @@ namespace coopscoop
 				{
 					CD3DX12_HEAP_PROPERTIES uploadHeaptype = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 					CD3DX12_RESOURCE_DESC buff = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
-					if (FAILED(device->CreateCommittedResource(
+					if (FAILED(m_Device->CreateCommittedResource(
 						&uploadHeaptype,
 						D3D12_HEAP_FLAG_NONE,
 						&buff,

@@ -12,7 +12,7 @@
 #include "graphics/dx12/VertexBuffer.h"
 #include "graphics/dx12/IndexBuffer.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{

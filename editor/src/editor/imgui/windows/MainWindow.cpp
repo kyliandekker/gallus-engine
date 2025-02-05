@@ -10,7 +10,7 @@
 #include "core/logger/Logger.h"
 #include "editor/imgui/ImGuiDefines.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{

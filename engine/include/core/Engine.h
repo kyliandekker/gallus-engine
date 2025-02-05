@@ -10,7 +10,7 @@
 
 #include <wtypes.h>
 
-namespace coopscoop
+namespace gallus
 {
 	namespace core
 	{

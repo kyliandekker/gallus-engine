@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace coopscoop
+namespace gallus
 {
 	namespace string_extensions
 	{

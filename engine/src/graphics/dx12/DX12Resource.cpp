@@ -3,7 +3,7 @@
 #include "core/Engine.h" 
 #include "core/logger/Logger.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace graphics
 	{

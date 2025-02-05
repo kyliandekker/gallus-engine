@@ -8,7 +8,7 @@
 #include "core/logger/Logger.h"
 #include "editor/explorer_resources/SceneExplorerResource.h"
 
-namespace coopscoop
+namespace gallus
 {
 	namespace editor
 	{
