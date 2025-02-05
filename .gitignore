@@ -12,6 +12,7 @@
 !CMakeLists.txt
 
 # Tools directory
+!tools/
 !tools/include/
 !tools/src/
 !tools/include/**
