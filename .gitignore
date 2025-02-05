@@ -13,11 +13,22 @@
 
 # Tools directory
 !tools/
-!tools/include/
-!tools/src/
-!tools/include/**
-!tools/src/**
-!tools/CMakeLists.txt
+
+# Font Embedder
+!tools/font-embedder
+!tools/font-embedder/svg
+!tools/font-embedder/svg/**
+!tools/font-embedder/generate-font-from-svg.js
+!tools/font-embedder/generate-font-header.js
+!tools/font-embedder/generate-header-from-font.js
+!tools/font-embedder/generate-html-from-font.js
+!tools/font-embedder/generate-icon-font.js
+!tools/font-embedder/generate-svg.js
+
+!tools/font-embedder/package.json
+
+!tools/font-embedder/generate-font-header.bat
+!tools/font-embedder/generate-icon-font.bat
 
 # Re-allow all contents inside the allowed directories
 !assets/**

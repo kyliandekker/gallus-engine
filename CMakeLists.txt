@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(Gallus)
 
-add_subdirectory(tools)
-
 # Use solution folders to organize projects
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
