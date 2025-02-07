@@ -28,7 +28,7 @@ export function generateHeaderFromFont(name, fontPath, glyphs)
 			if (glyphs && glyphs.length > 0)
 			{
 				glyphDefinitions = '\n' + glyphs.map(glyph => {
-					const glyphName = `ICON_${glyph.name.replace('-', '_').toUpperCase()}`;
+					const glyphName = `ICON_${glyph.name.replaceAll('-', '_').toUpperCase()}`;
 
 					const utf8Bytes = Buffer.from(glyph.unicode[0], 'utf-8');
 					const bytes = Array.from(utf8Bytes).map(byte => `\\x${byte.toString(16).padStart(2, '0')}`).join('');
@@ -40,9 +40,10 @@ export function generateHeaderFromFont(name, fontPath, glyphs)
 
 namespace font
 {`;
+			cppHeader += `\n\tconstexpr int FONT_START = ${glyphs[0].unicodeHex};\n\tconstexpr int FONT_END = ${glyphs.at(-1).unicodeHex};\n`;
 			cppHeader += glyphDefinitions;
 			cppHeader += `
-	unsigned char ${name.toUpperCase()}[${byteArray.length}] = { 
+	inline unsigned char ${name.toUpperCase()}[${byteArray.length}] = { 
 		${byteArray.map(byte => `0x${byte.toString(16).padStart(2, '0')}`).join(', ')}
 	};
 }`;

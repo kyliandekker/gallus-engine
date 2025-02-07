@@ -42,7 +42,8 @@ export function generateSvg(name)
 		const glyph = fs.createReadStream(iconPath);
 		glyph.metadata = {
 			unicode: [String.fromCharCode(0xE000 + index)],
-			unicodeDebug: `\\u${(0xE000 + index).toString(16).padStart(4, '0')}`,
+			unicodeHTML: `\\${(0xE000 + index).toString(16).padStart(4, '0')}`,
+			unicodeHex: `0x${(0xE000 + index).toString(16).toUpperCase()}`,
 			name: file.replace('.svg', ''),
 		};
 		fontStream.write(glyph);
@@ -52,6 +53,7 @@ export function generateSvg(name)
 	fontStream.end();
 	
 	return new Promise((resolve, reject) => {
+		// Return all glyphs we made.
 		var glyphsInfo = [];
 		for (let i = 0; i < glyphs.length; i++)
 		{

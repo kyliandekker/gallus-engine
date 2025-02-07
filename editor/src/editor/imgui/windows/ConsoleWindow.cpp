@@ -4,7 +4,7 @@
 
 #include <imgui/imgui_helpers.h>
 
-#include "editor/imgui/ImGuiDefines.h"
+#include "editor/imgui/font_icon.h"
 #include "editor/EditorSettings.h"
 #include "core/Engine.h"
 #include "utils/string_extensions.h"
@@ -15,7 +15,7 @@ namespace gallus
 	{
 		namespace imgui
 		{
-			ConsoleWindow::ConsoleWindow(ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, "Console", "Console"), m_SearchBar(a_Window)
+			ConsoleWindow::ConsoleWindow(ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, std::string(font::ICON_CONSOLE) + " Console", "Console"), m_SearchBar(a_Window)
 			{
 				m_SearchBar.Initialize("");
 
@@ -28,14 +28,14 @@ namespace gallus
 
 			std::string logo_arr[8] =
 			{
-				ICON_CIRCLE_ASSERT,
-				ICON_CIRCLE_ERROR,
-				ICON_CIRCLE_WARNING,
-				ICON_CIRCLE_INFO,
-				ICON_CIRCLE_INFO,
-				ICON_CIRCLE_CHECK,
-				ICON_CIRCLE_INFO_SUCCESS,
-				ICON_CIRCLE_AWESOME
+				font::ICON_CIRCLE_ASSERT,
+				font::ICON_CIRCLE_ERROR,
+				font::ICON_CIRCLE_WARNING,
+				font::ICON_CIRCLE_INFO,
+				font::ICON_CIRCLE_INFO,
+				font::ICON_CIRCLE_SUCCESS,
+				font::ICON_CIRCLE_INFO_SUCCESS,
+				font::ICON_CIRCLE_AWESOME
 			};
 
 			ImVec4 colors_arr[8] =
@@ -98,7 +98,7 @@ namespace gallus
 
 				ImGui::PushFont(m_Window.GetIconFont());
 				if (ImGui::TransparentButton(
-					ImGui::IMGUI_FORMAT_ID(std::string(ICON_CLEAR), BUTTON_ID, "CLEAR_CONSOLE").c_str(), m_Window.GetHeaderSize()))
+					ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_CLEAR), BUTTON_ID, "CLEAR_CONSOLE").c_str(), m_Window.GetHeaderSize()))
 				{
 					std::lock_guard<std::mutex> lock(MESSAGE_MUTEX);
 					m_FilteredMessages.clear();
@@ -109,7 +109,7 @@ namespace gallus
 				ImGui::SameLine();
 				bool scrollToBottom = editorSettings.ScrollToBottom();
 				if (ImGui::CheckboxButton(
-					ImGui::IMGUI_FORMAT_ID("Scroll to bottom", BUTTON_ID, "SCROLL_TO_BOTTOM_CONSOLE").c_str(), &scrollToBottom, ImVec2(ImGui::CalcTextSize("Scroll to bottom").x + (m_Window.GetFramePadding().x * 2), toolbarSize.y)))
+					ImGui::IMGUI_FORMAT_ID("Scroll to bottom", BUTTON_ID, "SCROLL_TO_BOTTOM_CONSOLE").c_str(), &scrollToBottom, ImVec2(0, toolbarSize.y)))
 				{
 					editorSettings.SetScrollToBottom(scrollToBottom);
 					m_NeedsRefresh = true;
@@ -180,7 +180,7 @@ namespace gallus
 
 				ImVec2 endPos = ImGui::GetCursorPos();
 
-				float searchbarWidth = 200;
+				float searchbarWidth = 300;
 				float inputPadding = m_Window.GetFramePadding().x / 2;
 				ImVec2 searchBarPos = ImVec2(
 					ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - (searchbarWidth + m_Window.GetWindowPadding().x),

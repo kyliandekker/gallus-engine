@@ -9,6 +9,7 @@
 
 #include "editor/imgui/views/DataTypes/StringTextInput.h"
 #include "assets/AssetType.h"
+#include "core/FileUtils.h"
 
 namespace gallus
 {
@@ -97,25 +98,31 @@ namespace gallus
 				/// <param name="a_RightClicked">Indicates if the resource was right-clicked.</param>
 				/// <param name="a_DoubleClicked">Indicates if the resource was double-clicked.</param>
 				/// <param name="a_Selected">Indicates if the resource is selected.</param>
-				void Render(bool& a_Clicked, bool& a_RightClicked, bool& a_DoubleClicked, bool a_Selected);
+				/// <param name="a_InContextMenu">Indicates if the resource is currently open in the context menu.</param>
+				void Render(bool& a_Clicked, bool& a_RightClicked, bool& a_DoubleClicked, bool a_Selected, bool a_InContextMenu);
 
 				/// <summary>
 				/// Renders the explorer resource in the UI in a grid way.
 				/// </summary>
+				/// <param name="a_Width">The width of the grid item.</param>
+				/// <param name="a_Height">The height of the grid item.</param>
 				/// <param name="a_Clicked">Indicates if the resource was clicked.</param>
 				/// <param name="a_RightClicked">Indicates if the resource was right-clicked.</param>
 				/// <param name="a_DoubleClicked">Indicates if the resource was double-clicked.</param>
 				/// <param name="a_Selected">Indicates if the resource is selected.</param>
-				void RenderGrid(float a_Width, float a_Height, bool& a_Clicked, bool& a_RightClicked, bool& a_DoubleClicked, bool a_Selected);
+				/// <param name="a_InContextMenu">Indicates if the resource is currently open in the context menu.</param>
+				void RenderGrid(float a_Width, float a_Height, bool& a_Clicked, bool& a_RightClicked, bool& a_DoubleClicked, bool a_Selected, bool a_InContextMenu);
 
 				/// <summary>
 				/// Renders the explorer resource in the UI in the tree.
 				/// </summary>
 				/// <param name="a_Clicked">Indicates if the resource was clicked.</param>
+				/// <param name="a_RightClicked">Indicates if the resource was right-clicked.</param>
 				/// <param name="a_Selected">Indicates if the resource is selected.</param>
 				/// <param name="a_Indent">The amount of indents.</param>
 				/// <param name="a_InitialPos">The starting position for 0 indent.</param>
-				void RenderTree(bool& a_Clicked, bool a_Selected, int a_Indent, const ImVec2& a_InitialPos);
+				/// <param name="a_InContextMenu">Indicates if the resource is currently open in the context menu.</param>
+				void RenderTree(bool& a_Clicked, bool& a_RightClicked, bool a_Selected, int a_Indent, const ImVec2& a_InitialPos, bool a_InContextMenu);
 
 				/// <summary>
 				/// Renders the resource icon or image in the hierarchy UI.
@@ -200,6 +207,8 @@ namespace gallus
 				/// Sets the explorer resource type.
 				/// </summary>
 				void SetExplorerResourceType(ExplorerResourceType a_ExplorerResourceType);
+
+				ExplorerResourceUIView* FindExplorerResource(const fs::path& a_Path);
 			protected:
 				/// <summary>
 				/// A vector of child resource views.
@@ -227,7 +236,8 @@ namespace gallus
 				virtual void SetData(ExplorerResource* a_Resource);
 
 				std::string m_Name; /// The name of the resource.
-				std::string m_Icon; /// The icon of the resource.
+				std::string m_ExplorerIcon; /// The icon of the resource.
+				std::string m_InspectorIcon; /// The icon of the resource.
 				ExplorerResourceType m_ResourceType; /// The resource type of the resource.
 				std::string m_StrResourceType; /// This is necessary because we do not have access to the resource in this class but do want to display this data.
 				ExplorerResourceUIType m_ExplorerResourceUIType = ExplorerResourceUIType::ExplorerResourceType_Resource; /// The type of UI resource. Can be "../" or a resource.

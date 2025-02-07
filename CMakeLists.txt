@@ -118,6 +118,25 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     "$<$<CONFIG:${EDITOR_RELEASE}>:${PREDEFINITIONS_EDITOR_RELEASE}>"
 )
 
+if(MSVC)
+    target_compile_options(${PROJECT_NAME} PRIVATE
+        "$<$<CONFIG:${DEBUG}>:/Od>"   # Disable optimizations for Debug
+        "$<$<CONFIG:${RELEASE}>:/O2>"  # Enable optimizations for Release
+        "$<$<CONFIG:${EDITOR_DEBUG}>:/Od>"   # Disable optimizations for Editor Debug
+        "$<$<CONFIG:${EDITOR_DEBUG_HYBRID}>:/Od>"   # Disable optimizations for Editor Debug Hybrid
+        "$<$<CONFIG:${EDITOR_RELEASE}>:/Od>"   # Disable optimizations for Editor Release
+    )
+endif()
+
+# For GCC/Clang (if applicable), set optimization level to 0 for debugging
+target_compile_options(${PROJECT_NAME} PRIVATE
+    "$<$<CONFIG:${DEBUG}>:-O0>"  # Disable optimizations for Debug
+    "$<$<CONFIG:${RELEASE}>:-O2>"  # Optimize for Release
+    "$<$<CONFIG:${EDITOR_DEBUG}>:-O0>"  # Disable optimizations for Editor Debug
+    "$<$<CONFIG:${EDITOR_DEBUG_HYBRID}>:-O0>"  # Disable optimizations for Editor Debug Hybrid
+    "$<$<CONFIG:${EDITOR_RELEASE}>:-O0>"  # Disable optimizations for Editor Release
+)
+
 # Set output directories
 # Make sure DLL and EXE targets go to the same directory.
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib) # Output directory for static lib (.LIB)

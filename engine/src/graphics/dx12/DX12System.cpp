@@ -194,6 +194,10 @@ namespace gallus
 				std::shared_ptr<CommandQueue> dCommandQueue = GetCommandQueue();
 				std::shared_ptr<CommandList> dCommandList = dCommandQueue->GetCommandList();
 
+#ifdef _RENDER_TEX
+				m_ResourceAtlas.TransitionResources(dCommandList);
+#endif // _RENDER_TEX
+
 				dCommandQueue->ExecuteCommandList(dCommandList);
 				dCommandQueue->WaitForFenceValue(fenceValue);
 

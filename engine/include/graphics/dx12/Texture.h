@@ -8,6 +8,7 @@
 #include <glm/vec2.hpp>
 
 #include "graphics/dx12/DX12Resource.h"
+#include "core/FileUtils.h"
 
 namespace gallus
 {
@@ -40,7 +41,7 @@ namespace gallus
 				CD3DX12_GPU_DESCRIPTOR_HANDLE GetGPUHandle();
 				CD3DX12_CPU_DESCRIPTOR_HANDLE GetCPUHandle();
 
-				bool Load(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList);
+				bool Load(const fs::path& a_Path, std::shared_ptr<CommandList> a_CommandList);
 				bool Load(const std::string& a_Name, const D3D12_RESOURCE_DESC& a_Description);
 			private:
 

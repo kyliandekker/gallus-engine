@@ -8,7 +8,7 @@
 
 #include "utils/string_extensions.h"
 #include "core/logger/Logger.h"
-#include "editor/imgui/ImGuiDefines.h"
+#include "editor/imgui/font_icon.h"
 
 namespace gallus
 {

@@ -10,8 +10,8 @@ namespace fs = std::filesystem;
 
 namespace gallus
 {
-    namespace file
-    {
+	namespace file
+	{
 		const fs::path FileLoader::GetAppDataPath()
 		{
 			PWSTR path_tmp;
@@ -25,7 +25,7 @@ namespace gallus
 		}
 
 		bool FileLoader::LoadFile(const fs::path& a_Path, core::DataStream& a_Data)
-        {
+		{
 			if (!fs::exists(a_Path))
 			{
 				return false;
@@ -48,7 +48,7 @@ namespace gallus
 			fclose(file);
 
 			return true;
-        }
+		}
 
 		bool FileLoader::SaveFile(const fs::path& a_Path, const core::DataStream& a_Data)
 		{
@@ -71,9 +71,15 @@ namespace gallus
 			return fs::create_directories(a_Path);
 		}
 
+		bool FileLoader::OpenInExplorer(const fs::path& a_Path)
+		{
+			ShellExecuteA(NULL, "open", a_Path.generic_string().c_str(), NULL, NULL, SW_SHOWDEFAULT);
+			return true;
+		}
+
 		fs::path FileLoader::GetPath(const std::string& a_Path)
 		{
 			return fs::path(a_Path);
 		}
-    }
+	}
 }

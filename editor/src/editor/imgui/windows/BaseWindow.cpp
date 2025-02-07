@@ -8,7 +8,7 @@
 #include "utils/string_extensions.h"
 #include "editor/imgui/ImGuiWindow.h"
 #include "core/Engine.h"
-#include "editor/imgui/ImGuiDefines.h"
+#include "editor/imgui/font_icon.h"
 
 namespace gallus
 {
@@ -33,7 +33,7 @@ namespace gallus
 
 			bool BaseWindow::WindowBegin()
 			{
-				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, m_Window.GetFramePadding());
+				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(m_Window.GetIconFont()->FontSize, m_Window.GetIconFont()->FontSize));
 				bool b = ImGui::Begin(ImGui::IMGUI_FORMAT_ID(m_Name, WINDOW_ID, string_extensions::StringToUpper(m_WindowID)).c_str(), &m_Enabled, m_Flags);
 				return b;
 			}

@@ -4,7 +4,7 @@
 
 #include <imgui/imgui_helpers.h>
 
-#include "editor/imgui/ImGuiDefines.h"
+#include "editor/imgui/font_icon.h"
 #include "utils/string_extensions.h"
 #include "core/FileUtils.h"
 #include "editor/imgui/ImGuiWindow.h"
@@ -18,11 +18,11 @@ namespace gallus
 	{
 		namespace imgui
 		{
-			ExplorerWindow::ExplorerWindow(ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, "Explorer", "Explorer"), m_SearchBar(a_Window), m_PreviousFolder(a_Window)
+			ExplorerWindow::ExplorerWindow(ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, std::string(font::ICON_FOLDER) + " Explorer", "Explorer"), m_SearchBar(a_Window), m_PreviousFolder(a_Window)
 			{
 				m_SearchBar.Initialize("");
 
-				m_PreviousFolder.SetIcon(ICON_FOLDER);
+				m_PreviousFolder.SetIcon(font::ICON_FILE_FOLDER);
 				m_PreviousFolder.SetName("../");
 				m_PreviousFolder.SetExplorerResourceUIType(ExplorerResourceUIType::ExplorerResourceType_PreviousFolder);
 				m_PreviousFolder.SetExplorerResourceType(ExplorerResourceType::Folder);
@@ -54,18 +54,26 @@ namespace gallus
 				}
 
 				m_FolderRoot = a_Resource;
+				m_PreviousFolderRoot = m_FolderRoot->GetResource()->GetPath();
 			}
 
 			void ExplorerWindow::RenderFolder(ExplorerResourceUIView* a_Resource, int a_Indent, const ImVec2& a_InitialPos)
 			{
 				bool
-					clicked = false;
+					clicked = false,
+					right_clicked = false;
 
-				a_Resource->RenderTree(clicked, m_FolderRoot == a_Resource, a_Indent, a_InitialPos);
+				a_Resource->RenderTree(clicked, right_clicked, m_FolderRoot == a_Resource, a_Indent, a_InitialPos, a_Resource == m_SelectedResource && m_IsContextMenuOpen);
 
 				if (clicked)
 				{
 					m_NewFolderRoot = a_Resource;
+				}
+
+				if (right_clicked)
+				{
+					m_ShowPopUp = true;
+					m_SelectedResource = a_Resource;
 				}
 
 				if (a_Resource->IsFoldedOut())
@@ -103,6 +111,7 @@ namespace gallus
 						m_NeedsRefresh = true;
 					}
 					m_NewFolderRoot = nullptr;
+					m_SelectedResource = nullptr;
 				}
 
 				// This needs to be done at the start of the frame to avoid errors.
@@ -144,7 +153,7 @@ namespace gallus
 				float topPosY = ImGui::GetCursorPosY();
 
 				if (ImGui::IconButton(
-					ImGui::IMGUI_FORMAT_ID(std::string(ICON_REFRESH), BUTTON_ID, "RESCAN_EXPLORER").c_str(), m_Window.GetHeaderSize(), m_Window.GetIconFont()))
+					ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_REFRESH), BUTTON_ID, "RESCAN_EXPLORER").c_str(), m_Window.GetHeaderSize(), m_Window.GetIconFont()))
 				{
 					core::ENGINE.GetEditor().GetAssetDatabase().Rescan();
 				}
@@ -154,7 +163,7 @@ namespace gallus
 				bool list = m_ExplorerViewMode == ExplorerViewMode::ExplorerViewMode_List;
 				bool grid = m_ExplorerViewMode == ExplorerViewMode::ExplorerViewMode_Grid;
 				if (ImGui::IconCheckboxButton(
-					ImGui::IMGUI_FORMAT_ID(std::string(ICON_LIST), BUTTON_ID, "LIST_EXPLORER").c_str(), &list, m_Window.GetHeaderSize(), m_Window.GetIconFont()))
+					ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_LIST), BUTTON_ID, "LIST_EXPLORER").c_str(), &list, m_Window.GetHeaderSize(), m_Window.GetIconFont()))
 				{
 					if (list)
 					{
@@ -165,7 +174,7 @@ namespace gallus
 				ImGui::SameLine();
 
 				if (ImGui::IconCheckboxButton(
-					ImGui::IMGUI_FORMAT_ID(std::string(ICON_GRID), BUTTON_ID, "GRID_EXPLORER").c_str(), &grid, m_Window.GetHeaderSize(), m_Window.GetIconFont()))
+					ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_GRID), BUTTON_ID, "GRID_EXPLORER").c_str(), &grid, m_Window.GetHeaderSize(), m_Window.GetIconFont()))
 				{
 					if (grid)
 					{
@@ -175,7 +184,7 @@ namespace gallus
 
 				ImVec2 endPos = ImGui::GetCursorPos();
 
-				float searchbarWidth = 200;
+				float searchbarWidth = 300;
 				float inputPadding = m_Window.GetFramePadding().x / 2;
 				ImVec2 searchBarPos = ImVec2(
 					ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - (searchbarWidth + m_Window.GetWindowPadding().x),
@@ -194,6 +203,8 @@ namespace gallus
 
 				ImGui::EndToolbar(ImVec2(ImGui::GetStyle().ItemSpacing.x, 0));
 
+				m_ShowPopUp = false;
+
 				ImGui::SetCursorPosY(ImGui::GetCursorPos().y + m_Window.GetFramePadding().y);
 				if (ImGui::BeginChild(
 					ImGui::IMGUI_FORMAT_ID("", CHILD_ID, "DIRECTORIES_EXPLORER").c_str(),
@@ -210,7 +221,10 @@ namespace gallus
 				}
 				ImGui::EndChild();
 
+				std::string popUpID = ImGui::IMGUI_FORMAT_ID("", POPUP_WINDOW_ID, "RESOURCE_OPTIONS_EXPLORER");
+
 				ImGui::SameLine();
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, m_ExplorerViewMode == ExplorerViewMode::ExplorerViewMode_List ? ImVec2() : m_Window.GetWindowPadding());
 				if (ImGui::BeginChild(
 					ImGui::IMGUI_FORMAT_ID("", CHILD_ID, "FILES_EXPLORER").c_str(),
 					ImVec2(
@@ -244,7 +258,13 @@ namespace gallus
 										right_clicked = false,
 										double_clicked = false;
 
-									item->Render(clicked, right_clicked, double_clicked, item == core::ENGINE.GetEditor().GetSelectable());
+									item->Render(clicked, right_clicked, double_clicked, item == core::ENGINE.GetEditor().GetSelectable(), item == m_SelectedResource && m_IsContextMenuOpen);
+
+									if (right_clicked && &m_PreviousFolder != item)
+									{
+										m_ShowPopUp = true;
+										m_SelectedResource = item;
+									}
 
 									if (clicked && item->GetExplorerResourceUIType() != ExplorerResourceUIType::ExplorerResourceType_PreviousFolder)
 									{
@@ -297,7 +317,13 @@ namespace gallus
 										right_clicked = false,
 										double_clicked = false;
 
-									item->RenderGrid(iconSize, iconSize, clicked, right_clicked, double_clicked, item == core::ENGINE.GetEditor().GetSelectable());
+									item->RenderGrid(iconSize, iconSize, clicked, right_clicked, double_clicked, item == core::ENGINE.GetEditor().GetSelectable(), item == m_SelectedResource && m_IsContextMenuOpen);
+
+									if (right_clicked && &m_PreviousFolder != item)
+									{
+										m_ShowPopUp = true;
+										m_SelectedResource = item;
+									}
 
 									if (clicked && item->GetExplorerResourceUIType() != ExplorerResourceUIType::ExplorerResourceType_PreviousFolder)
 									{
@@ -329,7 +355,47 @@ namespace gallus
 						ImGui::EndChild();
 					}
 				}
+				ImGui::PopStyleVar();
 				ImGui::EndChild();
+
+				if (m_ShowPopUp)
+				{
+					ImGui::OpenPopup(popUpID.c_str());
+				}
+
+				m_IsContextMenuOpen = false;
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(m_Window.GetIconFont()->FontSize, m_Window.GetIconFont()->FontSize));
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(m_Window.GetIconFont()->FontSize, m_Window.GetIconFont()->FontSize));
+				if (m_SelectedResource && ImGui::BeginPopup(popUpID.c_str()))
+				{
+					m_IsContextMenuOpen = true;
+
+					ImVec4 textColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+					textColor.w = 0.5f;
+					ImGui::TextColored(textColor, m_SelectedResource->GetResource()->GetPath().stem().generic_string().c_str());
+					ImGui::Separator();
+
+					if (ImGui::MenuItem(ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_FOLDER_SHOW) + " Show in explorer", MENU_ITEM_ID, "SHOW_FILE_IN_EXPLORER_EXPLORER").c_str()))
+					{
+						// When it is a file, open the parent (the folder it is in)
+						file::FileLoader::OpenInExplorer(m_SelectedResource->GetResource()->GetResourceType() == editor::ExplorerResourceType::Folder ? m_SelectedResource->GetResource()->GetPath() : m_SelectedResource->GetResource()->GetPath().parent_path());
+					}
+					ImGui::Separator();
+					if (ImGui::MenuItem(ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_DELETE) + " Delete", MENU_ITEM_ID, "DELETE_FILE_EXPLORER").c_str()))
+					{
+						if (core::ENGINE.GetEditor().GetSelectable() == m_SelectedResource)
+						{
+							core::ENGINE.GetEditor().SetSelectable(nullptr);
+						}
+
+						m_SelectedResource->GetResource()->Delete();
+
+						core::ENGINE.GetEditor().GetAssetDatabase().Rescan();
+					}
+					ImGui::EndPopup();
+				}
+				ImGui::PopStyleVar();
+				ImGui::PopStyleVar();
 			}
 
 			void ExplorerWindow::OnScanCompleted()
@@ -339,7 +405,15 @@ namespace gallus
 					delete m_AssetRoot;
 				}
 				m_AssetRoot = ExplorerResourceUIView::CreateViewFromExplorerResource(&core::ENGINE.GetEditor().GetAssetDatabase().GetRoot(), m_Window);
-				m_NewFolderRoot = m_AssetRoot;
+
+				if (!m_PreviousFolderRoot.empty())
+				{
+					m_NewFolderRoot = m_AssetRoot->FindExplorerResource(m_PreviousFolderRoot);
+				}
+				if (!m_NewFolderRoot)
+				{
+					m_NewFolderRoot = m_AssetRoot;
+				}
 			}
 
 			void ExplorerWindow::OnBeforeScan()

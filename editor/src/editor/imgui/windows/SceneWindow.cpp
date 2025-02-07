@@ -4,7 +4,7 @@
 
 #include <imgui/imgui_helpers.h>
 
-#include "editor/imgui/ImGuiDefines.h"
+#include "editor/imgui/font_icon.h"
 #include "editor/imgui/ImGuiWindow.h"
 #include "core/Engine.h"
 #include "graphics/dx12/Texture.h"
@@ -15,7 +15,7 @@ namespace gallus
 	{
 		namespace imgui
 		{
-			SceneWindow::SceneWindow(ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, "Scene", "Scene")
+			SceneWindow::SceneWindow(ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, std::string(font::ICON_SCENE) + " Scene", "Scene")
 			{}
 
 			void SceneWindow::Render()
@@ -32,13 +32,13 @@ namespace gallus
 				ImGui::SetCursorPosX(x);
 
 				//bool m_Started = core::ENGINE.GetECS().HasStarted(), m_Paused = core::ENGINE.GetECS().IsPaused();
-				//if (ImGui::TransparentCheckboxButton(IMGUI_FORMAT_ID(ICON_PLAY, BUTTON_ID, "PLAYSTOP_SCENE").c_str(), &m_Started, ImVec2(toolbarSize.y, toolbarSize.y)))
+				//if (ImGui::TransparentCheckboxButton(IMGUI_FORMAT_ID(font::ICON_PLAY, BUTTON_ID, "PLAYSTOP_SCENE").c_str(), &m_Started, ImVec2(toolbarSize.y, toolbarSize.y)))
 				//{
 				//	core::ENGINE.GetECS().SetStarted(m_Started);
 				//}
 				//ImGui::SameLine();
 
-				//if (ImGui::TransparentCheckboxButton(IMGUI_FORMAT_ID(ICON_PAUSE, BUTTON_ID, "PAUSE_SCENE").c_str(), &m_Paused, ImVec2(toolbarSize.y, toolbarSize.y)))
+				//if (ImGui::TransparentCheckboxButton(IMGUI_FORMAT_ID(font::ICON_PAUSE, BUTTON_ID, "PAUSE_SCENE").c_str(), &m_Paused, ImVec2(toolbarSize.y, toolbarSize.y)))
 				//{
 				//	core::ENGINE.GetECS().SetPaused(m_Paused);
 				//}

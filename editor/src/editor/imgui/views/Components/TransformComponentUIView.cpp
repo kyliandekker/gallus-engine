@@ -8,7 +8,7 @@
 //#include <rapidjson/stringbuffer.h>
 //#include <rapidjson/prettywriter.h>
 //
-//#include "editor/imgui/ImGuiDefines.h"
+//#include "editor/imgui/font_icon.h"
 //#include "editor/imgui/ImGuiWindow.h"
 //#include "gameplay/systems/TransformComponent.h"
 //#include "gameplay/systems/TransformSystem.h"
@@ -23,7 +23,7 @@
 //		{
 //            std::string TransformComponentUIView::GetName() const
 //            {
-//				return ICON_FOLDER + std::string(" Transform");
+//				return font::ICON_FOLDER + std::string(" Transform");
 //            }
 //
 //            void TransformComponentUIView::RenderInner()

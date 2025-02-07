@@ -114,6 +114,7 @@ namespace gallus
 				LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_EDITOR, "Failed initializing asset database.");
 				return false;
 			}
+			InitializeEditorSettings();
 			m_AssetDatabase.LoadProject("./");
 			LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_EDITOR, "Initialized editor.");
 			return ThreadedSystem::InitializeThread();

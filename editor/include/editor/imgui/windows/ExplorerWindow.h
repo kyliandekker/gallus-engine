@@ -79,6 +79,8 @@ namespace gallus
 				/// </summary>
 				void OnBeforeScan();
 			private:
+				bool m_IsContextMenuOpen = false;
+				bool m_ShowPopUp = false;
 				bool m_NeedsRefresh = true; /// Whether the explorer needs to refresh the results shown in the explorer window.
 
 				ExplorerViewMode m_ExplorerViewMode = ExplorerViewMode::ExplorerViewMode_List; // How are explorer resources shown?
@@ -86,7 +88,10 @@ namespace gallus
 				ExplorerResourceUIView* m_AssetRoot = nullptr; /// Root of the asset database.
 				ExplorerResourceUIView* m_FolderRoot = nullptr; /// Root of the folder that is shown in the explorer window.
 				ExplorerResourceUIView* m_NewFolderRoot = nullptr; /// Temporary variable that detects changes in root folder structures.
-				ExplorerResourceUIView m_PreviousFolder; /// Temporary variable that refers to the previous folder.
+				ExplorerResourceUIView m_PreviousFolder; /// Temporary variable that refers to the parent folder.
+
+				ExplorerResourceUIView* m_SelectedResource = nullptr; /// Selected resource used for context menu.
+				fs::path m_PreviousFolderRoot;
 
 				SearchBarInput m_SearchBar; /// Search bar to filter specific explorer items in the explorer window.
 			};

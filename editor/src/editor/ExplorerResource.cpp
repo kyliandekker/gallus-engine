@@ -96,6 +96,8 @@ namespace gallus
 				{ ".gltf", { assets::AssetType::Model } },
 			};
 
+			m_Path = fs::absolute(m_Path);
+
 			if (!fs::exists(m_Path))
 			{
 				return false;

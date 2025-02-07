@@ -23,6 +23,11 @@ namespace gallus
 			// Initialize the input system, we do not need to wait until it is ready.
 			m_InputSystem.Initialize(false);
 
+#ifdef _EDITOR
+			m_Editor.Initialize(true);
+			glm::vec2 size = m_Editor.GetEditorSettings().Size();
+#endif
+
 			// We initialize the window first and set the size and title after it has been created.
 			m_Window.m_OnQuit += std::bind(&Engine::Shutdown, this);
 			m_Window.Initialize(true, a_hInstance);
@@ -30,7 +35,7 @@ namespace gallus
 			m_Window.SetTitle(a_Name);
 
 #ifdef _EDITOR
-			m_Editor.Initialize(true);
+			m_Window.SetSize(size);
 #endif // _EDITOR
 
 			// TODO: We can initialize DX12 without having to wait for it for now. Later when we introduce the editor it might be important to wait.

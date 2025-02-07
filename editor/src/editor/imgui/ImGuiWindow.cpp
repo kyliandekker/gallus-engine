@@ -9,7 +9,6 @@
 #include "core/FileUtils.h"
 #include "core/logger/Logger.h"
 #include "core/Engine.h"
-#include "editor/imgui/ImGuiDefines.h"
 #include "editor/imgui/font_arial.h"
 #include "editor/imgui/font_icon.h"
 #include "editor/Editor.h"
@@ -127,12 +126,12 @@ namespace gallus
 
 				(void) io;
 
-				m_HeaderSize = ImVec2(m_IconFontSize * 2.0f, m_IconFontSize * 2.0f);
+				m_HeaderSize = ImVec2(m_FontSize * 3.0f, m_FontSize * 3.0f);
 
 				// setup Dear ImGui style
 				ImGui::StyleColorsDark();
 
-				constexpr ImWchar icons_ranges_b[] = { ICON_MIN_FA, ICON_MAX_16_FA, 0 };
+				constexpr ImWchar icons_ranges_b[] = { font::FONT_START, font::FONT_END, 0 };
 
 				ImFontConfig font_config_capital;
 				font_config_capital.FontDataOwnedByAtlas = false;
@@ -140,15 +139,15 @@ namespace gallus
 
 				ImFontConfig font_config_icon_capital;
 				font_config_icon_capital.FontDataOwnedByAtlas = false;
-				m_CapitalIconFont = io.Fonts->AddFontFromMemoryTTF(&font::icon, sizeof(font::icon), m_HeaderSize.x, &font_config_icon_capital, icons_ranges_b);
+				m_CapitalIconFont = io.Fonts->AddFontFromMemoryTTF(&font::ICONFONT, sizeof(font::ICONFONT), m_HeaderSize.x / 2, &font_config_icon_capital, icons_ranges_b);
 
 				ImFontConfig icons_config_b;
 				icons_config_b.FontDataOwnedByAtlas = false;
-				m_IconFont = io.Fonts->AddFontFromMemoryTTF(&font::icon, sizeof(font::icon), m_IconFontSize, &icons_config_b, icons_ranges_b);
+				m_IconFont = io.Fonts->AddFontFromMemoryTTF(&font::ICONFONT, sizeof(font::ICONFONT), m_IconFontSize, &icons_config_b, icons_ranges_b);
 
 				ImFontConfig small_icons_config_b;
 				small_icons_config_b.FontDataOwnedByAtlas = false;
-				m_SmallIconFont = io.Fonts->AddFontFromMemoryTTF(&font::icon, sizeof(font::icon), m_FontSize, &small_icons_config_b, icons_ranges_b);
+				m_SmallIconFont = io.Fonts->AddFontFromMemoryTTF(&font::ICONFONT, sizeof(font::ICONFONT), m_FontSize, &small_icons_config_b, icons_ranges_b);
 
 				ImFontConfig font_config_bold;
 				font_config_bold.FontDataOwnedByAtlas = false;
@@ -158,12 +157,17 @@ namespace gallus
 				font_config_default.FontDataOwnedByAtlas = false;
 				m_DefaultFont = io.Fonts->AddFontFromMemoryTTF(&font::arial, sizeof(font::arial), m_FontSize, &font_config_default);
 
-				ImFont* font1 = io.Fonts->AddFontDefault();
-				(void) font1;
+				ImFontConfig icons_config_m;
+				icons_config_m.MergeMode = true;
+				icons_config_m.PixelSnapH = true;
+				icons_config_m.FontDataOwnedByAtlas = false;
+				m_IconFontM = io.Fonts->AddFontFromMemoryTTF(&font::ICONFONT, sizeof(font::ICONFONT), m_FontSize, &icons_config_m, icons_ranges_b);
 
 				io.Fonts->Build();
 
 				ImGui::StyleColorsDark();
+
+				ImVec4 accentColor = ImVec4(0.42f, 0.34f, 0.83f, 1.00f);
 
 				ImGuiStyle& style = ImGui::GetStyle();
 				ImVec4* colors = style.Colors;
@@ -192,8 +196,9 @@ namespace gallus
 				colors[ImGuiCol_ButtonHovered] = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
 				colors[ImGuiCol_ButtonActive] = ImVec4(0.15f, 0.15f, 0.15f, 1.00f);
 				colors[ImGuiCol_Header] = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
-				colors[ImGuiCol_HeaderHovered] = ImVec4(0.24f, 0.24f, 0.24f, 0.60f);
-				colors[ImGuiCol_HeaderActive] = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
+				colors[ImGuiCol_HeaderHovered] = ImVec4(accentColor.x, accentColor.y, accentColor.z, 0.5f);
+				//colors[ImGuiCol_HeaderActive] = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
+				colors[ImGuiCol_HeaderActive] = accentColor;
 				colors[ImGuiCol_Separator] = ImVec4(0.43f, 0.43f, 0.50f, 0.50f);
 				colors[ImGuiCol_SeparatorHovered] = ImVec4(0.43f, 0.43f, 0.50f, 0.50f);
 				colors[ImGuiCol_SeparatorActive] = ImVec4(0.43f, 0.43f, 0.50f, 0.50f);
@@ -202,7 +207,7 @@ namespace gallus
 				colors[ImGuiCol_ResizeGripActive] = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
 				colors[ImGuiCol_Tab] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
 				colors[ImGuiCol_TabHovered] = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
-				colors[ImGuiCol_TabActive] = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
+				colors[ImGuiCol_TabActive] = accentColor;
 				colors[ImGuiCol_TabUnfocused] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
 				colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.24f, 0.24f, 0.24f, 1.00f);
 				colors[ImGuiCol_PlotLines] = ImVec4(0.86f, 0.93f, 0.89f, 1.00f);
@@ -289,13 +294,24 @@ namespace gallus
 				auto dCommandList = dCommandQueue->GetCommandList();
 
 				bool update = false;
-				if (!m_PreviewPath.empty() && m_PreviewTexture)
+				if (!m_PreviewPath.empty())
 				{
+					if (m_PreviewTexture && m_PreviewTexture->GetName() == m_PreviewPath.stem())
+					{
+						return;
+					}
 					auto cCommandQueue = core::ENGINE.GetDX12().GetCommandQueue(D3D12_COMMAND_LIST_TYPE_COPY);
 					auto cCommandList = cCommandQueue->GetCommandList();
 
-					m_PreviewTexture->Destroy();
-					m_PreviewTexture->Load(m_PreviewPath.filename().generic_string(), cCommandList);
+					if (!m_PreviewTexture)
+					{
+						m_PreviewTexture = &core::ENGINE.GetDX12().GetResourceAtlas().LoadTexture(m_PreviewPath.generic_string(), cCommandList);
+					}
+					else
+					{
+						m_PreviewTexture->Destroy();
+						m_PreviewTexture->Load(m_PreviewPath.generic_string(), cCommandList);
+					}
 
 					float fenceValue = cCommandQueue->ExecuteCommandList(cCommandList);
 					cCommandQueue->WaitForFenceValue(fenceValue);
@@ -329,6 +345,8 @@ namespace gallus
 				ImGui_ImplWin32_NewFrame();
 				ImGui::NewFrame();
 
+				ImGui::PushFont(m_IconFontM);
+
 				ImGuiIO& io = ImGui::GetIO();
 				m_MainWindow.SetSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y));
 				m_MainWindow.Update();
@@ -337,6 +355,8 @@ namespace gallus
 				m_ExplorerWindow.Update();
 				m_HierarchyWindow.Update();
 				m_InspectorWindow.Update();
+
+				ImGui::PopFont();
 
 				ImGui::EndFrame();
 				ImGui::Render();

@@ -8,7 +8,7 @@
 //#include <rapidjson/stringbuffer.h>
 //#include <rapidjson/prettywriter.h>
 //
-//#include "editor/imgui/ImGuiDefines.h"
+//#include "editor/imgui/font_icon.h"
 //#include "editor/imgui/ImGuiWindow.h"
 //#include "utils/string_extensions.h"
 //
@@ -29,7 +29,7 @@
 //					ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
 //
 //					ImVec2 size = ImVec2(30, 30);
-//					if (ImGui::TransparentButton(IMGUI_FORMAT_ID(std::string(ICON_COPY), BUTTON_ID, string_extensions::StringToUpper(GetName()) + "_COPY_HIERARCHY").c_str(), size))
+//					if (ImGui::TransparentButton(IMGUI_FORMAT_ID(std::string(font::ICON_COPY), BUTTON_ID, string_extensions::StringToUpper(GetName()) + "_COPY_HIERARCHY").c_str(), size))
 //					{
 //						rapidjson::Document document;
 //						document.SetObject();
@@ -43,7 +43,7 @@
 //						core::ENGINE.GetEditor().SetClipboard(data);
 //					}
 //					ImGui::SameLine();
-//					if (ImGui::TransparentButton(IMGUI_FORMAT_ID(std::string(ICON_PASTE), BUTTON_ID, string_extensions::StringToUpper(GetName()) + "_PASTE_HIERARCHY").c_str(), size))
+//					if (ImGui::TransparentButton(IMGUI_FORMAT_ID(std::string(font::ICON_PASTE), BUTTON_ID, string_extensions::StringToUpper(GetName()) + "_PASTE_HIERARCHY").c_str(), size))
 //					{
 //						rapidjson::Document document;
 //						document.SetObject();
@@ -52,7 +52,7 @@
 //						a_Component.Deserialize(document, document.GetAllocator());
 //					}
 //					ImGui::SameLine();
-//					if (ImGui::TransparentButton(IMGUI_FORMAT_ID(std::string(ICON_DELETE), BUTTON_ID, string_extensions::StringToUpper(GetName()) + "_DELETE_HIERARCHY").c_str(), size))
+//					if (ImGui::TransparentButton(IMGUI_FORMAT_ID(std::string(font::ICON_DELETE), BUTTON_ID, string_extensions::StringToUpper(GetName()) + "_DELETE_HIERARCHY").c_str(), size))
 //					{
 //						a_System.DeleteComponent(m_EntityID);
 //					}

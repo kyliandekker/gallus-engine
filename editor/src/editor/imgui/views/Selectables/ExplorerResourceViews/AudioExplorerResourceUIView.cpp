@@ -6,7 +6,7 @@
 #include <imgui/implot.h>
 
 #include "editor/explorer_resources/AudioExplorerResource.h"
-#include "editor/imgui/ImGuiDefines.h"
+#include "editor/imgui/font_icon.h"
 #include "editor/imgui/ImGuiWindow.h"
 
 namespace gallus

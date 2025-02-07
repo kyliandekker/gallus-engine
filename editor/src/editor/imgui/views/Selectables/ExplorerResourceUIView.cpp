@@ -4,7 +4,7 @@
 
 #include <imgui/imgui_helpers.h>
 
-#include "editor/imgui/ImGuiDefines.h"
+#include "editor/imgui/font_icon.h"
 #include "utils/string_extensions.h"
 #include "assets/AssetType.h"
 #include "editor/ExplorerResource.h"
@@ -26,18 +26,18 @@ namespace gallus
 		{
 			std::vector<std::string> RESOURCE_ICONS =
 			{
-				ICON_FILE_SETTINGS,
-				ICON_FILE_SCENE,
-				ICON_FILE_MATERIAL,
-				ICON_FILE_IMAGE,
-				ICON_FILE_IMAGE,
-				ICON_FILE_FONT,
-				ICON_FILE_AUDIO,
-				ICON_FILE_MUSIC,
-				ICON_FILE_VO,
-				ICON_FILE, // TODO: FIND ICON ANIMATION
-				ICON_FILE_MODEL,
-				ICON_FILE, // TODO: FIND ICON PREFAB
+				font::ICON_FILE_SETTINGS,
+				font::ICON_FILE_SCENE,
+				font::ICON_FILE_MATERIAL,
+				font::ICON_FILE_IMAGE,
+				font::ICON_FILE_IMAGE,
+				font::ICON_FILE_FONT,
+				font::ICON_FILE_AUDIO,
+				font::ICON_FILE_MUSIC,
+				font::ICON_FILE_VO,
+				font::ICON_FILE, // TODO: FIND ICON ANIMATION
+				font::ICON_FILE_MODEL,
+				font::ICON_FILE, // TODO: FIND ICON PREFAB
 			};
 
 			ExplorerResourceUIView::~ExplorerResourceUIView()
@@ -135,6 +135,28 @@ namespace gallus
 				m_ResourceType = a_ExplorerResourceType;
 			}
 
+			ExplorerResourceUIView* findResource(const fs::path& a_Path, ExplorerResourceUIView* a_View)
+			{
+				for (auto resource : a_View->GetChildren())
+				{
+					if (resource->GetResource()->GetPath() == a_Path)
+					{
+						return resource;
+					}
+					ExplorerResourceUIView* result = findResource(a_Path, resource);
+					if (result)
+					{
+						return result;
+					}
+				}
+				return nullptr;
+			}
+
+			ExplorerResourceUIView* ExplorerResourceUIView::FindExplorerResource(const fs::path& a_Path)
+			{
+				return findResource(a_Path, this);
+			}
+
 			ExplorerResourceUIView::ExplorerResourceUIView(ImGuiWindow& a_Window) : EditorSelectable(a_Window), m_NameInput(a_Window)
 			{
 				m_NameInput.Initialize("");
@@ -152,12 +174,12 @@ namespace gallus
 
 			const std::string& ExplorerResourceUIView::GetIcon() const
 			{
-				return m_Icon;
+				return m_ExplorerIcon;
 			}
 
 			void ExplorerResourceUIView::SetIcon(const std::string& a_Icon)
 			{
-				m_Icon = a_Icon;
+				m_ExplorerIcon = a_Icon;
 			}
 
 			bool ExplorerResourceUIView::IsFoldedOut() const
@@ -184,15 +206,16 @@ namespace gallus
 
 			void ExplorerResourceUIView::SetData(ExplorerResource* a_Resource)
 			{
-				m_Name = a_Resource->GetPath().stem().generic_string();
-				m_Icon = a_Resource->GetResourceType() == ExplorerResourceType::Folder ? ICON_FOLDER : RESOURCE_ICONS[(int) a_Resource->GetAssetType()];
+				m_Name = a_Resource->GetPath().filename().generic_string();
+				m_ExplorerIcon = a_Resource->GetResourceType() == ExplorerResourceType::Folder ? font::ICON_FILE_FOLDER : RESOURCE_ICONS[(int) a_Resource->GetAssetType()];
+				m_InspectorIcon = a_Resource->GetResourceType() == ExplorerResourceType::Folder ? font::ICON_FOLDER : m_ExplorerIcon;
 				m_StrResourceType = a_Resource->GetResourceType() == ExplorerResourceType::Folder ? "" : assets::AssetTypeToString(a_Resource->GetAssetType());
 				m_ResourceType = a_Resource->GetResourceType();
 
 				CreateExplorerResourceUIViewChild(this, a_Resource, m_Window);
 			}
 
-			void ExplorerResourceUIView::Render(bool& a_Clicked, bool& a_RightClicked, bool& a_DoubleClicked, bool a_Selected)
+			void ExplorerResourceUIView::Render(bool& a_Clicked, bool& a_RightClicked, bool& a_DoubleClicked, bool a_Selected, bool a_InContextMenu)
 			{
 				// Set the size of each child
 				ImVec2 childSize = ImVec2(ImGui::GetContentRegionAvail().x, 32);
@@ -213,7 +236,8 @@ namespace gallus
 					a_Clicked = true;
 				}
 				a_DoubleClicked = ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0);
-				if (ImGui::IsItemHovered())
+				a_RightClicked = ImGui::IsItemHovered() && ImGui::IsMouseClicked(1);
+				if (ImGui::IsItemHovered() || a_InContextMenu)
 				{
 					ImGui::GetWindowDrawList()->AddRectFilled(cursorPos, childEnd, ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_HeaderHovered)));
 				}
@@ -221,9 +245,9 @@ namespace gallus
 				ImGui::PushFont(m_Window.GetIconFont());
 
 				// Dynamically calculate the size of the icon
-				ImVec2 iconSize = ImGui::CalcTextSize(m_Icon.c_str()); // Replace this with your icon size calculation.
+				ImVec2 iconSize = ImGui::CalcTextSize(m_ExplorerIcon.c_str()); // Replace this with your icon size calculation.
 
-				float iconOffset = m_Window.GetIconFont()->FontSize * 1.5f;
+				float iconOffset = m_Window.GetIconFont()->FontSize * 2.0f;
 
 				// Calculate offsets for centering
 				float verticalOffset = (childSize.y - iconSize.y) / 2.0f;   // Center vertically
@@ -263,7 +287,7 @@ namespace gallus
 				ImGui::SetCursorScreenPos(ImVec2(screenCursorPos.x, screenCursorPos.y + childSize.y));
 			}
 
-			void ExplorerResourceUIView::RenderGrid(float a_Width, float a_Height, bool& a_Clicked, bool& a_RightClicked, bool& a_DoubleClicked, bool a_Selected)
+			void ExplorerResourceUIView::RenderGrid(float a_Width, float a_Height, bool& a_Clicked, bool& a_RightClicked, bool& a_DoubleClicked, bool a_Selected, bool a_InContextMenu)
 			{
 				// Set the size of each child
 				ImVec2 childSize = ImVec2(a_Width, a_Height);
@@ -289,7 +313,8 @@ namespace gallus
 						a_Clicked = true;
 					}
 					a_DoubleClicked = ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0);
-					if (ImGui::IsItemHovered())
+					a_RightClicked = ImGui::IsItemHovered() && ImGui::IsMouseClicked(1);
+					if (ImGui::IsItemHovered() || a_InContextMenu)
 					{
 						ImGui::GetWindowDrawList()->AddRectFilled(cursorPos, childEnd, ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_HeaderHovered)));
 					}
@@ -314,7 +339,7 @@ namespace gallus
 				ImGui::EndChild();
 			}
 
-			void ExplorerResourceUIView::RenderTree(bool& a_Clicked, bool a_Selected, int a_Indent, const ImVec2& a_InitialPos)
+			void ExplorerResourceUIView::RenderTree(bool& a_Clicked, bool& a_RightClicked, bool a_Selected, int a_Indent, const ImVec2& a_InitialPos, bool a_InContextMenu)
 			{
 				ImGui::SetCursorScreenPos(ImVec2(a_InitialPos.x, ImGui::GetCursorScreenPos().y));
 
@@ -328,18 +353,23 @@ namespace gallus
 				{
 					ImGui::GetWindowDrawList()->AddRectFilled(cursorPos, childEnd, ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_HeaderActive)));
 				}
+				if (a_InContextMenu)
+				{
+					ImGui::GetWindowDrawList()->AddRectFilled(cursorPos, childEnd, ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_HeaderHovered)));
+				}
 
 				ImVec2 buttonCursorPos = ImVec2(ImGui::GetCursorPosX() + (m_Window.GetFramePadding().x * 3), ImGui::GetCursorPosY());
 				if (ImGui::InvisibleButton(ImGui::IMGUI_FORMAT_ID("", BUTTON_ID, "FILES_FOLDERS_INVIS_BUTTON_" + m_Name).c_str(), childSize))
 				{
 					a_Clicked = true;
 				}
+				a_RightClicked = ImGui::IsItemHovered() && ImGui::IsMouseClicked(1);
 				if (ImGui::IsItemHovered())
 				{
 					ImGui::GetWindowDrawList()->AddRectFilled(cursorPos, childEnd, ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_HeaderHovered)));
 				}
 
-				std::string foldIcon = m_FoldedOut ? ICON_FOLDED_OUT : ICON_FOLDED_IN;
+				std::string foldIcon = m_FoldedOut ? font::ICON_FOLDED_OUT : font::ICON_FOLDED_IN;
 
 				float offsetPos = a_InitialPos.x + (ImGui::GetStyle().IndentSpacing * a_Indent);
 				ImGui::PushFont(m_Window.GetIconFont());
@@ -347,7 +377,7 @@ namespace gallus
 				// Dynamically calculate the size of the icon
 				ImVec2 iconSize = ImGui::CalcTextSize(foldIcon.c_str()); // Replace this with your icon size calculation.
 
-				float iconOffset = m_Window.GetIconFont()->FontSize * 1.25f;
+				float iconOffset = m_Window.GetIconFont()->FontSize * 2.0f;
 
 				// Calculate offsets for centering
 				float verticalOffset = (childSize.y - iconSize.y) / 2.0f;   // Center vertically
@@ -379,10 +409,12 @@ namespace gallus
 					}
 				}
 
-				// Dynamically calculate the size of the icon
-				iconSize = ImGui::CalcTextSize(m_Icon.c_str()); // Replace this with your icon size calculation.
+				std::string	folderIcon = m_FoldedOut ? font::ICON_FOLDER_OPEN : font::ICON_FOLDER;
 
-				iconOffset = m_Window.GetIconFont()->FontSize * 1.25f;
+				// Dynamically calculate the size of the icon
+				iconSize = ImGui::CalcTextSize(folderIcon.c_str()); // Replace this with your icon size calculation.
+
+				iconOffset = m_Window.GetIconFont()->FontSize * 2.0f;
 
 				// Calculate offsets for centering
 				verticalOffset = (childSize.y - iconSize.y) / 2.0f;   // Center vertically
@@ -393,7 +425,7 @@ namespace gallus
 
 				// Set cursor to the calculated position and render the icon
 				ImGui::SetCursorPos(centerPos);
-				ImGui::Text(m_Icon.c_str());
+				ImGui::Text(folderIcon.c_str());
 
 				ImGui::PopFont();
 
@@ -412,14 +444,14 @@ namespace gallus
 
 			void ExplorerResourceUIView::RenderIcon()
 			{
-				ImGui::Text(m_Icon.c_str());
+				ImGui::Text(m_ExplorerIcon.c_str());
 			}
 
 			void ExplorerResourceUIView::RenderIconGrid(float a_Width, float a_Height)
 			{
 				ImGui::PushFont(m_Window.GetBigIconFont());
 
-				ImVec2 iconSize = ImGui::CalcTextSize(m_Icon.c_str()); // Replace with your icon size
+				ImVec2 iconSize = ImGui::CalcTextSize(m_ExplorerIcon.c_str()); // Replace with your icon size
 
 				// Calculate position to center the icon
 				ImVec2 cursorPos2 = ImGui::GetCursorPos();
@@ -431,7 +463,7 @@ namespace gallus
 				// Move the cursor to the center position
 				ImGui::SetCursorPos(centerPos);
 
-				ImGui::Text(m_Icon.c_str());
+				ImGui::Text(m_ExplorerIcon.c_str());
 
 				ImGui::PopFont();
 			}
@@ -444,15 +476,17 @@ namespace gallus
 				ImGui::BeginToolbar(toolbarSize);
 
 				ImGui::PushFont(m_Window.GetBigIconFont());
-				ImVec2 iconSize = ImGui::CalcTextSize(m_Icon.c_str()); // Replace this with your icon size calculation.
+				ImVec2 iconSize = ImGui::CalcTextSize(m_InspectorIcon.c_str()); // Replace this with your icon size calculation.
 				ImGui::PopFont();
 
-				ImVec2 iconPos = ImVec2(x + m_Window.GetFramePadding().x, y + m_Window.GetFramePadding().x);
+				ImVec2 iconPos = ImVec2(x + (m_Window.GetFramePadding().x * 2), y + m_Window.GetFramePadding().y + m_Window.GetFramePadding().y);
 
-				ImGui::SetCursorPos(ImVec2(iconPos.x + m_Window.GetFramePadding().x + iconSize.x, iconPos.y));
+				ImVec2 inputFieldPos = ImVec2(iconPos.x + m_Window.GetFramePadding().x, iconPos.y);
+
+				ImGui::SetCursorPos(ImVec2(inputFieldPos.x + m_Window.GetFramePadding().x + 60, inputFieldPos.y));
 
 				m_NameInput.SetString(m_Name);
-				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - m_Window.GetFramePadding().x);
+				ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - (m_Window.GetFramePadding().x * 2));
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(m_Window.GetFramePadding().x * 2, ImGui::GetStyle().FramePadding.y));
 				if (m_NameInput.Render(ImGui::IMGUI_FORMAT_ID("", INPUT_ID, "NAME_INSPECTOR").c_str(), ImGuiInputTextFlags_EnterReturnsTrue))
 				{
@@ -465,12 +499,11 @@ namespace gallus
 
 				ImVec2 inputSize = ImGui::GetItemRectSize();
 
-				float dif = (m_Window.GetHeaderSize().y - inputSize.y) / 2;
-				iconPos = ImVec2(x + m_Window.GetFramePadding().x, iconPos.y - dif);
+				iconPos.y = iconPos.y + (inputSize.y - iconSize.y) / 2;
 
 				ImGui::SetCursorPos(iconPos);
 				ImGui::PushFont(m_Window.GetBigIconFont());
-				ImGui::Text(m_Icon.c_str());
+				ImGui::Text(m_InspectorIcon.c_str());
 				ImGui::PopFont();
 
 				//ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
@@ -479,16 +512,16 @@ namespace gallus
 				ImGui::SetCursorPosY(y + (m_Window.GetHeaderSize().y * 1.5f) + m_Window.GetFramePadding().y);
 				ImGui::SetCursorPosX(x);
 
-				// TODO: Find icon for this.
-				//if (ImGui::TransparentButton(ImGui::IMGUI_FORMAT_ID(std::string(ICON_FA_ARROW_TURN_UP), BUTTON_ID, "SHOW_IN_EXPLORER_INSPECTOR").c_str(), ImVec2(core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y, core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y)))
-				//{
-				//	core::ENGINE.GetFileLoader().EnqueueTask([&a_Resource]() mutable
-				//	{
-				//		return file::FileLoader::OpenInExplorer(a_Resource->GetParent()->GetPath().c_str());
-				//	});
-				//}
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
 				if (ImGui::IconButton(
-					ImGui::IMGUI_FORMAT_ID(std::string(ICON_DELETE), BUTTON_ID, "DELETE_INSPECTOR").c_str(), m_Window.GetHeaderSize(), m_Window.GetIconFont()))
+					ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_FOLDER_SHOW), BUTTON_ID, "SHOW_IN_EXPLORER_INSPECTOR").c_str(), m_Window.GetHeaderSize(), m_Window.GetIconFont()))
+				{
+					file::FileLoader::OpenInExplorer(a_Resource->GetParent()->GetPath());
+				}
+				ImGui::SameLine();
+				if (ImGui::IconButton(
+					ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_DELETE), BUTTON_ID, "DELETE_INSPECTOR").c_str(), m_Window.GetHeaderSize(), m_Window.GetIconFont()))
 				{
 					core::ENGINE.GetEditor().SetSelectable(nullptr);
 
@@ -496,6 +529,8 @@ namespace gallus
 
 					core::ENGINE.GetEditor().GetAssetDatabase().Rescan();
 				}
+				ImGui::PopStyleVar();
+				ImGui::PopStyleVar();
 
 				ImGui::SetCursorPosY(y + toolbarSize.y);
 

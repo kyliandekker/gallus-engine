@@ -5,7 +5,7 @@
 #include <imgui/imgui_helpers.h>
 
 //#include "gameplay/EntityComponentSystem.h"
-#include "editor/imgui/ImGuiDefines.h"
+#include "editor/imgui/font_icon.h"
 #include "core/logger/Logger.h"
 #include "editor/imgui/ImGuiWindow.h"
 #include "core/Engine.h"
@@ -16,7 +16,7 @@ namespace gallus
 	{
 		namespace imgui
 		{
-			InspectorWindow::InspectorWindow(ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, "Inspector", "Inspector")
+			InspectorWindow::InspectorWindow(ImGuiWindow& a_Window) : BaseWindow(a_Window, ImGuiWindowFlags_NoCollapse, std::string(font::ICON_CIRCLE_INFO) + " Inspector", "Inspector")
 			{}
 
 			bool InspectorWindow::Initialize()

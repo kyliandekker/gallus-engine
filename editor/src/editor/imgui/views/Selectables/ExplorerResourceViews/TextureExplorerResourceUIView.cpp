@@ -5,7 +5,7 @@
 #include <imgui/imgui_helpers.h>
 
 #include "editor/ExplorerResource.h"
-#include "editor/imgui/ImGuiDefines.h"
+#include "editor/imgui/font_icon.h"
 #include "editor/imgui/ImGuiWindow.h"
 #include "graphics/dx12/Texture.h"
 

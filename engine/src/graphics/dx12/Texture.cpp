@@ -56,19 +56,17 @@ namespace gallus
 			}
 
 			// TODO: This all needs to be loaded from a file eventually instead of from files on the disk.
-			bool Texture::Load(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList)
+			bool Texture::Load(const fs::path& a_Path, std::shared_ptr<CommandList> a_CommandList)
 			{
-				fs::path path = file::FileLoader::GetPath(std::format("./assets/textures/{0}", a_Name.c_str()));
-
 				int width, height, channels;
-				stbi_uc* imageData = stbi_load(path.generic_string().c_str(), &width, &height, &channels, STBI_rgb_alpha);
+				stbi_uc* imageData = stbi_load(a_Path.generic_string().c_str(), &width, &height, &channels, STBI_rgb_alpha);
 				if (!imageData)
 				{
-					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to load texture: \"%s\".", path.generic_string().c_str());
+					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to load texture: \"%s\".", a_Path.generic_string().c_str());
 					return false;
 				}
 
-				std::wstring name = std::wstring(a_Name.begin(), a_Name.end());
+				std::wstring name = a_Path.stem().generic_wstring();
 
 				D3D12_RESOURCE_DESC textureDesc = {};
 				textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -106,7 +104,7 @@ namespace gallus
 
 				stbi_image_free(imageData);
 
-				LOGF(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_DX12, "Successfully loaded texture: \"%s\".", path.generic_string().c_str());
+				LOGF(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_DX12, "Successfully loaded texture: \"%s\".", a_Path.generic_string().c_str());
 				return true;
 			}
 

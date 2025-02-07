@@ -5,9 +5,9 @@
 #include <imgui/imgui_helpers.h>
 
 #include "core/Engine.h"
-#include "editor/imgui/ImGuiDefines.h"
+#include "editor/imgui/font_icon.h"
 
-constexpr float PREVIEW_SIZE = 200;
+constexpr float PREVIEW_SIZE = 300;
 
 namespace gallus
 {
@@ -19,8 +19,7 @@ namespace gallus
 			{
 				ExplorerResourceUIView::RenderBaseSelectable(a_Resource);
 
-				ImVec2 framePadding = m_Window.GetFramePadding();
-				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(framePadding.x * 2, framePadding.y * 2));
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(m_Window.GetFramePadding().x * 2, m_Window.GetFramePadding().y * 2));
 
 				if (ImGui::BeginChild(
 					ImGui::IMGUI_FORMAT_ID("", CHILD_ID, "EXPLORER_RESOURCE_INSPECTOR").c_str(),
@@ -47,7 +46,7 @@ namespace gallus
 			void ExplorerResourceWithPreviewUIView::RenderPreviewWindow()
 			{
 				if (ImGui::BeginChild(
-					ImGui::IMGUI_FORMAT_ID("", CHILD_ID, "EXPLORER_RdESOURCE_INSPECTOR").c_str(),
+					ImGui::IMGUI_FORMAT_ID("", CHILD_ID, "EXPLORER_RESOURCE_PREVIEW_INSPECTOR").c_str(),
 					ImVec2(
 					ImGui::GetContentRegionAvail().x,
 					PREVIEW_SIZE
@@ -70,6 +69,8 @@ namespace gallus
 
 			void ExplorerResourceWithoutPreviewUIView::RenderBaseSelectable(ExplorerResource* a_Resource)
 			{
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(m_Window.GetFramePadding().x * 2, m_Window.GetFramePadding().y * 2));
+
 				ExplorerResourceUIView::RenderBaseSelectable(a_Resource);
 
 				if (ImGui::BeginChild(
@@ -90,6 +91,8 @@ namespace gallus
 				ExplorerResourceUIView::EndBaseSelectable();
 
 				ImGui::EndChild();
+
+				ImGui::PopStyleVar();
 			}
 
 			ExplorerResourceWithoutPreviewUIView::ExplorerResourceWithoutPreviewUIView(ImGuiWindow& a_Window) : ExplorerResourceUIView(a_Window)

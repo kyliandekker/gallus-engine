@@ -3,7 +3,7 @@
 //#include "editor/imgui/windows/LoadProjectWindow.h"
 //
 //#include <thread>
-//#include "editor/imgui/ImGuiDefines.h"
+//#include "editor/imgui/font_icon.h"
 //#include "utils/string_extensions.h"
 //
 //#include "editor/imgui/ImGuiWindow.h"
@@ -80,7 +80,7 @@
 //				{
 //					for (auto projectPath : core::ENGINE.GetEditor().GetEditorSettings().GetPreviousProjects())
 //					{
-//						if (ImGui::Button(IMGUI_FORMAT_ID(ICON_DELETE, BUTTON_ID, "DELETE_PATH_" + string_extensions::StringToUpper(projectPath)).c_str()))
+//						if (ImGui::Button(IMGUI_FORMAT_ID(font::ICON_DELETE, BUTTON_ID, "DELETE_PATH_" + string_extensions::StringToUpper(projectPath)).c_str()))
 //						{
 //							core::ENGINE.GetEditor().GetEditorSettings().ErasePreviousProject(projectPath);
 //						}

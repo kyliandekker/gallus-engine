@@ -7,7 +7,7 @@
 //#include "editor/explorer_resources/SceneExplorerResource.h"
 //#include "editor/imgui/views/Selectables/EditorSelectable.h"
 //#include "core/Engine.h"
-//#include "editor/imgui/ImGuiDefines.h"
+//#include "editor/imgui/font_icon.h"
 //#include "utils/string_extensions.h"
 //#include "editor/imgui/ImGuiWindow.h"
 //#include "gameplay/systems/TransformSystem.h"
@@ -28,7 +28,7 @@
 //
 //			std::string EntityUIView::GetIcon() const
 //			{
-//				return ICON_CUBE;
+//				return font::ICON_CUBE;
 //			}
 //
 //			void EntityUIView::Render(bool& clicked, bool selected)
@@ -122,13 +122,13 @@
 //
 //				bool temp = detailComponent.IsActive();
 //				// TODO: Add these icons back.
-//				//if (ImGui::TransparentCheckboxButton(IMGUI_FORMAT_ID(temp ? ICON_FA_CHECKMARK_CHECKED : ICON_FA_CHECKMARK, CHECKBOX_ID, string_extensions::StringToUpper(detailComponent.GetName()) + "_INSPECTOR").c_str(), &temp, ImVec2(core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y, core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y)))
+//				//if (ImGui::TransparentCheckboxButton(IMGUI_FORMAT_ID(temp ? font::ICON_FA_CHECKMARK_CHECKED : font::ICON_FA_CHECKMARK, CHECKBOX_ID, string_extensions::StringToUpper(detailComponent.GetName()) + "_INSPECTOR").c_str(), &temp, ImVec2(core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y, core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y)))
 //				//{
 //				//	detailComponent.SetActive(temp);
 //				//	dirty = true;
 //				//}
 //				//ImGui::SameLine();
-//				if (ImGui::TransparentButton(IMGUI_FORMAT_ID(std::string(ICON_DELETE), BUTTON_ID, "DELETE_INSPECTOR").c_str(), ImVec2(core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y, core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y)))
+//				if (ImGui::TransparentButton(IMGUI_FORMAT_ID(std::string(font::ICON_DELETE), BUTTON_ID, "DELETE_INSPECTOR").c_str(), ImVec2(core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y, core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y)))
 //				{
 //					core::ENGINE.GetECS().Delete(m_EntityID);
 //					dirty = true;
@@ -167,8 +167,8 @@
 //					ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetStyle().ItemSpacing.x);
 //
 //					float width = ImGui::GetContentRegionAvail().x - ImGui::GetStyle().ItemSpacing.x;
-//					// TODO: Add these icons back. ICON_COMPONENT (puzzle)
-//					if (ImGui::Button(IMGUI_FORMAT_ID(ICON_FOLDER + std::string(" Add Component"), BUTTON_ID, "ADD_COMPONENT_INSPECTOR").c_str(), ImVec2(width, 0)))
+//					// TODO: Add these icons back. font::ICON_COMPONENT (puzzle)
+//					if (ImGui::Button(IMGUI_FORMAT_ID(font::ICON_FOLDER + std::string(" Add Component"), BUTTON_ID, "ADD_COMPONENT_INSPECTOR").c_str(), ImVec2(width, 0)))
 //					{
 //						ImVec2 buttonPos = ImGui::GetItemRectMin();
 //
@@ -188,7 +188,7 @@
 //						ImVec4 textColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 //						textColor.w = 0.5f;
 //						ImGui::TextColored(textColor, "Add a Component"); // TODO: Add this icon back.
-//						if (!transformSys.HasComponent(m_EntityID) && ImGui::MenuItem(IMGUI_FORMAT_ID(std::string(ICON_FOLDER) + " Transform", MENU_ITEM_ID, "ADD_TRANSFORM_COMPONENT_MENU_INSPECTOR").c_str()))
+//						if (!transformSys.HasComponent(m_EntityID) && ImGui::MenuItem(IMGUI_FORMAT_ID(std::string(font::ICON_FOLDER) + " Transform", MENU_ITEM_ID, "ADD_TRANSFORM_COMPONENT_MENU_INSPECTOR").c_str()))
 //						{
 //							transformSys.CreateComponent(m_EntityID);
 //							core::ENGINE.GetEditor().SetSelectable(this);
