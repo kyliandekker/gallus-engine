@@ -1,6 +1,7 @@
 #include "graphics/win32/Window.h"
 
 #include "core/logger/Logger.h"
+#include "resource.h"
 
 #include <iostream>
 
@@ -236,8 +237,8 @@ namespace gallus
 				m_Wc.hCursor = ::LoadCursor(NULL, IDC_ARROW);
 				m_Wc.hbrBackground = CreateSolidBrush(RGB(0, 0, 0));
 
-				m_Wc.hIcon = ::LoadIcon(a_hInstance, IDI_APPLICATION);
-				m_Wc.hIconSm = ::LoadIcon(a_hInstance, IDI_APPLICATION);
+				m_Wc.hIcon = LoadIcon(a_hInstance, MAKEINTRESOURCE(IDI_ICON1)); // Main icon
+				m_Wc.hIconSm = LoadIcon(a_hInstance, MAKEINTRESOURCE(IDI_ICON1)); // Small icon
 
 				m_Wc.lpszClassName = "Window";
 				m_Wc.lpszMenuName = NULL;

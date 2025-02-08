@@ -42,7 +42,7 @@ namespace gallus
 
 			if (a_Document.HasParseError())
 			{
-				LOG(LOGSEVERITY_ERROR, "TODO", "Failed loading in meta file '%s'.", getMetadataPath(a_Path).c_str());
+				LOGF(LOGSEVERITY_ERROR, "TODO", "Failed loading in meta file '%s'.", getMetadataPath(a_Path).c_str());
 				return false;
 			}
 

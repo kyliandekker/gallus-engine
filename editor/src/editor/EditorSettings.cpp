@@ -20,6 +20,7 @@
 #define JSON_CONSOLE_VAR "console"
 #define JSON_CONSOLE_SCROLLTOBOTTOM_VAR "scrollToBottom"
 #define JSON_CONSOLE_INFO_VAR "info"
+#define JSON_CONSOLE_TEST_VAR "test"
 #define JSON_CONSOLE_WARNING_VAR "warning"
 #define JSON_CONSOLE_ERROR_VAR "error"
 #define JSON_CONSOLE_ASSERT_VAR "assert"
@@ -66,10 +67,11 @@ namespace gallus
 				// Scroll to Bottom
 				GetBool(document[JSON_CONSOLE_VAR], JSON_CONSOLE_SCROLLTOBOTTOM_VAR, m_ScrollToBottom);
 
-				GetBool(document[JSON_CONSOLE_VAR], JSON_CONSOLE_INFO_VAR, m_Info);
-				GetBool(document[JSON_CONSOLE_VAR], JSON_CONSOLE_WARNING_VAR, m_Warning);
-				GetBool(document[JSON_CONSOLE_VAR], JSON_CONSOLE_ERROR_VAR, m_Error);
 				GetBool(document[JSON_CONSOLE_VAR], JSON_CONSOLE_ASSERT_VAR, m_Assert);
+				GetBool(document[JSON_CONSOLE_VAR], JSON_CONSOLE_ERROR_VAR, m_Error);
+				GetBool(document[JSON_CONSOLE_VAR], JSON_CONSOLE_WARNING_VAR, m_Warning);
+				GetBool(document[JSON_CONSOLE_VAR], JSON_CONSOLE_INFO_VAR, m_Info);
+				GetBool(document[JSON_CONSOLE_VAR], JSON_CONSOLE_TEST_VAR, m_Test);
 				GetBool(document[JSON_CONSOLE_VAR], JSON_CONSOLE_SUCCESS_VAR, m_Success);
 				GetBool(document[JSON_CONSOLE_VAR], JSON_CONSOLE_INFOSUCCESS_VAR, m_InfoSuccess);
 				GetBool(document[JSON_CONSOLE_VAR], JSON_CONSOLE_AWESOME_VAR, m_Awesome);
@@ -115,10 +117,11 @@ namespace gallus
 
 			document.AddMember(JSON_CONSOLE_VAR, rapidjson::Value().SetObject(), allocator);
 			document[JSON_CONSOLE_VAR].AddMember(JSON_CONSOLE_SCROLLTOBOTTOM_VAR, m_ScrollToBottom, allocator);
-			document[JSON_CONSOLE_VAR].AddMember(JSON_CONSOLE_INFO_VAR, m_Info, allocator);
-			document[JSON_CONSOLE_VAR].AddMember(JSON_CONSOLE_WARNING_VAR, m_Warning, allocator);
-			document[JSON_CONSOLE_VAR].AddMember(JSON_CONSOLE_ERROR_VAR, m_Error, allocator);
 			document[JSON_CONSOLE_VAR].AddMember(JSON_CONSOLE_ASSERT_VAR, m_Assert, allocator);
+			document[JSON_CONSOLE_VAR].AddMember(JSON_CONSOLE_ERROR_VAR, m_Error, allocator);
+			document[JSON_CONSOLE_VAR].AddMember(JSON_CONSOLE_WARNING_VAR, m_Warning, allocator);
+			document[JSON_CONSOLE_VAR].AddMember(JSON_CONSOLE_INFO_VAR, m_Info, allocator);
+			document[JSON_CONSOLE_VAR].AddMember(JSON_CONSOLE_TEST_VAR, m_Test, allocator);
 			document[JSON_CONSOLE_VAR].AddMember(JSON_CONSOLE_SUCCESS_VAR, m_Success, allocator);
 			document[JSON_CONSOLE_VAR].AddMember(JSON_CONSOLE_INFOSUCCESS_VAR, m_InfoSuccess, allocator);
 			document[JSON_CONSOLE_VAR].AddMember(JSON_CONSOLE_AWESOME_VAR, m_Awesome, allocator);
@@ -182,6 +185,18 @@ namespace gallus
 		bool EditorSettings::Info() const
 		{
 			return m_Info;
+		}
+
+		void EditorSettings::SetTest(bool a_Test)
+		{
+			m_Test = a_Test;
+
+			Save();
+		}
+
+		bool EditorSettings::Test() const
+		{
+			return m_Test;
 		}
 
 		void EditorSettings::SetWarning(bool a_Warning)

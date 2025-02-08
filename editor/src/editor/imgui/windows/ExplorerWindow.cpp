@@ -153,7 +153,7 @@ namespace gallus
 				float topPosY = ImGui::GetCursorPosY();
 
 				if (ImGui::IconButton(
-					ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_REFRESH), BUTTON_ID, "RESCAN_EXPLORER").c_str(), m_Window.GetHeaderSize(), m_Window.GetIconFont()))
+					ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_REFRESH), BUTTON_ID, "RESCAN_EXPLORER").c_str(), m_Window.GetHeaderSize(), m_Window.GetIconFont(), ImGui::GetStyleColorVec4(ImGuiCol_TextColorAccent)))
 				{
 					core::ENGINE.GetEditor().GetAssetDatabase().Rescan();
 				}
@@ -201,10 +201,11 @@ namespace gallus
 				ImGui::PopStyleVar();
 				ImGui::PopStyleVar();
 
-				ImGui::EndToolbar(ImVec2(ImGui::GetStyle().ItemSpacing.x, 0));
+				ImGui::EndToolbar(ImVec2(m_Window.GetWindowPadding().x, 0));
 
 				m_ShowPopUp = false;
 
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, m_Window.GetWindowPadding());
 				ImGui::SetCursorPosY(ImGui::GetCursorPos().y + m_Window.GetFramePadding().y);
 				if (ImGui::BeginChild(
 					ImGui::IMGUI_FORMAT_ID("", CHILD_ID, "DIRECTORIES_EXPLORER").c_str(),
@@ -355,8 +356,9 @@ namespace gallus
 						ImGui::EndChild();
 					}
 				}
-				ImGui::PopStyleVar();
 				ImGui::EndChild();
+				ImGui::PopStyleVar();
+				ImGui::PopStyleVar();
 
 				if (m_ShowPopUp)
 				{

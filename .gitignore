@@ -12,6 +12,10 @@
 !CMakeLists.txt
 
 # Tools directory
+!icon.png
+!icon.ico
+
+# Icon
 !tools/
 
 # Font Embedder

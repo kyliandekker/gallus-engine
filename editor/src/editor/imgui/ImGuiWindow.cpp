@@ -168,6 +168,7 @@ namespace gallus
 				ImGui::StyleColorsDark();
 
 				ImVec4 accentColor = ImVec4(0.42f, 0.34f, 0.83f, 1.00f);
+				ImVec4 accentColorText = ImVec4(0.5f, 0.44f, 0.93f, 1.00f);
 
 				ImGuiStyle& style = ImGui::GetStyle();
 				ImVec4* colors = style.Colors;
@@ -220,6 +221,7 @@ namespace gallus
 				colors[ImGuiCol_NavWindowingHighlight] = ImVec4(0.86f, 0.93f, 0.89f, 1.00f);
 				colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
 				colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.14f, 0.14f, 0.14f, 1.00f);
+				colors[ImGuiCol_TextColorAccent] = accentColorText;
 #ifndef _RENDER_TEX
 				float transparency = 0.4;
 				ImGui::GetStyle().Colors[ImGuiCol_FrameBg].w = transparency;

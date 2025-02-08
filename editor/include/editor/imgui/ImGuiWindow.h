@@ -124,8 +124,8 @@ namespace gallus
 				float m_FontSize = 25.0f; /// Default font size for ImGui.
 				float m_IconFontSize = 20.0f; /// Default font size for ImGui.
 
-				ImVec2 m_FramePadding = ImVec2(8, 8); /// Frame padding for ImGui elements.
-				ImVec2 m_WindowPadding = ImVec2(8, 8); /// Window padding for ImGui elements.
+				ImVec2 m_FramePadding = ImVec2(16, 16); /// Frame padding for ImGui elements.
+				ImVec2 m_WindowPadding = ImVec2(16, 16); /// Window padding for ImGui elements.
 				ImVec2 m_HeaderSize;
 
 				// Windows.

@@ -69,6 +69,18 @@ namespace gallus
 			bool Info() const;
 
 			/// <summary>
+			/// Sets whether test log messages are displayed.
+			/// </summary>
+			/// <param name="a_Test">True to show test messages, otherwise false.</param>
+			void SetTest(bool a_Test);
+
+			/// <summary>
+			/// Checks if test log messages are displayed.
+			/// </summary>
+			/// <returns>True if test messages are visible, otherwise false.</returns>
+			bool Test() const;
+
+			/// <summary>
 			/// Sets whether warning log messages are displayed.
 			/// </summary>
 			/// <param name="a_Warning">True to show warnings, otherwise false.</param>
@@ -166,6 +178,7 @@ namespace gallus
 		private:
 			bool m_ScrollToBottom = false; /// Auto-scroll setting for the console.
 			bool m_Info = true; /// Visibility toggle for info log messages.
+			bool m_Test = true; /// Visibility toggle for test log messages.
 			bool m_Warning = true; /// Visibility toggle for warning log messages.
 			bool m_Error = true; /// Visibility toggle for error log messages.
 			bool m_Assert = true; /// Visibility toggle for assertion log messages.

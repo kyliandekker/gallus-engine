@@ -41,7 +41,7 @@ namespace gallus
 				tinygltf::Model model;
 				tinygltf::TinyGLTF loader;
 				std::string err, warn;
-				if (!loader.LoadASCIIFromString(&model, &err, &warn, data.dataAs<const char>(), data.size(), path.parent_path().string()))
+				if (!loader.LoadASCIIFromString(&model, &err, &warn, data.dataAs<const char>(), static_cast<unsigned int>(data.size()), path.parent_path().string()))
 				{
 					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading bin file %s.", err.c_str());
 					return false;
@@ -174,7 +174,7 @@ namespace gallus
 					DirectX::XMMATRIX mvpMatrix = a_Transform.GetWorldMatrix() * a_CameraView * a_CameraProjection;
 					a_CommandList->GetCommandList()->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &mvpMatrix, 0);
 
-					a_CommandList->GetCommandList()->DrawIndexedInstanced(meshData->m_Indices.size(), 1, 0, 0, 0);
+					a_CommandList->GetCommandList()->DrawIndexedInstanced(static_cast<UINT>(meshData->m_Indices.size()), 1, 0, 0, 0);
 				}
 			}
 		}

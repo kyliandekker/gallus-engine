@@ -25,42 +25,27 @@ namespace ImGui
 #define FOLDOUT_ID "###FOLDOUT_"
 #define COLOR_WHEEL_ID "###COLOR_WHEEL_"
 
-	ImVec2 operator+(const ImVec2& a, const ImVec2& b);
-	ImVec2 operator-(const ImVec2& a, const ImVec2& b);
-	ImVec2 operator/(const ImVec2& a, const ImVec2& b);
-	ImVec2 operator*(const ImVec2& a, const ImVec2& b);
+	bool CheckboxButton(const char* a_Label, bool* a_pValue, const ImVec2& a_Size = ImVec2(0, 0), const ImVec4& a_Color = ImVec4(1, 1, 1, 1));
+	bool TextButton(const char* a_Label, const ImVec2& a_Size = ImVec2(0, 0), const ImVec4& a_Color = ImVec4(1, 1, 1, 1));
 
-	ImVec2 operator+=(const ImVec2& a, const ImVec2& b);
-	ImVec2 operator-=(const ImVec2& a, const ImVec2& b);
-	ImVec2 operator/=(const ImVec2& a, const ImVec2& b);
-	ImVec2 operator*=(const ImVec2& a, const ImVec2& b);
+	bool IconButton(const char* a_Label, const ImVec2& a_Size, ImFont* a_Font, const ImVec4& a_Color = ImGui::GetStyle().Colors[ImGuiCol_Text]);
+	bool IconCheckboxButton(const char* a_Label, bool* a_pValue, const ImVec2& a_Size, ImFont* a_Font, const ImVec4& a_Color = ImGui::GetStyle().Colors[ImGuiCol_Text]);
 
-	bool CheckboxButton(const char* label, bool* p_value, const ImVec2& size_arg = ImVec2(0, 0));
-	bool TransparentButton(const char* label, const ImVec2& size_arg = ImVec2(0, 0), ImVec4 color = ImVec4(1, 1, 1, 1));
-	bool TransparentCheckboxButton(const char* label, bool* p_value, const ImVec2& size_arg = ImVec2(0, 0), ImVec4 color = ImVec4(1, 1, 1, 1));
-	//bool HierarchyItem(const char *label, const ImVec2 &size_arg = ImVec2(0, 0), bool selected = false, ImU32 button_color_hover = IM_COL32(200, 200, 200, 100));
-	bool EngineTreeNodeExS(const char* id, const char* icon, const char* label, bool& clicked, bool& right_clicked, bool selected, const ImVec2& size, ImGuiTreeNodeFlags flags);
-	bool EngineResourceNode(const char* id, const char* icon, const char* label, const char* label2, bool& clicked, bool& right_clicked, bool& double_clicked, bool selected);
 	void BeginToolbar(const ImVec2& a_Size);
 	void EndToolbar(const ImVec2& a_Padding);
-	void DisplayHeader(ImFont* boldFont, const char* label);
-	void CheckboxText(const char* label, bool* p_value, const std::string& checked_text, const std::string& unchecked_text, const ImVec2& size_arg);
-	bool IconButton(const char* label, const ImVec2& size_arg, ImFont* font, ImVec4 color = ImGui::GetStyle().Colors[ImGuiCol_Text]);
-	bool IconCheckboxButton(const char* label, bool* p_value, const ImVec2& size_arg, ImFont* font, ImVec4 color = ImGui::GetStyle().Colors[ImGuiCol_Text]);
+	void DisplayHeader(ImFont* a_BoldFont, const char* a_Label);
 
-	inline ImU32 ImColorConvertFloat4ToU32(const ImVec4& in)
+	/// <summary>
+	/// Converts colors ranging 0-255 to 0-1.
+	/// </summary>
+	/// <param name="a_R">Red.</param>
+	/// <param name="a_G">Green.</param>
+	/// <param name="a_B">Blue.</param>
+	/// <param name="a_A">Alpha.</param>
+	/// <returns></returns>
+	inline ImVec4 ConvertColorsRgba(float a_R, float a_G, float a_B, float a_A)
 	{
-		ImU32 out;
-		out = ((int) (in.x * 255.0f)) << IM_COL32_R_SHIFT;  // Red
-		out |= ((int) (in.y * 255.0f)) << IM_COL32_G_SHIFT;  // Green
-		out |= ((int) (in.z * 255.0f)) << IM_COL32_B_SHIFT;  // Blue
-		out |= ((int) (in.w * 255.0f)) << IM_COL32_A_SHIFT;  // Alpha
-		return out;
-	}
-
-	inline ImVec4 ConvertColorsRgba(float r, float g, float b, float a)
-	{
-		return ImVec4(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+		return ImVec4(a_R / 255.0f, a_G / 255.0f, a_B / 255.0f, a_A / 255.0f);
 	}
 
 	/// <summary>

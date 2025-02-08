@@ -414,7 +414,7 @@ namespace gallus
 #endif //_RENDER_TEX
 #endif //_EDITOR
 				D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-				rtvHeapDesc.NumDescriptors = numBuffers;
+				rtvHeapDesc.NumDescriptors = static_cast<UINT>(numBuffers);
 				rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 				rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 				m_RTV = HeapAllocation(rtvHeapDesc, m_Device);

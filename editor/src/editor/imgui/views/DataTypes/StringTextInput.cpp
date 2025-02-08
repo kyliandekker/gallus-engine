@@ -85,7 +85,7 @@ namespace gallus
 
 				ImVec2 inputSize = ImGui::GetItemRectSize();
 
-				ImVec2 iconPos = ImVec2(x + (m_Window.GetWindowPadding().x * 2), y + (inputSize.y - iconSize.y) / 2);
+				ImVec2 iconPos = ImVec2(x + m_Window.GetWindowPadding().x, y + (inputSize.y - iconSize.y) / 2);
 
 				ImGui::SetCursorPos(iconPos);
 				ImGui::PushFont(m_Window.GetSmallIconFont());
@@ -98,7 +98,7 @@ namespace gallus
 				ImGui::PopFont();
 
 				// Cross icon.
-				iconPos = ImVec2((x + inputSize.x) - (m_Window.GetWindowPadding().x * 5), y + (inputSize.y - iconSize.y) / 2);
+				iconPos = ImVec2((x + inputSize.x) - (m_Window.GetWindowPadding().x + iconSize.x), y + (inputSize.y - iconSize.y) / 2);
 
 				ImGui::SetCursorPos(iconPos);
 				ImGui::PushFont(m_Window.GetSmallIconFont());

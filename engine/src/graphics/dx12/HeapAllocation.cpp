@@ -54,7 +54,7 @@ namespace gallus
 			CD3DX12_GPU_DESCRIPTOR_HANDLE HeapAllocation::GetGPUHandle(size_t a_Index)
 			{
 				CD3DX12_GPU_DESCRIPTOR_HANDLE gpuHandle(m_Heap->GetGPUDescriptorHandleForHeapStart());
-				gpuHandle.Offset(a_Index, m_Device->GetDescriptorHandleIncrementSize(m_Type));
+				gpuHandle.Offset(static_cast<INT>(a_Index), m_Device->GetDescriptorHandleIncrementSize(m_Type));
 
 				return gpuHandle;
 			}
@@ -62,7 +62,7 @@ namespace gallus
 			CD3DX12_CPU_DESCRIPTOR_HANDLE HeapAllocation::GetCPUHandle(size_t a_Index)
 			{
 				CD3DX12_CPU_DESCRIPTOR_HANDLE cpuHandle(m_Heap->GetCPUDescriptorHandleForHeapStart());
-				cpuHandle.Offset(a_Index, m_Device->GetDescriptorHandleIncrementSize(m_Type));
+				cpuHandle.Offset(static_cast<INT>(a_Index), m_Device->GetDescriptorHandleIncrementSize(m_Type));
 
 				return cpuHandle;
 			}

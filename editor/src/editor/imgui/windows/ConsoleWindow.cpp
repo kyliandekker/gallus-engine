@@ -32,7 +32,7 @@ namespace gallus
 				font::ICON_CIRCLE_ERROR,
 				font::ICON_CIRCLE_WARNING,
 				font::ICON_CIRCLE_INFO,
-				font::ICON_CIRCLE_INFO,
+				font::ICON_CIRCLE_TEST,
 				font::ICON_CIRCLE_SUCCESS,
 				font::ICON_CIRCLE_INFO_SUCCESS,
 				font::ICON_CIRCLE_AWESOME
@@ -63,6 +63,7 @@ namespace gallus
 						editorSettings.Error(),
 						editorSettings.Warning(),
 						editorSettings.Info(),
+						editorSettings.Test(),
 						editorSettings.Success(),
 						editorSettings.InfoSuccess(),
 						editorSettings.Awesome(),
@@ -97,7 +98,7 @@ namespace gallus
 				float topPosY = ImGui::GetCursorPosY();
 
 				ImGui::PushFont(m_Window.GetIconFont());
-				if (ImGui::TransparentButton(
+				if (ImGui::TextButton(
 					ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_CLEAR), BUTTON_ID, "CLEAR_CONSOLE").c_str(), m_Window.GetHeaderSize()))
 				{
 					std::lock_guard<std::mutex> lock(MESSAGE_MUTEX);
@@ -109,7 +110,7 @@ namespace gallus
 				ImGui::SameLine();
 				bool scrollToBottom = editorSettings.ScrollToBottom();
 				if (ImGui::CheckboxButton(
-					ImGui::IMGUI_FORMAT_ID("Scroll to bottom", BUTTON_ID, "SCROLL_TO_BOTTOM_CONSOLE").c_str(), &scrollToBottom, ImVec2(0, toolbarSize.y)))
+					ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_SCROLL_TO_BOTTOM) + " Scroll to bottom", BUTTON_ID, "SCROLL_TO_BOTTOM_CONSOLE").c_str(), &scrollToBottom, ImVec2(0, toolbarSize.y)))
 				{
 					editorSettings.SetScrollToBottom(scrollToBottom);
 					m_NeedsRefresh = true;
@@ -121,6 +122,15 @@ namespace gallus
 					ImGui::IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_INFO]), BUTTON_ID, "SHOW_INFO_CONSOLE").c_str(), &info, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_INFO]))
 				{
 					editorSettings.SetInfo(info);
+					m_NeedsRefresh = true;
+				}
+
+				ImGui::SameLine();
+				bool test = editorSettings.Test();
+				if (ImGui::IconCheckboxButton(
+					ImGui::IMGUI_FORMAT_ID(std::string(logo_arr[LOGSEVERITY_TEST]), BUTTON_ID, "SHOW_TEST_CONSOLE").c_str(), &test, m_Window.GetHeaderSize(), m_Window.GetIconFont(), colors_arr[LOGSEVERITY_TEST]))
+				{
+					editorSettings.SetTest(test);
 					m_NeedsRefresh = true;
 				}
 
@@ -250,7 +260,7 @@ namespace gallus
 
 						ImGui::SetCursorPosX(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(message.GetCategory().c_str()).x);
 						ImGui::PushFont(m_Window.GetBoldFont());
-						ImGui::TextColored(ImGui::ConvertColorsRgba(0, 183, 183, 255), message.GetCategory().c_str());
+						ImGui::TextColored(ImGui::GetStyleColorVec4(ImGuiCol_HeaderActive), message.GetCategory().c_str());
 						ImGui::PopFont();
 
 						if (i < m_FilteredMessages.size() - 1)

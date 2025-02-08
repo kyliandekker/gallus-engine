@@ -230,7 +230,7 @@ namespace gallus
 				}
 
 				// Manually add padding.
-				ImVec2 iconPos = ImVec2(ImGui::GetCursorPosX() + (m_Window.GetFramePadding().x * 3), ImGui::GetCursorPosY());
+				ImVec2 iconPos = ImVec2(ImGui::GetCursorPosX() + m_Window.GetFramePadding().x, ImGui::GetCursorPosY());
 				if (ImGui::InvisibleButton(ImGui::IMGUI_FORMAT_ID("", BUTTON_ID, "FILES_INNER_EXPLORER_LIST_INVIS_BUTTON_" + m_Name).c_str(), childSize))
 				{
 					a_Clicked = true;

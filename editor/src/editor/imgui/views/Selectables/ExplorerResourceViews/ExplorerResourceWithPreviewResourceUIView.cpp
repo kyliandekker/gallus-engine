@@ -19,6 +19,7 @@ namespace gallus
 			{
 				ExplorerResourceUIView::RenderBaseSelectable(a_Resource);
 
+				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, m_Window.GetWindowPadding());
 				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(m_Window.GetFramePadding().x * 2, m_Window.GetFramePadding().y * 2));
 
 				if (ImGui::BeginChild(
@@ -41,15 +42,17 @@ namespace gallus
 				ImGui::EndChild();
 
 				ImGui::PopStyleVar();
+				ImGui::PopStyleVar();
 			}
 
 			void ExplorerResourceWithPreviewUIView::RenderPreviewWindow()
 			{
+				ImGui::PushStyleColor(ImGuiCol_FrameBg, ImGui::GetStyle().Colors[ImGuiCol_HeaderActive]);
 				if (ImGui::BeginChild(
 					ImGui::IMGUI_FORMAT_ID("", CHILD_ID, "EXPLORER_RESOURCE_PREVIEW_INSPECTOR").c_str(),
 					ImVec2(
 					ImGui::GetContentRegionAvail().x,
-					PREVIEW_SIZE
+					PREVIEW_SIZE - m_Window.GetWindowPadding().y
 					)
 					))
 				{
@@ -59,6 +62,7 @@ namespace gallus
 			void ExplorerResourceWithPreviewUIView::EndPreviewWindow()
 			{
 				ImGui::EndChild();
+				ImGui::PopStyleColor();
 			}
 
 			ExplorerResourceWithPreviewUIView::ExplorerResourceWithPreviewUIView(ImGuiWindow& a_Window) : ExplorerResourceUIView(a_Window)
