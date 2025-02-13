@@ -4,6 +4,7 @@
 #include "graphics/dx12/DX12System.h"
 #include "graphics/win32/Window.h"
 #include "core/input/InputSystem.h"
+#include "gameplay/EntityComponentSystem.h"
 #ifdef _EDITOR
 #include "editor/Editor.h"
 #endif // _EDITOR
@@ -50,6 +51,12 @@ namespace gallus
 			/// <returns>Reference to the dx12 instance.</returns>
 			graphics::dx12::DX12System& GetDX12();
 
+			/// <summary>
+			/// Retrieves the ecs.
+			/// </summary>
+			/// <returns>Reference to the ecs instance.</returns>
+			gameplay::EntityComponentSystem& GetECS();
+
 #ifdef _EDITOR
 			editor::Editor& GetEditor();
 #endif // _EDITOR
@@ -57,6 +64,7 @@ namespace gallus
 			graphics::win32::Window m_Window;
 			graphics::dx12::DX12System m_DX12System;
 			input::InputSystem m_InputSystem;
+			gameplay::EntityComponentSystem m_ECS;
 #ifdef _EDITOR
 			editor::Editor m_Editor;
 #endif // _EDITOR

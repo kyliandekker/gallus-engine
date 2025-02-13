@@ -52,13 +52,14 @@ namespace gallus
 			public:
 				Mesh();
 				void Render(std::shared_ptr<CommandList> a_CommandList, const Transform& a_Transform, const DirectX::XMMATRIX& a_CameraView, const DirectX::XMMATRIX& a_CameraProjection);
+				bool IsValid() const override;
+
+				bool LoadByName(const std::wstring& a_Name, const std::shared_ptr<CommandList> a_CommandList);
+				bool LoadByPath(const fs::path& a_Path, const std::shared_ptr<CommandList> a_CommandList);
 			private:
-				bool Load(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList);
 
 				D3D12_SHADER_RESOURCE_VIEW_DESC m_ShaderResourceView;
 				std::vector<MeshPartData*> m_MeshData;
-
-				friend class ResourceAtlas;
 			};
 		}
 	}

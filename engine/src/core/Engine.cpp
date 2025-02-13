@@ -39,7 +39,9 @@ namespace gallus
 #endif // _EDITOR
 
 			// TODO: We can initialize DX12 without having to wait for it for now. Later when we introduce the editor it might be important to wait.
-			m_DX12System.Initialize(false, m_Window.GetHWnd(), m_Window.GetRealSize(), &m_Window);
+			m_DX12System.Initialize(true, m_Window.GetHWnd(), m_Window.GetRealSize(), &m_Window);
+
+			m_ECS.Initialize();
 
 			System::Initialize();
 
@@ -60,6 +62,7 @@ namespace gallus
 
 			while (m_Ready.load())
 			{
+				m_ECS.Update(0);
 			}
 
 			return true;
@@ -98,6 +101,11 @@ namespace gallus
 		graphics::dx12::DX12System& Engine::GetDX12()
 		{
 			return m_DX12System;
+		}
+
+		gameplay::EntityComponentSystem& Engine::GetECS()
+		{
+			return m_ECS;
 		}
 
 #ifdef _EDITOR

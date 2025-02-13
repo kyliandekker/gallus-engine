@@ -15,10 +15,9 @@ namespace gallus
 			}
 
 			void Material::Unbind(std::shared_ptr<CommandList> a_CommandList)
-			{
-			}
+			{}
 
-			bool Material::Load(const std::string& a_Name, const MaterialData& a_MaterialData)
+			bool Material::LoadByName(const std::wstring& a_Name, const MaterialData& a_MaterialData)
 			{
 				m_MaterialData = a_MaterialData;
 
@@ -36,8 +35,7 @@ namespace gallus
 				bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 				bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-				std::wstring name = std::wstring(a_Name.begin(), a_Name.end());
-				if (!CreateResource(bufferDesc, name, heapProps, D3D12_RESOURCE_STATE_GENERIC_READ))
+				if (!CreateResource(bufferDesc, a_Name, heapProps, D3D12_RESOURCE_STATE_GENERIC_READ))
 				{
 					return false;
 				}
@@ -50,6 +48,12 @@ namespace gallus
 				m_Resource->Unmap(0, nullptr);
 
 				return true;
+			}
+
+			// TODO: Implement
+			bool Material::LoadByPath(const fs::path& a_Path, std::shared_ptr<CommandList> a_CommandList)
+			{
+				return false;
 			}
 		}
 	}

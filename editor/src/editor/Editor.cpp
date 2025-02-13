@@ -61,23 +61,23 @@ namespace gallus
 			m_CurrentScene->Load();
 		}
 
-		//void Editor::SetDirty()
-		//{
-		//	if (!m_CurrentScene)
-		//	{
-		//		return;
-		//	}
+		void Editor::SetDirty()
+		{
+			if (!m_CurrentScene)
+			{
+				return;
+			}
 
-		//	if (m_CurrentScene)
-		//	{
-		//		m_CurrentScene->SetDirty();
-		//	}
-		//}
+			if (m_CurrentScene)
+			{
+				m_CurrentScene->SetDirty();
+			}
+		}
 
-		//bool Editor::GetDirty()
-		//{
-		//	return m_CurrentScene ? m_CurrentScene->IsDirty() : false;
-		//}
+		bool Editor::GetDirty()
+		{
+			return m_CurrentScene ? m_CurrentScene->IsDirty() : false;
+		}
 
 		imgui::EditorSelectable* Editor::GetSelectable() const
 		{

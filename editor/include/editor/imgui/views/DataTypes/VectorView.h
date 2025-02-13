@@ -28,7 +28,7 @@ namespace gallus
 				/// Constructs a Vector2View that renders a vector.
 				/// </summary>
 				/// <param name="a_Window">The ImGui window for rendering the view.</param>
-				Vector2View(ImGuiWindow& a_Window) : ImGuiUIView(a_Window), m_Value(0)
+				Vector2View(ImGuiWindow& a_Window) : ImGuiUIView(a_Window)
 				{}
 
 				/// <summary>
@@ -37,10 +37,7 @@ namespace gallus
 				/// <param name="a_Value">The new vector value to set.</param>
 				void SetValue(const T& a_Value)
 				{
-					if (m_Value != a_Value)
-					{
-						m_Value = a_Value;
-					}
+					m_Value = a_Value;
 				}
 
 				/// <summary>

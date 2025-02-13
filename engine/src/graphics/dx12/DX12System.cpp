@@ -15,6 +15,13 @@
 #endif // _RENDER_TEX
 #endif // _EDITOR
 
+#ifdef _RESOURCE_ATLAS
+#include "graphics/dx12/Texture.h"
+#include "graphics/dx12/Mesh.h"
+#include "graphics/dx12/Material.h"
+#include "graphics/dx12/Shader.h"
+#endif // _RESOURCE_ATLAS
+
 namespace gallus
 {
 	namespace graphics
@@ -169,6 +176,12 @@ namespace gallus
 				CreateDSV();
 				CreateSRV();
 
+				if (!CreateRootSignature())
+				{
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating root signature.");
+					return false;
+				}
+
 				m_OnInitialize(*this);
 #ifdef _EDITOR
 				m_ImGuiWindow.Initialize();
@@ -177,16 +190,61 @@ namespace gallus
 #endif // _RENDER_TEX
 #endif // _EDITOR
 
+#ifdef _RESOURCE_ATLAS
+				// Default textures, meshes, shaders and materials.
+				Shader& shaderColor = m_ResourceAtlas.LoadShaderByPath("./assets/shaders/color_vertexshader.hlsl", "./assets/shaders/color_pixelshader.hlsl"); // Default color shader.
+				Shader& shaderAlbedo = m_ResourceAtlas.LoadShaderByPath("./assets/shaders/albedo_vertexshader.hlsl", "./assets/shaders/albedo_pixelshader.hlsl"); // Default color shader.
+				m_ResourceAtlas.LoadTextureByPath(fs::absolute("./assets/textures/tex_missing.png"), cCommandList); // Default texture.
+				m_ResourceAtlas.LoadMaterialByName(L"default", { { 1.0f, 1.0f, 1.0f }, 0.0f, 0.0f }); // Default material.
+#endif // _RESOURCE_ATLAS
+
+				// TODO: Remove this.
+#ifdef _RESOURCE_ATLAS
+				Material& m_FaucetMaterial = m_ResourceAtlas.LoadMaterialByName(L"faucet", { { 0.16f, 0.16f, 0.16f }, 0.87f, 1.0f });
+				m_ChickenMesh.Initialize();
+				m_ChickenMesh2.Initialize();
+
+				m_ChickenMesh.SetMesh(m_ResourceAtlas.LoadMeshByPath("./assets/models/mod_chicken.glb", cCommandList));
+				m_ChickenMesh.SetTexture(m_ResourceAtlas.LoadTextureByPath("./assets/textures/tex_chicken_normal.png", cCommandList));
+				m_ChickenMesh.SetShader(shaderAlbedo);
+
+				m_ChickenMesh2.SetMesh(m_ResourceAtlas.LoadMeshByPath("./assets/models/mod_chicken.glb", cCommandList));
+				m_ChickenMesh2.SetTexture(m_ResourceAtlas.LoadTextureByPath("./assets/textures/tex_chicken_sick.png", cCommandList));
+				m_ChickenMesh2.SetShader(shaderAlbedo);
+
+				// Define a default light direction (pointing downward)
+				m_DirectionalLight = { DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f), 0.0f, DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), 0.5f };
+
+				size_t bufferSize = sizeof(DirectionalLight);
+
+				CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
+				CD3DX12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
+
+				if (FAILED(m_Device->CreateCommittedResource(
+					&heapProps,
+					D3D12_HEAP_FLAG_NONE,
+					&bufferDesc,
+					D3D12_RESOURCE_STATE_GENERIC_READ,
+					nullptr,
+					IID_PPV_ARGS(&m_DirectionalLightBuffer))))
+				{
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create DirectionalLight buffer.");
+					return false;
+				}
+
+				// Copy light data to GPU buffer
+				void* mappedData;
+				CD3DX12_RANGE readRange(0, 0);
+				m_DirectionalLightBuffer->Map(0, &readRange, &mappedData);
+				memcpy(mappedData, &m_DirectionalLight, bufferSize);
+				m_DirectionalLightBuffer->Unmap(0, nullptr);
+#endif // _RESOURCE_ATLAS
+
 				UpdateRenderTargetViews();
+
 #ifdef _EDITOR
 				m_ImGuiWindow.OnRenderTargetCreated();
 #endif // _EDITOR
-
-				if (!CreateRootSignature())
-				{
-					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed creating root signature.");
-					return false;
-				}
 
 				auto fenceValue = cCommandQueue->ExecuteCommandList(cCommandList);
 				cCommandQueue->WaitForFenceValue(fenceValue);
@@ -386,7 +444,7 @@ namespace gallus
 					return false;
 				}
 
-				// Disable the Alt+Enter fullscreen toggle feature. Switching to fullscreen
+				// Disable the Alt+Enter full screen toggle feature. Switching to full screen
 				// will be handled manually.
 				if (FAILED(dxgiFactory4->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER)))
 				{
@@ -396,7 +454,7 @@ namespace gallus
 
 				if (FAILED(swapChain1.As(&m_SwapChain)))
 				{
-					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed casting swapchain.");
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed casting swap chain.");
 					return false;
 				}
 
@@ -462,7 +520,7 @@ namespace gallus
 				texDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 				texDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-				m_RenderTexture = &m_ResourceAtlas.LoadTextureByDescription("RenderTexture", texDesc);
+				m_RenderTexture = &m_ResourceAtlas.LoadTextureByDescription(L"RenderTexture", texDesc);
 #else
 				LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Could not create render texture because ResourceAtlas was missing.");
 #endif // _RESOURCES
@@ -756,6 +814,24 @@ namespace gallus
 				commandList->GetCommandList()->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
 
 				m_OnRender(commandList);
+
+				commandList->GetCommandList()->SetGraphicsRootConstantBufferView(RootParameters::LIGHT, m_DirectionalLightBuffer->GetGPUVirtualAddress());
+
+				m_CurrentCamera = &m_Camera1;
+				m_CurrentCamera->GetTransform().SetPosition({ 0.0f, 0.0f, 0.0f });
+
+				const DirectX::XMMATRIX viewMatrix = m_CurrentCamera->GetViewMatrix();
+				const DirectX::XMMATRIX& projectionMatrix = m_CurrentCamera->GetProjectionMatrix();
+
+				m_ChickenTransform1.SetPosition({ 0.0f, -0.5f, 1.5f });
+				m_ChickenTransform1.GetRotation().y += 0.1f;
+
+				m_ChickenMesh.Render(commandList, m_ChickenTransform1, viewMatrix, projectionMatrix);
+
+				m_ChickenTransform2.SetPosition({ 1.0f, -0.5f, 1.5f });
+				m_ChickenTransform2.GetRotation().y += 0.1f;
+
+				m_ChickenMesh2.Render(commandList, m_ChickenTransform2, viewMatrix, projectionMatrix);
 #ifdef _EDITOR
 #ifdef _RENDER_TEX
 				// Transition back to SRV for ImGui usage

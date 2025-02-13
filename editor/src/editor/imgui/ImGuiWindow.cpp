@@ -298,7 +298,7 @@ namespace gallus
 				bool update = false;
 				if (!m_PreviewPath.empty())
 				{
-					if (m_PreviewTexture && m_PreviewTexture->GetName() == m_PreviewPath.stem())
+					if (m_PreviewTexture && m_PreviewTexture->GetName() == m_PreviewPath.generic_wstring())
 					{
 						return;
 					}
@@ -307,12 +307,12 @@ namespace gallus
 
 					if (!m_PreviewTexture)
 					{
-						m_PreviewTexture = &core::ENGINE.GetDX12().GetResourceAtlas().LoadTexture(m_PreviewPath.generic_string(), cCommandList);
+						m_PreviewTexture = &core::ENGINE.GetDX12().GetResourceAtlas().LoadTextureByPath(m_PreviewPath, cCommandList);
 					}
 					else
 					{
 						m_PreviewTexture->Destroy();
-						m_PreviewTexture->Load(m_PreviewPath.generic_string(), cCommandList);
+						m_PreviewTexture->LoadByPath(m_PreviewPath.generic_wstring(), cCommandList);
 					}
 
 					float fenceValue = cCommandQueue->ExecuteCommandList(cCommandList);

@@ -27,9 +27,10 @@ namespace gallus
 
 				void Bind(std::shared_ptr<CommandList> a_CommandList);
 				void Unbind(std::shared_ptr<CommandList> a_CommandList);
-			private:
-				bool Load(const std::string& a_Name, const MaterialData& a_MaterialData);
 
+				bool LoadByName(const std::wstring& a_Name, const MaterialData& a_MaterialData);
+				bool LoadByPath(const fs::path& a_Path, std::shared_ptr<CommandList> a_CommandList = nullptr);
+			private:
 				MaterialData m_MaterialData;
 
 				friend class ResourceAtlas;

@@ -19,6 +19,14 @@
 #include "graphics/dx12/ResourceAtlas.h"
 #endif // _RESOURCE_ATLAS
 
+// TODO: REMOVE
+#ifdef _RESOURCE_ATLAS
+#include "graphics/dx12/MeshComponent.h"
+#include "graphics/dx12/Transform.h"
+#include "graphics/dx12/Camera.h"
+#include "Light.h"
+#endif // _RESOURCE_ATLAS
+
 #include "core/Event.h"
 
 #undef min
@@ -348,6 +356,22 @@ namespace gallus
 
 #ifdef _RESOURCE_ATLAS
 				ResourceAtlas m_ResourceAtlas;
+#endif // _RESOURCE_ATLAS
+
+				// TODO: REMOVE
+#ifdef _RESOURCE_ATLAS
+				Camera m_Camera1;
+				Camera* m_CurrentCamera = nullptr;
+
+				Transform m_ChickenTransform1;
+				Transform m_ChickenTransform2;
+				Transform m_FaucetTransform;
+
+				MeshComponent m_ChickenMesh;
+				MeshComponent m_ChickenMesh2;
+
+				Microsoft::WRL::ComPtr<ID3D12Resource> m_DirectionalLightBuffer;
+				DirectionalLight m_DirectionalLight;
 #endif // _RESOURCE_ATLAS
 			};
 		}

@@ -83,13 +83,13 @@ namespace gallus
 			/// <summary>
 			/// Marks the editor as having unsaved changes.
 			/// </summary>
-			//void SetDirty();
+			void SetDirty();
 
 			/// <summary>
 			/// Checks whether the editor has unsaved changes.
 			/// </summary>
 			/// <returns>True if there are unsaved changes, otherwise false.</returns>
-			//bool GetDirty();
+			bool GetDirty();
 
 			/// <summary>
 			/// Retrieves the currently selected object in the editor.

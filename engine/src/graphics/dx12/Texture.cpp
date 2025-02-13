@@ -55,64 +55,6 @@ namespace gallus
 				return glm::ivec2(GetResourceDesc().Width, GetResourceDesc().Height);
 			}
 
-			// TODO: This all needs to be loaded from a file eventually instead of from files on the disk.
-			bool Texture::Load(const fs::path& a_Path, std::shared_ptr<CommandList> a_CommandList)
-			{
-				int width, height, channels;
-				stbi_uc* imageData = stbi_load(a_Path.generic_string().c_str(), &width, &height, &channels, STBI_rgb_alpha);
-				if (!imageData)
-				{
-					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to load texture: \"%s\".", a_Path.generic_string().c_str());
-					return false;
-				}
-
-				std::wstring name = a_Path.stem().generic_wstring();
-
-				D3D12_RESOURCE_DESC textureDesc = {};
-				textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-				textureDesc.Width = width;
-				textureDesc.Height = height;
-				textureDesc.DepthOrArraySize = 1;
-				textureDesc.MipLevels = 1;
-				textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-				textureDesc.SampleDesc.Count = 1;
-				textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-				textureDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-
-				CreateResource(textureDesc, name);
-
-				UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_Resource.Get(), 0, 1);
-				CD3DX12_HEAP_PROPERTIES uploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
-				CD3DX12_RESOURCE_DESC bufferResource = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
-				if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateCommittedResource(
-					&uploadHeapProperties,
-					D3D12_HEAP_FLAG_NONE,
-					&bufferResource,
-					D3D12_RESOURCE_STATE_GENERIC_READ,
-					nullptr,
-					IID_PPV_ARGS(&m_ResourceUploadHeap))))
-				{
-					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create upload heap.");
-					return false;
-				}
-
-				D3D12_SUBRESOURCE_DATA textureData = {};
-				textureData.pData = imageData;
-				textureData.RowPitch = width * channels;
-				textureData.SlicePitch = textureData.RowPitch * height;
-				UpdateSubresources(a_CommandList->GetCommandList().Get(), m_Resource.Get(), m_ResourceUploadHeap.Get(), 0, 0, 1, &textureData);
-
-				stbi_image_free(imageData);
-
-				LOGF(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_DX12, "Successfully loaded texture: \"%s\".", a_Path.generic_string().c_str());
-				return true;
-			}
-
-			bool Texture::Load(const std::string& a_Name, const D3D12_RESOURCE_DESC& a_Description)
-			{
-				return CreateResource(a_Description, std::wstring(a_Name.begin(), a_Name.end()));
-			}
-
 			bool Texture::Transition(std::shared_ptr<CommandList> a_CommandList)
 			{
 				CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
@@ -155,6 +97,69 @@ namespace gallus
 			CD3DX12_CPU_DESCRIPTOR_HANDLE Texture::GetCPUHandle()
 			{
 				return core::ENGINE.GetDX12().GetSRV().GetCPUHandle(m_SRVIndex);
+			}
+
+			bool Texture::LoadByName(const std::wstring& a_Name, const D3D12_RESOURCE_DESC& a_Description)
+			{
+				return CreateResource(a_Description, a_Name);
+			}
+
+			bool Texture::LoadByName(const std::wstring& a_Name, std::shared_ptr<CommandList> a_CommandList)
+			{
+				return false;
+			}
+
+			bool Texture::LoadByPath(const fs::path& a_Path, std::shared_ptr<CommandList> a_CommandList)
+			{
+				int width, height, channels;
+				stbi_uc* imageData = stbi_load(a_Path.generic_string().c_str(), &width, &height, &channels, STBI_rgb_alpha);
+				if (!imageData)
+				{
+					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to load texture: \"%s\".", a_Path.generic_string().c_str());
+					return false;
+				}
+
+				m_Name = a_Path.stem().generic_wstring();
+				m_Path = fs::absolute(a_Path);
+
+				D3D12_RESOURCE_DESC textureDesc = {};
+				textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+				textureDesc.Width = width;
+				textureDesc.Height = height;
+				textureDesc.DepthOrArraySize = 1;
+				textureDesc.MipLevels = 1;
+				textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+				textureDesc.SampleDesc.Count = 1;
+				textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+				textureDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+
+				CreateResource(textureDesc, m_Name);
+
+				UINT64 uploadBufferSize = GetRequiredIntermediateSize(m_Resource.Get(), 0, 1);
+				CD3DX12_HEAP_PROPERTIES uploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
+				CD3DX12_RESOURCE_DESC bufferResource = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
+				if (FAILED(core::ENGINE.GetDX12().GetDevice()->CreateCommittedResource(
+					&uploadHeapProperties,
+					D3D12_HEAP_FLAG_NONE,
+					&bufferResource,
+					D3D12_RESOURCE_STATE_GENERIC_READ,
+					nullptr,
+					IID_PPV_ARGS(&m_ResourceUploadHeap))))
+				{
+					LOG(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed to create upload heap.");
+					return false;
+				}
+
+				D3D12_SUBRESOURCE_DATA textureData = {};
+				textureData.pData = imageData;
+				textureData.RowPitch = width * channels;
+				textureData.SlicePitch = textureData.RowPitch * height;
+				UpdateSubresources(a_CommandList->GetCommandList().Get(), m_Resource.Get(), m_ResourceUploadHeap.Get(), 0, 0, 1, &textureData);
+
+				stbi_image_free(imageData);
+
+				LOGF(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_DX12, "Successfully loaded texture: \"%s\".", a_Path.generic_string().c_str());
+				return true;
 			}
 		}
 	}

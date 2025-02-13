@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "editor/imgui/views/DataTypes/StringTextInput.h"
-//#include "editor/imgui/views/Selectables/EntityUIView.h"
+#include "editor/imgui/views/Selectables/EntityUIView.h"
 
 namespace gallus
 {
@@ -57,9 +57,9 @@ namespace gallus
 				/// </summary>
 				void UpdateEntityComponents();
 			private:
-				//gameplay::EntityID m_LastID; /// The last ID that was selected in the hierarchy view.
-				//bool m_NeedsRefresh = true; /// Whether the hierarchy needs to refresh the results shown in the hierarchy window.
-				//std::vector<EntityUIView> m_FilteredEntities; /// List of entities shown in the hierarchy window.
+				gameplay::EntityID m_LastID; /// The last ID that was selected in the hierarchy view.
+				bool m_NeedsRefresh = true; /// Whether the hierarchy needs to refresh the results shown in the hierarchy window.
+				std::vector<EntityUIView> m_FilteredEntities; /// List of entities shown in the hierarchy window.
 
 				SearchBarInput m_SearchBar; /// Search bar to filter specific entities in the hierarchy window.
 			};

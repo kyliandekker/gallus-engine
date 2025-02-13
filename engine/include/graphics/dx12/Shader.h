@@ -1,9 +1,12 @@
 #pragma once
 
 #include "graphics/dx12/DX12PCH.h"
+
 #include <string>
 #include <wrl.h>
 #include <memory>
+
+#include "core/FileUtils.h"
 
 namespace gallus
 {
@@ -26,16 +29,24 @@ namespace gallus
 					return m_Name;
 				};
 
+				const fs::path& GetPath() const
+				{
+					return m_Name;
+				};
+
 				bool IsValid()
 				{
-					return true;
+					return m_PipelineState.Get();
 				};
-			private:
-				bool Load(const std::string& a_Name, void*);
 
-				Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState;
+				bool LoadByName(const std::wstring& a_VertexShader, const std::wstring& a_PixelShader);
+				bool LoadByPath(const fs::path& a_VertexShaderPath, const fs::path& a_PixelShaderPath);
+			private:
+
+				Microsoft::WRL::ComPtr<ID3D12PipelineState> m_PipelineState = nullptr;
 
 				std::wstring m_Name;
+				fs::path m_Path;
 
 				friend class ResourceAtlas;
 			};

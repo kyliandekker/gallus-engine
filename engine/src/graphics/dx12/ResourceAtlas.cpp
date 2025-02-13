@@ -14,73 +14,121 @@ namespace gallus
 	{
 		namespace dx12
 		{
-			template<class T, typename Arg>
-			T* ResourceAtlas::GetResource(std::vector<T*>& a_Vector, const std::string& a_Name, const Arg& a_Arg)
+			template<class T>
+			T* GetResource(std::vector<T*>& a_Vector, const std::wstring& a_Name, const fs::path& a_Path, size_t a_StartIndex = MISSING)
 			{
-				std::wstring name = std::wstring(a_Name.begin(), a_Name.end());
-				T* res = nullptr;
-				for (size_t i = 0; i < a_Vector.size(); i++)
+				size_t index = a_StartIndex;
+				for (size_t i = a_StartIndex; i < a_Vector.size(); i++)
 				{
-					if (a_Vector[i] && a_Vector[i]->GetName() == name)
+					if (a_Vector[i])
 					{
 						if (!a_Vector[i]->IsValid())
 						{
-							a_Vector[i]->Load(a_Name, a_Arg);
+							index = i;
 						}
-						res = a_Vector[i];
-						break;
-					}
-					if (!a_Vector[i])
-					{
-						break;
-					}
-				}
-				if (!res)
-				{
-					for (size_t i = 0; i < a_Vector.size(); i++)
-					{
-						T* texture = a_Vector[i];
-						if (!a_Vector[i])
+						else if (a_Vector[i]->GetName() == a_Name || (!a_Path.empty() && a_Path == a_Vector[i]->GetPath()))
 						{
-							a_Vector[i] = new T();
-							a_Vector[i]->Load(a_Name, a_Arg);
-
-							res = a_Vector[i];
+							index = i;
 							break;
 						}
 					}
+					else
+					{
+						index = i;
+						break;
+					}
 				}
-				return res;
+				if (!a_Vector[index])
+				{
+					a_Vector[index] = new T();
+				}
+				return a_Vector[index];
 			}
 
-			Mesh& ResourceAtlas::LoadMesh(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList)
+			Mesh& ResourceAtlas::LoadMeshByName(const std::wstring& a_Name, std::shared_ptr<CommandList> a_CommandList)
 			{
-				Mesh* mesh = GetResource(m_Meshes, a_Name, a_CommandList);
-				return *(mesh ? mesh : m_Meshes[MISSING]);
+				Mesh* mesh = GetResource(m_Meshes, a_Name, fs::path());
+				if (!mesh->IsValid())
+				{
+					mesh->LoadByName(a_Name, a_CommandList);
+				}
+				return *mesh;
 			}
 
-			Texture& ResourceAtlas::LoadTexture(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList)
+			Mesh& ResourceAtlas::LoadMeshByPath(const fs::path& a_Path, std::shared_ptr<CommandList> a_CommandList)
 			{
-				Texture* texture = GetResource(m_Textures, a_Name, a_CommandList);
-				return *(texture ? texture : m_Textures[MISSING_TEX]);
+				Mesh* mesh = GetResource(m_Meshes, a_Path.stem().generic_wstring(), a_Path);
+				if (!mesh->IsValid())
+				{
+					mesh->LoadByPath(a_Path, a_CommandList);
+				}
+				return *mesh;
 			}
 
-			Texture& ResourceAtlas::LoadTextureByDescription(const std::string& a_Name, D3D12_RESOURCE_DESC& a_Description)
+			Texture& ResourceAtlas::LoadTextureByName(const std::wstring& a_Name, std::shared_ptr<CommandList> a_CommandList)
 			{
-				Texture* texture = GetResource(m_Textures, a_Name, a_Description);
-				return *(texture ? texture : m_Textures[MISSING_TEX]);
+				Texture* texture = GetResource(m_Textures, a_Name, fs::path(), MISSING_TEX);
+				if (!texture->IsValid())
+				{
+					texture->LoadByName(a_Name, a_CommandList);
+				}
+				return *texture;
 			}
 
-			Shader& ResourceAtlas::LoadShader(const std::string& a_Name)
+			Texture& ResourceAtlas::LoadTextureByDescription(const std::wstring& a_Name, D3D12_RESOURCE_DESC& a_Description)
 			{
-				Shader* shader = GetResource(m_Shaders, a_Name, nullptr);
-				return *(shader ? shader : m_Shaders[MISSING]);
+				Texture* texture = GetResource(m_Textures, a_Name, fs::path(), MISSING_TEX);
+				if (!texture->IsValid())
+				{
+					texture->LoadByName(a_Name, a_Description);
+				}
+				return *texture;
 			}
 
-			Material& ResourceAtlas::LoadMaterial(const std::string& a_Name, const MaterialData& a_MaterialData)
+			Texture& ResourceAtlas::LoadTextureByPath(const fs::path& a_Path, std::shared_ptr<CommandList> a_CommandList)
 			{
-				Material* material = GetResource(m_Materials, a_Name, a_MaterialData);
-				return *(material ? material : m_Materials[MISSING]);
+				Texture* texture = GetResource(m_Textures, a_Path.stem().generic_wstring(), a_Path, MISSING_TEX);
+				if (!texture->IsValid())
+				{
+					texture->LoadByPath(a_Path, a_CommandList);
+				}
+				return *texture;
+			}
+
+			Shader& ResourceAtlas::LoadShaderByName(const std::wstring& a_VertexShader, const std::wstring& a_PixelShader)
+			{
+				Shader* shader = GetResource(m_Shaders, a_VertexShader, fs::path());
+				if (!shader->IsValid())
+				{
+					shader->LoadByName(a_VertexShader, a_PixelShader);
+				}
+				return *shader;
+			}
+
+			Shader& ResourceAtlas::LoadShaderByPath(const fs::path& a_VertexShaderPath, const fs::path& a_PixelShaderPath)
+			{
+				Shader* shader = GetResource(m_Shaders, a_VertexShaderPath.stem(), a_VertexShaderPath);
+				if (!shader->IsValid())
+				{
+					shader->LoadByPath(a_VertexShaderPath, a_PixelShaderPath);
+				}
+				return *shader;
+			}
+
+			Material& ResourceAtlas::LoadMaterialByName(const std::wstring& a_Name)
+			{
+				// TODO:
+				return *m_Materials[MISSING];
+			}
+
+			Material& ResourceAtlas::LoadMaterialByName(const std::wstring& a_Name, const MaterialData& a_MaterialData)
+			{
+				Material* material = GetResource(m_Materials, a_Name, fs::path());
+				if (!material->IsValid())
+				{
+					material->LoadByName(a_Name, a_MaterialData);
+				}
+				return *material;
 			}
 
 			Texture& ResourceAtlas::GetDefaultTexture()

@@ -1,5 +1,7 @@
 #include "graphics/dx12/Mesh.h"
 
+//#define TINYGLTF_USE_CPP14
+//#define TINYGLTF_GLTF2  // Enforce glTF 2.0 parsing
 #include <tiny_gltf/tiny_gltf.h>
 #include <stb_image.h>
 #include <filesystem>
@@ -23,25 +25,43 @@ namespace gallus
 			Mesh::Mesh() : DX12Resource()
 			{}
 
-			// TODO: This all needs to be loaded from a file eventually instead of from files on the disk.
-			bool Mesh::Load(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList)
+			void Mesh::Render(std::shared_ptr<CommandList> a_CommandList, const Transform& a_Transform, const DirectX::XMMATRIX& a_CameraView, const DirectX::XMMATRIX& a_CameraProjection)
 			{
-				m_Name = std::wstring(a_Name.begin(), a_Name.end());
+				for (auto& meshData : m_MeshData)
+				{
+					a_CommandList->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+					a_CommandList->GetCommandList()->IASetVertexBuffers(0, 1, &meshData->m_VertexBuffer.GetVertexBufferView());
+					a_CommandList->GetCommandList()->IASetIndexBuffer(&meshData->m_IndexBuffer.GetIndexBufferView());
 
-				fs::path path = file::FileLoader::GetPath(std::format("./assets/models/{0}", a_Name.c_str()));
+					// Update the MVP matrix
+					DirectX::XMMATRIX mvpMatrix = a_Transform.GetWorldMatrix() * a_CameraView * a_CameraProjection;
+					a_CommandList->GetCommandList()->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &mvpMatrix, 0);
+
+					a_CommandList->GetCommandList()->DrawIndexedInstanced(static_cast<UINT>(meshData->m_Indices.size()), 1, 0, 0, 0);
+				}
+			}
+
+			bool Mesh::LoadByName(const std::wstring& a_Name, const std::shared_ptr<CommandList> a_CommandList)
+			{
+				return false;
+			}
+
+			bool Mesh::LoadByPath(const fs::path& a_Path, const std::shared_ptr<CommandList> a_CommandList)
+			{
+				m_Name = a_Path.stem().generic_wstring();
 
 				// Upload vertex buffer data.
 				core::DataStream data;
-				if (!file::FileLoader::LoadFile(path, data))
+				if (!file::FileLoader::LoadFile(a_Path, data))
 				{
-					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading gltf file %s.", path.c_str());
+					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading gltf file %s.", a_Path.generic_string().c_str());
 					return false;
 				}
 
 				tinygltf::Model model;
 				tinygltf::TinyGLTF loader;
 				std::string err, warn;
-				if (!loader.LoadASCIIFromString(&model, &err, &warn, data.dataAs<const char>(), static_cast<unsigned int>(data.size()), path.parent_path().string()))
+				if (!loader.LoadBinaryFromMemory(&model, &err, &warn, data.dataAs<unsigned char>(), data.size(), ""))
 				{
 					LOGF(LOGSEVERITY_ERROR, LOG_CATEGORY_DX12, "Failed loading bin file %s.", err.c_str());
 					return false;
@@ -158,24 +178,13 @@ namespace gallus
 					meshData->m_IndexBuffer.CreateViews(meshData->m_Indices.size(), indexSize);
 				}
 
-				LOGF(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_DX12, "Loaded mesh: \"%s\".", path.c_str());
+				LOGF(LOGSEVERITY_INFO_SUCCESS, LOG_CATEGORY_DX12, "Loaded mesh: \"%s\".", a_Path.generic_string().c_str());
 				return true;
 			}
 
-			void Mesh::Render(std::shared_ptr<CommandList> a_CommandList, const Transform& a_Transform, const DirectX::XMMATRIX& a_CameraView, const DirectX::XMMATRIX& a_CameraProjection)
+			bool Mesh::IsValid() const
 			{
-				for (auto& meshData : m_MeshData)
-				{
-					a_CommandList->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-					a_CommandList->GetCommandList()->IASetVertexBuffers(0, 1, &meshData->m_VertexBuffer.GetVertexBufferView());
-					a_CommandList->GetCommandList()->IASetIndexBuffer(&meshData->m_IndexBuffer.GetIndexBufferView());
-
-					// Update the MVP matrix
-					DirectX::XMMATRIX mvpMatrix = a_Transform.GetWorldMatrix() * a_CameraView * a_CameraProjection;
-					a_CommandList->GetCommandList()->SetGraphicsRoot32BitConstants(0, sizeof(DirectX::XMMATRIX) / 4, &mvpMatrix, 0);
-
-					a_CommandList->GetCommandList()->DrawIndexedInstanced(static_cast<UINT>(meshData->m_Indices.size()), 1, 0, 0, 0);
-				}
+				return !m_MeshData.empty();
 			}
 		}
 	}

@@ -4,13 +4,15 @@
 
 #include <vector>
 
+#include "core/FileUtils.h"
+
 namespace gallus
 {
 	namespace graphics
 	{
 		namespace dx12
 		{
-			constexpr uint32_t MAX_RESOURCES = 65;
+			constexpr uint32_t MAX_RESOURCES = 64;
 			constexpr uint32_t MISSING = 0;
 #ifdef _EDITOR
 			constexpr uint32_t MISSING_TEX = 1;
@@ -29,14 +31,18 @@ namespace gallus
 			class ResourceAtlas
 			{
 			public:
-				template<class T, typename Arg>
-				T* GetResource(std::vector<T*>& a_Vector, const std::string& a_Name, const Arg& a_Arg);
+				Mesh& LoadMeshByName(const std::wstring& a_Name, std::shared_ptr<CommandList> a_CommandList);
+				Mesh& LoadMeshByPath(const fs::path& a_Path, std::shared_ptr<CommandList> a_CommandList);
 
-				Mesh& LoadMesh(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList);
-				Texture& LoadTexture(const std::string& a_Name, std::shared_ptr<CommandList> a_CommandList);
-				Texture& LoadTextureByDescription(const std::string& a_Name, D3D12_RESOURCE_DESC& a_Description);
-				Shader& LoadShader(const std::string& a_Name);
-				Material& LoadMaterial(const std::string& a_Name, const MaterialData& a_MaterialData);
+				Texture& LoadTextureByName(const std::wstring& a_Name, std::shared_ptr<CommandList> a_CommandList);
+				Texture& LoadTextureByDescription(const std::wstring& a_Name, D3D12_RESOURCE_DESC& a_Description);
+				Texture& LoadTextureByPath(const fs::path& a_Path, std::shared_ptr<CommandList> a_CommandList);
+
+				Shader& LoadShaderByName(const std::wstring& a_VertexShader, const std::wstring& a_PixelShader);
+				Shader& LoadShaderByPath(const fs::path& a_VertexShaderPath, const fs::path& a_PixelShaderPath);
+
+				Material& LoadMaterialByName(const std::wstring& a_Name);
+				Material& LoadMaterialByName(const std::wstring& a_Name, const MaterialData& a_MaterialData);
 
 				Texture& GetDefaultTexture();
 				Material& GetDefaultMaterial();

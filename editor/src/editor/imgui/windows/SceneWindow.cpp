@@ -1,4 +1,4 @@
-#ifdef _EDITOR
+﻿#ifdef _EDITOR
 
 #include "editor/imgui/windows/SceneWindow.h"
 
@@ -48,7 +48,37 @@ namespace gallus
 #ifdef _EDITOR
 #ifdef _RENDER_TEX
 				ImGui::SetCursorPos(ImVec2(initialPos.x, initialPos.y + toolbarSize.y));
-				ImGui::Image((ImTextureID) core::ENGINE.GetDX12().GetRenderTexture()->GetGPUHandle().ptr, ImGui::GetContentRegionAvail());
+
+				ImVec2 availableSize = ImGui::GetContentRegionAvail();
+				ImVec2 textureSize = ImVec2(core::ENGINE.GetDX12().GetRenderTexture()->GetSize().x,
+					core::ENGINE.GetDX12().GetRenderTexture()->GetSize().y);
+
+				float textureAspect = textureSize.x / textureSize.y;
+				float regionAspect = availableSize.x / availableSize.y;
+
+				// UV coordinates for cropping
+				ImVec2 uv0(0.0f, 0.0f);
+				ImVec2 uv1(1.0f, 1.0f);
+
+				if (textureAspect > regionAspect)
+				{
+// Texture is wider than the region; crop horizontally
+					float newWidth = regionAspect / textureAspect;
+					uv0.x = (1.0f - newWidth) * 0.5f;
+					uv1.x = 1.0f - uv0.x;
+				}
+				else
+				{
+			 // Texture is taller than the region; crop vertically
+					float newHeight = textureAspect / regionAspect;
+					uv0.y = (1.0f - newHeight) * 0.5f;
+					uv1.y = 1.0f - uv0.y;
+				}
+
+				// Render the cropped image
+				ImGui::Image((ImTextureID) core::ENGINE.GetDX12().GetRenderTexture()->GetGPUHandle().ptr,
+					availableSize, uv0, uv1);
+
 #endif // _RENDER_TEX
 #endif // _EDITOR
 
