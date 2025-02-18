@@ -44,10 +44,17 @@ namespace gallus
 				Material& LoadMaterialByName(const std::wstring& a_Name);
 				Material& LoadMaterialByName(const std::wstring& a_Name, const MaterialData& a_MaterialData);
 
+				Shader& GetDefaultShader();
+				Mesh& GetDefaultMesh();
 				Texture& GetDefaultTexture();
 				Material& GetDefaultMaterial();
 
 				void TransitionResources(std::shared_ptr<CommandList> a_CommandList);
+
+				const std::vector<Texture*>& GetTextures() const;
+				const std::vector<Mesh*>& GetMeshes() const;
+				const std::vector<Shader*>& GetShaders() const;
+				const std::vector<Material*>& GetMaterials() const;
 			private:
 				std::vector<Texture*> m_Textures = std::vector<Texture*>(MAX_RESOURCES);
 				std::vector<Mesh*> m_Meshes = std::vector<Mesh*>(MAX_RESOURCES);

@@ -78,7 +78,7 @@ namespace gallus
 				}
 
 				if (ImGui::IconButton(
-					ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_SAVE), BUTTON_ID, "SAVE_HIERARCHY").c_str(), m_Window.GetHeaderSize(), m_Window.GetIconFont()))
+					ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_SAVE), BUTTON_ID, "SAVE_HIERARCHY").c_str(), m_Window.GetHeaderSize(), m_Window.GetIconFont(), ImGui::GetStyleColorVec4(ImGuiCol_TextColorAccent)))
 				{
 					core::ENGINE.GetECS().CreateEntity(core::ENGINE.GetECS().GetUniqueName("New GameObject"));
 					m_NeedsRefresh = true;

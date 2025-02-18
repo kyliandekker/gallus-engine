@@ -10,10 +10,15 @@
 #include "editor/imgui/font_icon.h"
 #include "utils/string_extensions.h"
 #include "editor/imgui/ImGuiWindow.h"
+
 #include "gameplay/systems/TransformSystem.h"
-#include "editor/imgui/views/Components/TransformComponentUIView.h"
-#include "gameplay/systems/components/EntityInfoComponent.h"
+#include "gameplay/systems/MeshSystem.h"
 #include "gameplay/systems/EntityInfoSystem.h"
+
+#include "editor/imgui/views/Components/TransformComponentUIView.h"
+#include "editor/imgui/views/Components/MeshComponentUIView.h"
+
+#include "gameplay/systems/components/EntityInfoComponent.h"
 
 namespace gallus
 {
@@ -35,30 +40,73 @@ namespace gallus
 			{
 				gameplay::EntityInfoComponent& detailComponent = core::ENGINE.GetECS().GetSystem<gameplay::EntityInfoSystem>().GetComponent(m_EntityID);
 
-				ImDrawList* draw_list = ImGui::GetWindowDrawList();
+				// Set the size of each child
+				ImVec2 childSize = ImVec2(ImGui::GetContentRegionAvail().x, 32);
+				ImVec2 screenCursorPos = ImGui::GetCursorScreenPos();
+				ImVec2 cursorPos = screenCursorPos;
+				ImVec2 childEnd = ImVec2(cursorPos.x + childSize.x, cursorPos.y + childSize.y);
 
-				ImVec2 pos = ImGui::GetCursorScreenPos();
-
-				ImVec2 select_min = pos;
-				ImVec2 select_max = ImVec2(select_min.x + ImGui::GetContentRegionAvail().x, select_min.y + m_Window.GetFontSize());
-
-				bool is_hovered = ImGui::IsMouseHoveringRect(select_min, select_max);
-				if (a_Selected || is_hovered)
+				if (a_Selected)
 				{
-					ImVec4 color = ImGui::GetStyleColorVec4(a_Selected ? ImGuiCol_HeaderHovered : ImGuiCol_HeaderActive);
-					ImU32 select_color = ImGui::ColorConvertFloat4ToU32(color);
-
-					draw_list->AddRectFilled(select_min, select_max, select_color, 0);
+					ImGui::GetWindowDrawList()->AddRectFilled(cursorPos, childEnd, ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_HeaderActive)));
 				}
 
-				pos = ImGui::GetCursorPos();
-
-				bool active = detailComponent.IsActive();
-				if (!active)
+				ImVec2 buttonCursorPos = ImVec2(ImGui::GetCursorPosX() + (m_Window.GetFramePadding().x * 3), ImGui::GetCursorPosY());
+				if (ImGui::InvisibleButton(ImGui::IMGUI_FORMAT_ID("", BUTTON_ID, "FILES_FOLDERS_INVIS_BUTTON_" + detailComponent.GetName()).c_str(), childSize))
 				{
-					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.25f);
+					a_Clicked = true;
+				}
+				if (ImGui::IsItemHovered())
+				{
+					ImGui::GetWindowDrawList()->AddRectFilled(cursorPos, childEnd, ImGui::ColorConvertFloat4ToU32(ImGui::GetStyleColorVec4(ImGuiCol_HeaderHovered)));
 				}
 
+				ImGui::PushFont(m_Window.GetIconFont());
+
+				// Dynamically calculate the size of the icon
+				ImVec2 iconSize = ImVec2(m_Window.GetFontSize(), m_Window.GetFontSize()); // Replace this with your icon size calculation.
+
+				float iconOffset = m_Window.GetIconFont()->FontSize * 2.0f;
+
+				// Calculate offsets for centering
+				float verticalOffset = (childSize.y - iconSize.y) / 2.0f;   // Center vertically
+
+				// Final position of the icon
+				ImVec2 centerPos = ImVec2(0, buttonCursorPos.y);
+				centerPos.y += verticalOffset;
+
+				std::string	folderIcon = font::ICON_CUBE;
+
+				// Dynamically calculate the size of the icon
+				iconSize = ImGui::CalcTextSize(folderIcon.c_str()); // Replace this with your icon size calculation.
+
+				iconOffset = m_Window.GetIconFont()->FontSize * 2.0f;
+
+				// Calculate offsets for centering
+				verticalOffset = (childSize.y - iconSize.y) / 2.0f;   // Center vertically
+
+				// Final position of the icon
+				centerPos = ImVec2(centerPos.x + iconOffset, buttonCursorPos.y);
+				centerPos.y += verticalOffset;
+
+				// Set cursor to the calculated position and render the icon
+				ImGui::SetCursorPos(centerPos);
+				ImGui::Text(folderIcon.c_str());
+
+				ImGui::PopFont();
+
+				ImVec2 textSize = ImGui::CalcTextSize(detailComponent.GetName().c_str());
+
+				// Calculate position to center the icon
+				centerPos = ImVec2(
+					centerPos.x + iconOffset,
+					buttonCursorPos.y + (childSize.y - textSize.y) * 0.5f
+				);
+				ImGui::SetCursorPos(centerPos);
+				ImGui::Text(detailComponent.GetName().c_str());
+
+				centerPos = ImVec2(0, buttonCursorPos.y);
+				ImGui::SetCursorPos(centerPos);
 				bool temp = detailComponent.IsActive();
 				ImGui::SetNextItemAllowOverlap();
 				ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
@@ -72,17 +120,7 @@ namespace gallus
 				}
 				ImGui::PopStyleVar();
 
-				ImGui::SetCursorPos(ImVec2(pos.x + 30, pos.y));
-				ImGui::Text(GetIcon().c_str());
-				ImGui::SetCursorPos(ImVec2(pos.x + 65, pos.y));
-				ImGui::Text(detailComponent.GetName().c_str());
-
-				a_Clicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left) && is_hovered;
-
-				if (!active)
-				{
-					ImGui::PopStyleVar();
-				}
+				ImGui::SetCursorScreenPos(ImVec2(screenCursorPos.x, screenCursorPos.y + childSize.y));
 			}
 
 			void EntityUIView::RenderSelectable()
@@ -116,21 +154,13 @@ namespace gallus
 				ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 				ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
 
-				bool temp = detailComponent.IsActive();
-				// TODO: Add these icons back.
-				//if (ImGui::TransparentCheckboxButton(IMGUI_FORMAT_ID(temp ? font::ICON_FA_CHECKMARK_CHECKED : font::ICON_FA_CHECKMARK, CHECKBOX_ID, string_extensions::StringToUpper(detailComponent.GetName()) + "_INSPECTOR").c_str(), &temp, ImVec2(core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y, core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y)))
-				//{
-				//	detailComponent.SetActive(temp);
-				//	dirty = true;
-				//}
-				//ImGui::SameLine();
-				//if (ImGui::TransparentButton(ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_DELETE), BUTTON_ID, "DELETE_INSPECTOR").c_str(), ImVec2(core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y, core::ENGINE.GetEditor().GetImGuiWindow().HeaderSize().y)))
-				//{
-				//	core::ENGINE.GetECS().Delete(m_EntityID);
-				//	dirty = true;
-				//}
+				if (ImGui::IconButton(ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_DELETE), BUTTON_ID, "DELETE_INSPECTOR").c_str(), m_Window.GetHeaderSize(), m_Window.GetIconFont()))
+				{
+					core::ENGINE.GetECS().Delete(m_EntityID);
+					dirty = true;
+				}
 
-				ImGui::EndToolbar(ImVec2(ImGui::GetStyle().ItemSpacing.x, 0));
+				ImGui::EndToolbar(ImVec2(0, 0));
 
 				ImGui::PopStyleVar();
 				ImGui::PopStyleVar();
@@ -140,8 +170,8 @@ namespace gallus
 					return;
 				}
 
-				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetStyle().ItemSpacing.x);
-				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + ImGui::GetStyle().ItemSpacing.y);
+				ImGui::SetCursorPosX(ImGui::GetCursorPosX() + m_Window.GetFramePadding().y);
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + m_Window.GetFramePadding().y);
 
 				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(m_Window.GetFramePadding().x * 2, m_Window.GetFramePadding().y * 2));
 				if (ImGui::BeginChild(
@@ -156,7 +186,7 @@ namespace gallus
 					for (ComponentBaseUIView* component : m_Components)
 					{
 						component->Render();
-						ImGui::SetCursorPosY(ImGui::GetCursorPosY() + ImGui::GetStyle().ItemSpacing.y);
+						ImGui::SetCursorPosY(ImGui::GetCursorPosY() + m_Window.GetWindowPadding().y);
 					}
 
 					ImGui::Separator();
@@ -180,6 +210,7 @@ namespace gallus
 					if (ImGui::BeginPopup(ImGui::IMGUI_FORMAT_ID("", POPUP_WINDOW_ID, "ADD_COMPONENT_MENU_INSPECTOR").c_str()))
 					{
 						gameplay::TransformSystem& transformSys = ecs.GetSystem<gameplay::TransformSystem>();
+						gameplay::MeshSystem& meshSys = ecs.GetSystem<gameplay::MeshSystem>();
 
 						ImVec4 textColor = ImGui::GetStyleColorVec4(ImGuiCol_Text);
 						textColor.w = 0.5f;
@@ -187,6 +218,12 @@ namespace gallus
 						if (!transformSys.HasComponent(m_EntityID) && ImGui::MenuItem(ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_FOLDER) + " Transform", MENU_ITEM_ID, "ADD_TRANSFORM_COMPONENT_MENU_INSPECTOR").c_str()))
 						{
 							transformSys.CreateComponent(m_EntityID);
+							core::ENGINE.GetEditor().SetSelectable(this);
+							dirty = true;
+						}
+						if (!meshSys.HasComponent(m_EntityID) && ImGui::MenuItem(ImGui::IMGUI_FORMAT_ID(std::string(font::ICON_CUBE) + " Mesh", MENU_ITEM_ID, "ADD_MESH_COMPONENT_MENU_INSPECTOR").c_str()))
+						{
+							meshSys.CreateComponent(m_EntityID);
 							core::ENGINE.GetEditor().SetSelectable(this);
 							dirty = true;
 						}
@@ -212,6 +249,10 @@ namespace gallus
 				if (ecs.GetSystem<gameplay::TransformSystem>().ContainsID(m_EntityID))
 				{
 					m_Components.push_back(new TransformComponentUIView(m_Window, m_EntityID, core::ENGINE.GetECS().GetSystem<gameplay::TransformSystem>().GetComponent(m_EntityID), core::ENGINE.GetECS().GetSystem<gameplay::TransformSystem>()));
+				}
+				if (ecs.GetSystem<gameplay::MeshSystem>().ContainsID(m_EntityID))
+				{
+					m_Components.push_back(new MeshComponentUIView(m_Window, m_EntityID, core::ENGINE.GetECS().GetSystem<gameplay::MeshSystem>().GetComponent(m_EntityID), core::ENGINE.GetECS().GetSystem<gameplay::MeshSystem>()));
 				}
 			}
 

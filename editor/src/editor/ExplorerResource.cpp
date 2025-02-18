@@ -93,7 +93,7 @@ namespace gallus
 				{ ".bmp", { assets::AssetType::Texture, assets::AssetType::Sprite, assets::AssetType::Font } },
 				{ ".wav", { assets::AssetType::Sound, assets::AssetType::Song } },
 				{ ".anim", { assets::AssetType::Animation } },
-				{ ".gltf", { assets::AssetType::Model } },
+				{ ".glb", { assets::AssetType::Model } },
 			};
 
 			m_Path = fs::absolute(m_Path);

@@ -22,6 +22,10 @@
 #include "graphics/dx12/Shader.h"
 #endif // _RESOURCE_ATLAS
 
+#include "core/Engine.h"
+#include <gameplay/systems/MeshSystem.h>
+#include <gameplay/systems/TransformSystem.h>
+
 namespace gallus
 {
 	namespace graphics
@@ -192,25 +196,15 @@ namespace gallus
 
 #ifdef _RESOURCE_ATLAS
 				// Default textures, meshes, shaders and materials.
-				Shader& shaderColor = m_ResourceAtlas.LoadShaderByPath("./assets/shaders/color_vertexshader.hlsl", "./assets/shaders/color_pixelshader.hlsl"); // Default color shader.
-				Shader& shaderAlbedo = m_ResourceAtlas.LoadShaderByPath("./assets/shaders/albedo_vertexshader.hlsl", "./assets/shaders/albedo_pixelshader.hlsl"); // Default color shader.
+				m_ResourceAtlas.LoadMeshByPath("./assets/models/mod_missing.glb", cCommandList);
+				m_ResourceAtlas.LoadShaderByPath("./assets/shaders/color_vertexshader.hlsl", "./assets/shaders/color_pixelshader.hlsl"); // Default color shader.
+				m_ResourceAtlas.LoadShaderByPath("./assets/shaders/albedo_vertexshader.hlsl", "./assets/shaders/albedo_pixelshader.hlsl"); // Default color shader.
 				m_ResourceAtlas.LoadTextureByPath(fs::absolute("./assets/textures/tex_missing.png"), cCommandList); // Default texture.
 				m_ResourceAtlas.LoadMaterialByName(L"default", { { 1.0f, 1.0f, 1.0f }, 0.0f, 0.0f }); // Default material.
 #endif // _RESOURCE_ATLAS
 
-				// TODO: Remove this.
 #ifdef _RESOURCE_ATLAS
-				Material& m_FaucetMaterial = m_ResourceAtlas.LoadMaterialByName(L"faucet", { { 0.16f, 0.16f, 0.16f }, 0.87f, 1.0f });
-				m_ChickenMesh.Initialize();
-				m_ChickenMesh2.Initialize();
-
-				m_ChickenMesh.SetMesh(m_ResourceAtlas.LoadMeshByPath("./assets/models/mod_chicken.glb", cCommandList));
-				m_ChickenMesh.SetTexture(m_ResourceAtlas.LoadTextureByPath("./assets/textures/tex_chicken_normal.png", cCommandList));
-				m_ChickenMesh.SetShader(shaderAlbedo);
-
-				m_ChickenMesh2.SetMesh(m_ResourceAtlas.LoadMeshByPath("./assets/models/mod_chicken.glb", cCommandList));
-				m_ChickenMesh2.SetTexture(m_ResourceAtlas.LoadTextureByPath("./assets/textures/tex_chicken_sick.png", cCommandList));
-				m_ChickenMesh2.SetShader(shaderAlbedo);
+				// TODO: Remove this.
 
 				// Define a default light direction (pointing downward)
 				m_DirectionalLight = { DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f), 0.0f, DirectX::XMFLOAT3(1.0f, 1.0f, 1.0f), 0.5f };
@@ -657,6 +651,11 @@ namespace gallus
 				}
 			}
 
+			Camera* DX12System::GetCamera() const
+			{
+				return m_CurrentCamera;
+			}
+
 			void DX12System::ResizeDepthBuffer(const glm::ivec2& a_Size)
 			{
 				// Flush any GPU commands that might be referencing the depth buffer.
@@ -823,16 +822,12 @@ namespace gallus
 				const DirectX::XMMATRIX viewMatrix = m_CurrentCamera->GetViewMatrix();
 				const DirectX::XMMATRIX& projectionMatrix = m_CurrentCamera->GetProjectionMatrix();
 
-				m_ChickenTransform1.SetPosition({ 0.0f, -0.5f, 1.5f });
-				m_ChickenTransform1.GetRotation().y += 0.1f;
+				// TODO: RENDER LOOP.
+				for (auto& pair : core::ENGINE.GetECS().GetSystem<gameplay::MeshSystem>().GetComponents())
+				{
+					pair.second.Render(commandList, pair.first, viewMatrix, projectionMatrix);
+				}
 
-				m_ChickenMesh.Render(commandList, m_ChickenTransform1, viewMatrix, projectionMatrix);
-
-				m_ChickenTransform2.SetPosition({ 1.0f, -0.5f, 1.5f });
-				m_ChickenTransform2.GetRotation().y += 0.1f;
-
-				m_ChickenMesh2.Render(commandList, m_ChickenTransform2, viewMatrix, projectionMatrix);
-#ifdef _EDITOR
 #ifdef _RENDER_TEX
 				// Transition back to SRV for ImGui usage
 				commandList->TransitionResource(m_RenderTexture->GetResource(),
@@ -844,6 +839,8 @@ namespace gallus
 				commandList->GetCommandList()->ClearRenderTargetView(rtv, clearColor, 0, nullptr);
 				commandList->GetCommandList()->OMSetRenderTargets(1, &rtv, FALSE, &dsv);
 #endif // _RENDER_TEX
+
+#ifdef _EDITOR
 				m_ImGuiWindow.Render(commandList);
 #endif // _EDITOR
 				// Present

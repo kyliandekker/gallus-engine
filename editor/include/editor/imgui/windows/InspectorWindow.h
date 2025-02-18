@@ -6,6 +6,13 @@
 
 namespace gallus
 {
+	namespace graphics
+	{
+		namespace dx12
+		{
+			class CommandList;
+		}
+	}
 	namespace editor
 	{
 		namespace imgui

@@ -67,7 +67,7 @@ namespace gallus
 
 			Texture& ResourceAtlas::LoadTextureByName(const std::wstring& a_Name, std::shared_ptr<CommandList> a_CommandList)
 			{
-				Texture* texture = GetResource(m_Textures, a_Name, fs::path(), MISSING_TEX);
+				Texture* texture = GetResource(m_Textures, a_Name, fs::path(), MISSING);
 				if (!texture->IsValid())
 				{
 					texture->LoadByName(a_Name, a_CommandList);
@@ -77,7 +77,7 @@ namespace gallus
 
 			Texture& ResourceAtlas::LoadTextureByDescription(const std::wstring& a_Name, D3D12_RESOURCE_DESC& a_Description)
 			{
-				Texture* texture = GetResource(m_Textures, a_Name, fs::path(), MISSING_TEX);
+				Texture* texture = GetResource(m_Textures, a_Name, fs::path(), MISSING);
 				if (!texture->IsValid())
 				{
 					texture->LoadByName(a_Name, a_Description);
@@ -87,7 +87,7 @@ namespace gallus
 
 			Texture& ResourceAtlas::LoadTextureByPath(const fs::path& a_Path, std::shared_ptr<CommandList> a_CommandList)
 			{
-				Texture* texture = GetResource(m_Textures, a_Path.stem().generic_wstring(), a_Path, MISSING_TEX);
+				Texture* texture = GetResource(m_Textures, a_Path.stem().generic_wstring(), a_Path, MISSING);
 				if (!texture->IsValid())
 				{
 					texture->LoadByPath(a_Path, a_CommandList);
@@ -131,6 +131,16 @@ namespace gallus
 				return *material;
 			}
 
+			Shader& ResourceAtlas::GetDefaultShader()
+			{
+				return *m_Shaders[MISSING];
+			}
+
+			Mesh& ResourceAtlas::GetDefaultMesh()
+			{
+				return *m_Meshes[MISSING];
+			}
+
 			Texture& ResourceAtlas::GetDefaultTexture()
 			{
 				return *m_Textures[MISSING_TEX];
@@ -150,6 +160,25 @@ namespace gallus
 						texture->Transition(a_CommandList);
 					}
 				}
+			}
+			const std::vector<Texture*>& ResourceAtlas::GetTextures() const
+			{
+				return m_Textures;
+			}
+
+			const std::vector<Mesh*>& ResourceAtlas::GetMeshes() const
+			{
+				return m_Meshes;
+			}
+
+			const std::vector<Shader*>& ResourceAtlas::GetShaders() const
+			{
+				return m_Shaders;
+			}
+
+			const std::vector<Material*>& ResourceAtlas::GetMaterials() const
+			{
+				return m_Materials;
 			}
 		}
 	}

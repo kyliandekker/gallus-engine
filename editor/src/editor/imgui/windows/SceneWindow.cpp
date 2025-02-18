@@ -3,11 +3,13 @@
 #include "editor/imgui/windows/SceneWindow.h"
 
 #include <imgui/imgui_helpers.h>
+#include <imgui/ImGuizmo.h>
 
 #include "editor/imgui/font_icon.h"
 #include "editor/imgui/ImGuiWindow.h"
 #include "core/Engine.h"
 #include "graphics/dx12/Texture.h"
+#include "gameplay/systems/TransformSystem.h"
 
 namespace gallus
 {
@@ -62,28 +64,79 @@ namespace gallus
 
 				if (textureAspect > regionAspect)
 				{
-// Texture is wider than the region; crop horizontally
 					float newWidth = regionAspect / textureAspect;
 					uv0.x = (1.0f - newWidth) * 0.5f;
 					uv1.x = 1.0f - uv0.x;
 				}
 				else
 				{
-			 // Texture is taller than the region; crop vertically
 					float newHeight = textureAspect / regionAspect;
 					uv0.y = (1.0f - newHeight) * 0.5f;
 					uv1.y = 1.0f - uv0.y;
 				}
 
-				// Render the cropped image
+				//// Render the cropped image
 				ImGui::Image((ImTextureID) core::ENGINE.GetDX12().GetRenderTexture()->GetGPUHandle().ptr,
 					availableSize, uv0, uv1);
+
+				ImGui::SetCursorPos(ImVec2(initialPos.x, initialPos.y + toolbarSize.y));
+
+				EntityUIView* entity = dynamic_cast<EntityUIView*>(core::ENGINE.GetEditor().GetSelectable());
+				if (entity)
+				{
+					if (!core::ENGINE.GetECS().GetSystem<gameplay::TransformSystem>().ContainsID(entity->GetEntityID()))
+					{
+						return;
+					}
+
+					auto transformComponent = core::ENGINE.GetECS().GetSystem<gameplay::TransformSystem>().GetComponent(entity->GetEntityID());
+
+					ImGuizmo::Enable(true);
+					ImGuizmo::SetOrthographic(false); // Use perspective mode
+					ImGuizmo::SetDrawlist();
+					ImVec2 windowPos = ImGui::GetWindowPos();
+
+					// Adjust ImGuizmo's rect to match the image cropping area
+					ImGuizmo::SetRect(windowPos.x + initialPos.x, windowPos.y + initialPos.y + toolbarSize.y, availableSize.x, availableSize.y);
+
+					// Get transformation matrices
+					DirectX::XMMATRIX objectMat = transformComponent.Transform().GetWorldMatrix();
+					DirectX::XMMATRIX viewMat = core::ENGINE.GetDX12().GetCamera()->GetViewMatrix();
+					DirectX::XMMATRIX projMat = core::ENGINE.GetDX12().GetCamera()->GetProjectionMatrix();
+
+					// Convert DirectX matrices to float[16] format for ImGuizmo
+					float gizmoMatrix[16];
+					DirectX::XMStoreFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(gizmoMatrix), objectMat);
+
+					// Choose the type of transformation
+					static ImGuizmo::OPERATION currentOperation = ImGuizmo::TRANSLATE;
+					if (ImGui::IsKeyPressed(ImGuiKey_T) || ImGui::IsKeyPressed(ImGuiKey_P)) currentOperation = ImGuizmo::TRANSLATE;
+					if (ImGui::IsKeyPressed(ImGuiKey_R)) currentOperation = ImGuizmo::ROTATE;
+					if (ImGui::IsKeyPressed(ImGuiKey_S)) currentOperation = ImGuizmo::SCALE;
+
+					if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered() && ImGui::IsWindowFocused())
+					{
+						TEST("Mouse clicked within window, should interact with gizmo");
+					}
+
+					// Render the gizmo (check if manipulation occurred)
+					if (ImGuizmo::Manipulate(reinterpret_cast<float*>(&viewMat),
+						reinterpret_cast<float*>(&projMat),
+						currentOperation,
+						ImGuizmo::LOCAL,
+						gizmoMatrix))
+					{
+						TEST("Gizmo manipulated!");
+						objectMat = XMLoadFloat4x4(reinterpret_cast<DirectX::XMFLOAT4X4*>(gizmoMatrix));
+						transformComponent.Transform().SetWorldMatrix(objectMat);
+					}
+				}
 
 #endif // _RENDER_TEX
 #endif // _EDITOR
 
 				//ImGui::SetCursorPosY(y);
-				//std::string fpsValue = std::to_string(static_cast<uint64_t>(std::round(core::ENGINE.GetWindow().GetDX12Window().GetFPS().GetFPS()))) + "fps";
+				//std::string fpsValue = std::to_string(static_cast<uint64_t>(std::round(core::ENGINE.GetDX12().GetFPS().GetFPS()))) + "fps";
 
 				//ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - (ImGui::CalcTextSize(fpsValue.c_str()).x + m_Window.GetWindowPadding().x));
 				//ImGui::TextColored(ImVec4(1, 1, 0, 1), fpsValue.c_str());

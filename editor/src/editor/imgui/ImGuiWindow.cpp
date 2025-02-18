@@ -5,6 +5,7 @@
 #include <imgui/implot.h>
 #include <imgui/backends/imgui_impl_win32.h>
 #include <imgui/backends/imgui_impl_dx12.h>
+#include <imgui/imgui_internal.h>
 
 #include "core/FileUtils.h"
 #include "core/logger/Logger.h"
@@ -48,7 +49,6 @@ namespace gallus
 				{
 					return false;
 				}
-				core::ENGINE.GetWindow().m_OnMsg += std::bind(&ImGuiWindow::WndProcHandler, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 
 				CreateImGui();
 
@@ -341,6 +341,18 @@ namespace gallus
 				if (!m_Ready)
 				{
 					return;
+				}
+
+				std::lock_guard<std::mutex> lock(core::ENGINE.GetWindow().g_EventMutex);
+
+				while (!core::ENGINE.GetWindow().m_EventQueue.empty())
+				{
+					ImGuiIO& io = ImGui::GetIO();
+
+					auto event = core::ENGINE.GetWindow().m_EventQueue.front();
+					core::ENGINE.GetWindow().m_EventQueue.pop();
+
+					ImGui_ImplWin32_WndProcHandler(event.hwnd, event.msg, event.wParam, event.lParam);
 				}
 
 				ImGui_ImplDX12_NewFrame();

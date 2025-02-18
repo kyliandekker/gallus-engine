@@ -6,6 +6,7 @@
 
 #include "gameplay/systems/EntityInfoSystem.h"
 #include "gameplay/systems/TransformSystem.h"
+#include "gameplay/systems/MeshSystem.h"
 
 namespace gallus
 {
@@ -15,6 +16,7 @@ namespace gallus
 		{
 			CreateSystem<EntityInfoSystem>();
 			CreateSystem<TransformSystem>();
+			CreateSystem<MeshSystem>();
 
 			LOG(LOGSEVERITY_SUCCESS, LOG_CATEGORY_ECS, "ECS initialized.");
 			return System::Initialize();

@@ -10,7 +10,7 @@ namespace gallus
 {
 	namespace gameplay
 	{
-		class EntityID;
+		struct EntityID;
 		class Component;
 		class AbstractECSSystem;
 	}

@@ -3,6 +3,7 @@
 #include <glm/vec2.hpp>
 #include <Windows.h>
 #include <string>
+#include <queue>
 
 #include "core/System.h"
 #include "core/Event.h"
@@ -37,9 +38,9 @@ namespace gallus
 				/// <param name="a_hWnd">Handle to the window.</param>
 				/// <param name="a_Msg">Message identifier.</param>
 				/// <param name="a_wParam">Additional message information (WPARAM).</param>
-				/// <param name="a_wlParam">Additional message information (LPARAM).</param>
+				/// <param name="a_lParam">Additional message information (LPARAM).</param>
 				/// <returns>The result of the message processing.</returns>
-				LRESULT CALLBACK WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+				LRESULT CALLBACK WndProcHandler(HWND a_hWnd, UINT a_Msg, WPARAM a_wParam, LPARAM a_lParam);
 
 				/// <summary>
 				/// Loop method for the thread.
@@ -116,11 +117,20 @@ namespace gallus
 				/// <returns></returns>
 				WNDCLASSEX& GetWc();
 
-				SimpleEvent<HWND, UINT, WPARAM, LPARAM> m_OnMsg;
 				SimpleEvent<const glm::ivec2&, const glm::ivec2&> m_OnResize;
 				SimpleEvent<> m_OnQuit;
 
 				void SetCursor(LPTSTR a_Cursor);
+
+				struct WindowsMsg
+				{
+					HWND hwnd;
+					UINT msg;
+					WPARAM wParam;
+					LPARAM lParam;
+				};
+				std::queue<WindowsMsg> m_EventQueue;
+				std::mutex g_EventMutex;
 			private:
 				LPTSTR m_Cursor = IDC_ARROW;
 

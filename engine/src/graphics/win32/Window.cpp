@@ -31,7 +31,6 @@ namespace gallus
 
 			LRESULT Window::WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
-				m_OnMsg(hwnd, msg, wParam, lParam);
 				switch (msg)
 				{
 					case WM_DESTROY:
@@ -45,6 +44,11 @@ namespace gallus
 						m_OnResize(GetPosition(), GetRealSize());
 						break;
 					}
+				}
+				// Lock the queue and push the event
+				{
+					std::lock_guard<std::mutex> lock(g_EventMutex);
+					m_EventQueue.push({ hwnd, msg, wParam, lParam });
 				}
 				return DefWindowProc(hwnd, msg, wParam, lParam);
 			}

@@ -28,6 +28,8 @@ namespace gallus
 				m_FoldedOut = ImGui::CollapsingHeader(ImGui::IMGUI_FORMAT_ID(GetName(), FOLDOUT_ID, string_extensions::StringToUpper(GetName()) + "_INSPECTOR").c_str());
 				if (m_FoldedOut)
 				{
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + m_Window.GetWindowPadding().y);
+
 					ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
 					ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0);
 
@@ -63,11 +65,9 @@ namespace gallus
 					ImGui::PopStyleVar();
 					ImGui::PopStyleVar();
 
-					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + ImGui::GetStyle().ItemSpacing.y);
+					ImGui::SetCursorPosY(ImGui::GetCursorPosY() + m_Window.GetWindowPadding().y);
 
-					ImGui::Indent();
 					RenderInner();
-					ImGui::Unindent();
 				}
 				ImGui::PopStyleVar();
 			}
